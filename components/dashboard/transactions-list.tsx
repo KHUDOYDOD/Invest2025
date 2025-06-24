@@ -313,7 +313,7 @@ export function TransactionsList({ userId, limit = 10 }: TransactionsListProps) 
                 </div>
               </div>
             ))}
-            {!Array.isArray(transactions) || transactions.length === 0 && (
+            {(!Array.isArray(transactions) || transactions.length === 0) && (
               <div className="text-center py-8">
                 <p className="text-gray-400">Транзакции не найдены</p>
               </div>

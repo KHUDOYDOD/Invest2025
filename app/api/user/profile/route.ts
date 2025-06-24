@@ -1,137 +1,129 @@
-import { NextResponse } from "next/server"
-import { createClient } from "@/lib/supabase/server"
+import { NextRequest, NextResponse } from "next/server"
+import { query } from "@/lib/database"
 
-export async function GET(request: Request) {
+export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url)
     const userId = searchParams.get("id")
 
     if (!userId) {
-      return NextResponse.json({ error: "ID пользователя обязателен" }, { status: 400 })
+      return NextResponse.json({ success: false, error: "User ID обязателен" }, { status: 400 })
     }
 
-    const supabase = createClient()
-    if (!supabase) {
-      return NextResponse.json({ error: "Ошибка подключения к базе данных" }, { status: 500 })
+    console.log("Loading profile data for user:", userId)
+
+    // Получаем данные пользователя из базы данных
+    const userResult = await query(
+      `SELECT id, email, full_name, balance, total_invested, total_earned, role_id, created_at, phone, country, city, address, bio, avatar_url, last_login
+       FROM users WHERE id = $1`,
+      [userId]
+    )
+
+    if (userResult.rows.length === 0) {
+      return NextResponse.json({ success: false, error: "Пользователь не найден" }, { status: 404 })
     }
 
-    // Получаем данные пользователя с профилем
-    const { data: user, error: userError } = await supabase
-      .from("users")
-      .select(`
-        *,
-        profile:user_profiles(*)
-      `)
-      .eq("id", userId)
-      .single()
+    const user = userResult.rows[0]
+    
+    // Определяем роль
+    const isAdmin = user.role_id === 1
 
-    if (userError || !user) {
-      console.error("User fetch error:", userError)
-      return NextResponse.json({ error: "Пользователь не найден" }, { status: 404 })
+    const profileData = {
+      id: user.id,
+      email: user.email,
+      full_name: user.full_name,
+      balance: parseFloat(user.balance || 0),
+      total_invested: parseFloat(user.total_invested || 0),
+      total_earned: parseFloat(user.total_earned || 0),
+      role: isAdmin ? "admin" : "user",
+      created_at: user.created_at,
+      phone: user.phone || "",
+      country: user.country || "",
+      city: user.city || "",
+      address: user.address || "",
+      bio: user.bio || "",
+      avatar_url: user.avatar_url || "",
+      last_login: user.last_login,
     }
+
+    console.log("Profile data loaded successfully for user:", user.email)
 
     return NextResponse.json({
       success: true,
-      user: {
-        id: user.id,
-        email: user.email,
-        full_name: user.full_name,
-        balance: Number(user.balance) || 0,
-        total_invested: Number(user.total_invested) || 0,
-        total_profit: Number(user.total_profit) || 0,
-        total_withdrawn: Number(user.total_withdrawn) || 0,
-        referral_count: user.referral_count || 0,
-        referral_code: user.referral_code,
-        role: user.role_id === 1 ? "admin" : "user",
-        status: user.status,
-        email_verified: user.email_verified,
-        kyc_verified: user.kyc_verified,
-        created_at: user.created_at,
-        profile: user.profile?.[0] || null,
-      },
+      user: profileData,
     })
   } catch (error) {
-    console.error("Profile fetch error:", error)
-    return NextResponse.json({ error: "Внутренняя ошибка сервера" }, { status: 500 })
+    console.error("Profile API error:", error)
+    return NextResponse.json({ success: false, error: "Ошибка сервера" }, { status: 500 })
   }
 }
 
-export async function PUT(request: Request) {
+export async function PUT(request: NextRequest) {
   try {
-    const body = await request.json()
-    const { userId, full_name, phone, country, city, bio, occupation } = body
+    const { userId, updates } = await request.json()
 
     if (!userId) {
-      return NextResponse.json({ error: "ID пользователя обязателен" }, { status: 400 })
+      return NextResponse.json({ success: false, error: "User ID обязателен" }, { status: 400 })
     }
 
-    const supabase = createClient()
-    if (!supabase) {
-      return NextResponse.json({ error: "Ошибка подключения к базе данных" }, { status: 500 })
+    console.log("Updating profile for user:", userId, updates)
+
+    // Обновляем данные пользователя
+    const updateResult = await query(
+      `UPDATE users 
+       SET full_name = COALESCE($2, full_name),
+           phone = COALESCE($3, phone),
+           country = COALESCE($4, country),
+           city = COALESCE($5, city),
+           address = COALESCE($6, address),
+           bio = COALESCE($7, bio),
+           avatar_url = COALESCE($8, avatar_url)
+       WHERE id = $1
+       RETURNING id, email, full_name, balance, total_invested, total_earned, role_id, created_at, phone, country, city, address, bio, avatar_url`,
+      [
+        userId,
+        updates.full_name,
+        updates.phone,
+        updates.country,
+        updates.city,
+        updates.address,
+        updates.bio,
+        updates.avatar_url,
+      ]
+    )
+
+    if (updateResult.rows.length === 0) {
+      return NextResponse.json({ success: false, error: "Пользователь не найден" }, { status: 404 })
     }
 
-    // Обновляем основные данные пользователя
-    const { error: userError } = await supabase.from("users").update({ full_name }).eq("id", userId)
+    const user = updateResult.rows[0]
+    const isAdmin = user.role_id === 1
 
-    if (userError) {
-      console.error("User update error:", userError)
-      return NextResponse.json({ error: "Ошибка обновления пользователя" }, { status: 500 })
+    const profileData = {
+      id: user.id,
+      email: user.email,
+      full_name: user.full_name,
+      balance: parseFloat(user.balance || 0),
+      total_invested: parseFloat(user.total_invested || 0),
+      total_earned: parseFloat(user.total_earned || 0),
+      role: isAdmin ? "admin" : "user",
+      created_at: user.created_at,
+      phone: user.phone || "",
+      country: user.country || "",
+      city: user.city || "",
+      address: user.address || "",
+      bio: user.bio || "",
+      avatar_url: user.avatar_url || "",
     }
 
-    // Обновляем или создаем профиль
-    const { error: profileError } = await supabase.from("user_profiles").upsert({
-      user_id: userId,
-      phone,
-      country,
-      city,
-      bio,
-      occupation,
-      updated_at: new Date().toISOString(),
-    })
-
-    if (profileError) {
-      console.error("Profile update error:", profileError)
-      return NextResponse.json({ error: "Ошибка обновления профиля" }, { status: 500 })
-    }
-
-    // Получаем обновленные данные
-    const { data: updatedUser, error: fetchError } = await supabase
-      .from("users")
-      .select(`
-        *,
-        profile:user_profiles(*)
-      `)
-      .eq("id", userId)
-      .single()
-
-    if (fetchError) {
-      console.error("Updated user fetch error:", fetchError)
-      return NextResponse.json({ error: "Ошибка получения обновленных данных" }, { status: 500 })
-    }
+    console.log("Profile updated successfully for user:", user.email)
 
     return NextResponse.json({
       success: true,
-      message: "Профиль успешно обновлен",
-      user: {
-        id: updatedUser.id,
-        email: updatedUser.email,
-        full_name: updatedUser.full_name,
-        balance: Number(updatedUser.balance) || 0,
-        total_invested: Number(updatedUser.total_invested) || 0,
-        total_profit: Number(updatedUser.total_profit) || 0,
-        total_withdrawn: Number(updatedUser.total_withdrawn) || 0,
-        referral_count: updatedUser.referral_count || 0,
-        referral_code: updatedUser.referral_code,
-        role: updatedUser.role_id === 1 ? "admin" : "user",
-        status: updatedUser.status,
-        email_verified: updatedUser.email_verified,
-        kyc_verified: updatedUser.kyc_verified,
-        created_at: updatedUser.created_at,
-        profile: updatedUser.profile?.[0] || null,
-      },
+      user: profileData,
     })
   } catch (error) {
-    console.error("Profile update error:", error)
-    return NextResponse.json({ error: "Внутренняя ошибка сервера" }, { status: 500 })
+    console.error("Profile update API error:", error)
+    return NextResponse.json({ success: false, error: "Ошибка обновления профиля" }, { status: 500 })
   }
 }
