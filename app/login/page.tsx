@@ -104,9 +104,16 @@ export default function LoginPage() {
       // Сохраняем данные пользователя
       localStorage.setItem("userEmail", data.user.email)
       localStorage.setItem("userName", data.user.full_name)
-      localStorage.setItem("userId", data.user.id.toString())
+      localStorage.setItem("userId", data.user.id)
       localStorage.setItem("userRole", data.user.role || "user")
+      localStorage.setItem("userBalance", data.user.balance || "0.00")
+      localStorage.setItem("userTotalInvested", data.user.total_invested || "0.00")
+      localStorage.setItem("userTotalEarned", data.user.total_earned || "0.00")
       localStorage.setItem("isAuthenticated", "true")
+      
+      if (data.token) {
+        localStorage.setItem("authToken", data.token)
+      }
 
       if (data.user.isAdmin) {
         localStorage.setItem("adminAuth", "true")

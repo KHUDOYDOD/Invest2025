@@ -1,125 +1,92 @@
-import { type NextRequest, NextResponse } from "next/server"
-
-// Демо данные пользователей
-const demoUsers = {
-  "user-1": {
-    id: "user-1",
-    name: "Демо Пользователь",
-    email: "demo@example.com",
-    balance: 25000,
-    totalInvested: 15000,
-    totalProfit: 2500,
-    referralCount: 3,
-    isAdmin: false,
-  },
-  "admin-1": {
-    id: "admin-1",
-    name: "Администратор",
-    email: "admin@example.com",
-    balance: 100000,
-    totalInvested: 50000,
-    totalProfit: 12000,
-    referralCount: 15,
-    isAdmin: true,
-  },
-}
-
-// Демо инвестиции
-const demoInvestments = [
-  {
-    id: "inv-1",
-    user_id: "user-1",
-    amount: 5000,
-    daily_profit: 75,
-    total_profit: 750,
-    start_date: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000).toISOString(),
-    end_date: new Date(Date.now() + 20 * 24 * 60 * 60 * 1000).toISOString(),
-    status: "active",
-    investment_plans: {
-      name: "Стандарт",
-      daily_percent: 1.5,
-    },
-  },
-  {
-    id: "inv-2",
-    user_id: "user-1",
-    amount: 10000,
-    daily_profit: 200,
-    total_profit: 1600,
-    start_date: new Date(Date.now() - 8 * 24 * 60 * 60 * 1000).toISOString(),
-    end_date: new Date(Date.now() + 22 * 24 * 60 * 60 * 1000).toISOString(),
-    status: "active",
-    investment_plans: {
-      name: "Премиум",
-      daily_percent: 2,
-    },
-  },
-]
-
-// Демо транзакции
-const demoTransactions = [
-  {
-    id: "tx-1",
-    user_id: "user-1",
-    type: "deposit",
-    amount: 5000,
-    status: "completed",
-    method: "Банковская карта",
-    created_at: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
-    description: "Пополнение баланса",
-  },
-  {
-    id: "tx-2",
-    user_id: "user-1",
-    type: "profit",
-    amount: 75,
-    status: "completed",
-    method: "Автоначисление",
-    created_at: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(),
-    description: "Ежедневная прибыль",
-  },
-  {
-    id: "tx-3",
-    user_id: "user-1",
-    type: "investment",
-    amount: 10000,
-    status: "completed",
-    method: "Внутренний перевод",
-    created_at: new Date(Date.now() - 8 * 24 * 60 * 60 * 1000).toISOString(),
-    description: "Инвестиция в план Премиум",
-  },
-]
+import { NextRequest, NextResponse } from "next/server"
+import { query } from "@/lib/database"
 
 export async function POST(request: NextRequest) {
   try {
     const { userId } = await request.json()
 
     if (!userId) {
-      return NextResponse.json({ error: "ID пользователя не указан" }, { status: 400 })
+      return NextResponse.json({ success: false, error: "User ID обязателен" }, { status: 400 })
     }
 
-    // Получаем данные пользователя
-    const user = demoUsers[userId as keyof typeof demoUsers]
-    if (!user) {
-      return NextResponse.json({ error: "Пользователь не найден" }, { status: 404 })
+    console.log("Loading dashboard data for user:", userId)
+
+    // Получаем данные пользователя из базы данных
+    const userResult = await query(
+      `SELECT id, email, full_name, balance, total_invested, total_earned, role_id, created_at
+       FROM users WHERE id = $1`,
+      [userId]
+    )
+
+    if (userResult.rows.length === 0) {
+      return NextResponse.json({ success: false, error: "Пользователь не найден" }, { status: 404 })
     }
 
-    // Получаем инвестиции пользователя
-    const userInvestments = demoInvestments.filter((inv) => inv.user_id === userId)
+    const user = userResult.rows[0]
+    
+    // Определяем роль
+    const isAdmin = user.role_id === 1
 
-    // Получаем транзакции пользователя
-    const userTransactions = demoTransactions.filter((tx) => tx.user_id === userId)
+    // Получаем инвестиции пользователя (пока создаем демо данные, позже подключим реальную таблицу)
+    const demoInvestments = [
+      {
+        id: "1",
+        user_id: userId,
+        amount: 5000,
+        daily_profit: 50,
+        total_profit: 350,
+        start_date: "2024-01-15T00:00:00Z",
+        end_date: "2024-02-15T00:00:00Z",
+        status: "active",
+        plan_name: "Базовый план",
+        days_left: 12,
+        progress: 75,
+      },
+    ]
 
-    console.log("✅ Dashboard data loaded for user:", userId)
+    // Создаем демо транзакции (пока таблица transactions не готова)
+    const demoTransactions = [
+      {
+        id: "tx-1",
+        type: "deposit",
+        amount: 5000,
+        status: "completed",
+        description: "Пополнение баланса",
+        method: "Банковская карта",
+        created_at: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
+      },
+      {
+        id: "tx-2",
+        type: "profit",
+        amount: 75,
+        status: "completed",
+        description: "Ежедневная прибыль",
+        method: "Автоначисление",
+        created_at: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(),
+      },
+    ]
+
+    const userData = {
+      id: user.id,
+      name: user.full_name,
+      email: user.email,
+      balance: parseFloat(user.balance),
+      totalInvested: parseFloat(user.total_invested),
+      totalEarned: parseFloat(user.total_earned),
+      isAdmin: isAdmin,
+      joinDate: user.created_at,
+    }
+
+    console.log("Dashboard data loaded successfully for user:", user.email)
 
     return NextResponse.json({
       success: true,
-      user,
-      investments: userInvestments,
-      transactions: userTransactions,
+      user: userData,
+      investments: demoInvestments,
+      transactions: demoTransactions,
     })
   } catch (error) {
-    console.error("❌ Dashboard error:", error)
-    return NextResponse.json({ error: "Ошибка загрузки данных" }, { status: 500 })
+    console.error("Dashboard API error:", error)
+    return NextResponse.json({ success: false, error: "Ошибка сервера" }, { status: 500 })
   }
 }

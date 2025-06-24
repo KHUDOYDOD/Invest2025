@@ -97,6 +97,8 @@ function DashboardContent() {
         localStorage.setItem("userName", data.user.name)
         localStorage.setItem("userRole", data.user.isAdmin ? "admin" : "user")
         localStorage.setItem("userBalance", data.user.balance.toString())
+        localStorage.setItem("userTotalInvested", data.user.totalInvested.toString())
+        localStorage.setItem("userTotalEarned", data.user.totalEarned.toString())
       } else {
         throw new Error(data.error || "Ошибка загрузки данных")
       }
