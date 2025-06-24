@@ -96,7 +96,11 @@ export default function RegisterPage() {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(formData),
+        body: JSON.stringify({
+          email: formData.email.trim(),
+          password: formData.password,
+          full_name: formData.full_name.trim(),
+        }),
       })
 
       console.log("📡 Response status:", response.status)

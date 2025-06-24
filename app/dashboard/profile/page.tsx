@@ -28,29 +28,26 @@ import { motion, AnimatePresence } from "framer-motion"
 import { toast } from "sonner"
 
 interface UserProfile {
-  id: number
+  id: string
   email: string
   full_name: string
   balance: number
   total_invested: number
-  total_profit: number
-  total_withdrawn: number
-  referral_count: number
-  referral_code: string
+  total_earned: number
   role: string
-  status: string
-  email_verified: boolean
-  kyc_verified: boolean
   created_at: string
+  phone?: string
+  country?: string
+  city?: string
+  bio?: string
+  avatar_url?: string
+  last_login?: string
   profile?: {
     avatar_url?: string
     phone?: string
     country?: string
     city?: string
-    date_of_birth?: string
     bio?: string
-    occupation?: string
-    experience_level?: string
   }
 }
 
@@ -294,7 +291,7 @@ export default function ProfilePage() {
                 <Card className="bg-gradient-to-r from-green-600/20 to-emerald-600/20 backdrop-blur-xl border-green-400/30 text-white">
                   <CardContent className="p-4 text-center">
                     <DollarSign className="w-8 h-8 mx-auto mb-2 text-green-400" />
-                    <p className="text-2xl font-bold">${user.balance.toFixed(2)}</p>
+                    <p className="text-2xl font-bold">${(user.balance || 0).toFixed(2)}</p>
                     <p className="text-sm text-white/70">Баланс</p>
                   </CardContent>
                 </Card>
@@ -304,7 +301,7 @@ export default function ProfilePage() {
                 <Card className="bg-gradient-to-r from-blue-600/20 to-purple-600/20 backdrop-blur-xl border-blue-400/30 text-white">
                   <CardContent className="p-4 text-center">
                     <TrendingUp className="w-8 h-8 mx-auto mb-2 text-blue-400" />
-                    <p className="text-2xl font-bold">${user.total_profit.toFixed(2)}</p>
+                    <p className="text-2xl font-bold">${(user.total_earned || 0).toFixed(2)}</p>
                     <p className="text-sm text-white/70">Прибыль</p>
                   </CardContent>
                 </Card>
