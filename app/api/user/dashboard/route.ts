@@ -31,7 +31,7 @@ export async function POST(request: NextRequest) {
     const investmentsResult = await query(
       `SELECT id, plan_name, amount, daily_profit, total_profit, start_date, end_date, status, progress, days_left, days_total
        FROM investments 
-       WHERE user_id = $1 AND status = 'active'
+       WHERE user_id = $1
        ORDER BY start_date DESC`,
       [userId]
     )
