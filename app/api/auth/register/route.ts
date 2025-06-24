@@ -4,10 +4,18 @@ import { query } from "@/lib/database"
 
 export async function POST(request: NextRequest) {
   try {
-    const { email, password, full_name, phone, country } = await request.json()
+    const { email, password, name, full_name } = await request.json()
+    
+    // Используем name или full_name
+    const userName = name || full_name
 
-    if (!email || !password || !full_name) {
+    if (!email || !password || !userName) {
       return NextResponse.json({ error: "Email, пароль и имя обязательны" }, { status: 400 })
+    }
+    
+    // Простая валидация пароля
+    if (password.length < 3) {
+      return NextResponse.json({ error: "Пароль должен содержать минимум 3 символа" }, { status: 400 })
     }
 
     // Проверяем, не существует ли уже пользователь с таким email
@@ -26,12 +34,12 @@ export async function POST(request: NextRequest) {
     // Генерируем реферальный код
     const referralCode = Math.random().toString(36).substring(2, 8).toUpperCase()
 
-    // Создаем нового пользователя
+    // Создаем нового пользователя (role_id: 2 = user, 1 = admin)
     const result = await query(
-      `INSERT INTO users (email, full_name, password_hash, phone, country, referral_code, role_id)
-       VALUES ($1, $2, $3, $4, $5, $6, 1)
+      `INSERT INTO users (email, full_name, password_hash, referral_code, role_id)
+       VALUES ($1, $2, $3, $4, 2)
        RETURNING id, email, full_name, balance, created_at`,
-      [email, full_name, passwordHash, phone || null, country || null, referralCode]
+      [email, userName, passwordHash, referralCode]
     )
 
     const newUser = result.rows[0]
@@ -43,6 +51,8 @@ export async function POST(request: NextRequest) {
         email: newUser.email,
         full_name: newUser.full_name,
         balance: newUser.balance,
+        role: "user",
+        isAdmin: false,
         created_at: newUser.created_at,
       },
     })
