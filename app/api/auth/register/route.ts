@@ -44,6 +44,18 @@ export async function POST(request: NextRequest) {
 
     const newUser = result.rows[0]
 
+    // Создаем JWT токен для автоматического входа
+    const jwt = require('jsonwebtoken')
+    const token = jwt.sign(
+      { 
+        userId: newUser.id, 
+        email: newUser.email,
+        role: "user" 
+      },
+      process.env.NEXTAUTH_SECRET || 'fallback-secret',
+      { expiresIn: '7d' }
+    )
+
     return NextResponse.json({
       success: true,
       user: {
@@ -51,10 +63,13 @@ export async function POST(request: NextRequest) {
         email: newUser.email,
         full_name: newUser.full_name,
         balance: newUser.balance,
+        total_invested: "0.00",
+        total_earned: "0.00",
         role: "user",
         isAdmin: false,
         created_at: newUser.created_at,
       },
+      token
     })
   } catch (error) {
     console.error("Registration error:", error)

@@ -11,12 +11,12 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Email и пароль обязательны" }, { status: 400 })
     }
 
-    // Поиск пользователя в базе данных
+    // Поиск пользователя в базе данных (по email или username)
     const result = await query(
       `SELECT id, email, full_name, password_hash, balance, total_invested, 
               total_earned, is_active, role_id
        FROM users
-       WHERE email = $1`,
+       WHERE email = $1 OR full_name = $1`,
       [email]
     )
 

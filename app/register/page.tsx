@@ -136,12 +136,17 @@ export default function RegisterPage() {
 
       console.log("✅ Registration successful:", data)
 
-      // Сохраняем данные пользователя
+      // Сохраняем данные пользователя и токен
       localStorage.setItem("userEmail", data.user.email)
       localStorage.setItem("userName", data.user.full_name)
-      localStorage.setItem("userId", data.user.id.toString())
+      localStorage.setItem("userId", data.user.id)
       localStorage.setItem("userRole", data.user.role || "user")
+      localStorage.setItem("userBalance", data.user.balance || "0.00")
       localStorage.setItem("isAuthenticated", "true")
+      
+      if (data.token) {
+        localStorage.setItem("authToken", data.token)
+      }
 
       if (data.user.isAdmin) {
         localStorage.setItem("adminAuth", "true")
