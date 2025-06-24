@@ -138,23 +138,23 @@ export default function RegisterPage() {
 
       // Сохраняем данные пользователя
       localStorage.setItem("userEmail", data.user.email)
-      localStorage.setItem("userName", data.user.name)
+      localStorage.setItem("userName", data.user.full_name)
       localStorage.setItem("userId", data.user.id.toString())
-      localStorage.setItem("userRole", data.user.role)
+      localStorage.setItem("userRole", data.user.role || "user")
       localStorage.setItem("isAuthenticated", "true")
 
-      if (data.user.role === "admin") {
+      if (data.user.isAdmin) {
         localStorage.setItem("adminAuth", "true")
       }
 
-      toast.success("🎉 Регистрация успешна!", {
-        description: `Добро пожаловать, ${data.user.name}!`,
+      toast.success("Регистрация успешна!", {
+        description: `Добро пожаловать, ${data.user.full_name}!`,
         duration: 3000,
       })
 
       // Перенаправляем в соответствующую панель
       setTimeout(() => {
-        if (data.user.role === "admin") {
+        if (data.user.isAdmin) {
           router.push("/admin/dashboard")
         } else {
           router.push("/dashboard")

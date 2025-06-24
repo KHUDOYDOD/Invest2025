@@ -43,8 +43,9 @@ export async function POST(request: NextRequest) {
       [user.id]
     )
 
-    // Определяем роль пользователя (role_id: 1 = admin, 2 = user)
+    // Определяем роль пользователя (role_id: 1 = admin, 2 = user)  
     const role = user.role_id === 1 ? 'admin' : 'user'
+    console.log(`User ${user.email} has role_id: ${user.role_id}, role: ${role}`)
     
     // Создаем JWT токен
     const token = jwt.sign(
