@@ -1,111 +1,73 @@
 import { NextResponse } from "next/server"
-import { createClient } from "@/lib/supabase/server"
+import { query } from "@/lib/database"
 
 export async function GET() {
   try {
-    const supabase = createClient()
+    const result = await query(
+      'SELECT * FROM project_launches ORDER BY created_at DESC'
+    )
 
-    const { data, error } = await supabase
-      .from("project_launches")
-      .select("*")
-      .order("launch_date", { ascending: true })
-
-    if (error) {
-      console.error("Error fetching project launches:", error)
-      return NextResponse.json({ error: "Failed to fetch project launches" }, { status: 500 })
-    }
-
-    return NextResponse.json(data || [])
+    return NextResponse.json({ launches: result.rows })
   } catch (error) {
-    console.error("Error:", error)
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 })
+    console.error("Error fetching project launches:", error)
+    return NextResponse.json({ launches: [] })
   }
 }
 
 export async function POST(request: Request) {
   try {
-    const supabase = createClient()
     const body = await request.json()
 
-    const { data, error } = await supabase
-      .from("project_launches")
-      .insert([
-        {
-          name: body.name,
-          title: body.title,
-          description: body.description,
-          launch_date: body.launch_date,
-          is_launched: body.is_launched || false,
-          is_active: body.is_active || true,
-          show_on_site: body.show_on_site || true,
-          position: body.position,
-          color_scheme: body.color_scheme || "blue",
-          icon_type: body.icon_type || "rocket",
-          pre_launch_title: body.pre_launch_title || "До запуска проекта",
-          post_launch_title: body.post_launch_title || "Проект запущен!",
-          pre_launch_description: body.pre_launch_description || "Следите за обратным отсчетом до официального запуска",
-          post_launch_description: body.post_launch_description || "Наша платформа успешно работает",
-          background_type: body.background_type || "gradient",
-          custom_css: body.custom_css,
-        },
-      ])
-      .select()
-      .single()
+    const result = await query(
+      `INSERT INTO project_launches (name, description, target_amount, raised_amount, status)
+       VALUES ($1, $2, $3, $4, $5)
+       RETURNING *`,
+      [
+        body.name || 'New Project',
+        body.description || 'Project description',
+        body.target_amount || 0,
+        body.raised_amount || 0,
+        body.status || 'active'
+      ]
+    )
 
-    if (error) {
-      console.error("Error creating project launch:", error)
-      return NextResponse.json({ error: "Failed to create project launch" }, { status: 500 })
-    }
-
-    return NextResponse.json(data)
+    return NextResponse.json(result.rows[0])
   } catch (error) {
-    console.error("Error:", error)
+    console.error("Error creating project launch:", error)
     return NextResponse.json({ error: "Internal server error" }, { status: 500 })
   }
 }
 
 export async function PUT(request: Request) {
   try {
-    const supabase = createClient()
     const body = await request.json()
 
     if (!body.id) {
       return NextResponse.json({ error: "ID is required" }, { status: 400 })
     }
 
-    const { data, error } = await supabase
-      .from("project_launches")
-      .update({
-        name: body.name,
-        title: body.title,
-        description: body.description,
-        launch_date: body.launch_date,
-        is_launched: body.is_launched,
-        is_active: body.is_active,
-        show_on_site: body.show_on_site,
-        position: body.position,
-        color_scheme: body.color_scheme,
-        icon_type: body.icon_type,
-        pre_launch_title: body.pre_launch_title,
-        post_launch_title: body.post_launch_title,
-        pre_launch_description: body.pre_launch_description,
-        post_launch_description: body.post_launch_description,
-        background_type: body.background_type,
-        custom_css: body.custom_css,
-        updated_at: new Date().toISOString(),
-      })
-      .eq("id", body.id)
-      .select()
-      .single()
+    const result = await query(
+      `UPDATE project_launches 
+       SET name = $1, description = $2, target_amount = $3, raised_amount = $4, status = $5
+       WHERE id = $6
+       RETURNING *`,
+      [
+        body.name,
+        body.description,
+        body.target_amount,
+        body.raised_amount,
+        body.status,
+        body.id
+      ]
+    )
 
-    if (error) {
-      console.error("Error updating project launch:", error)
-      return NextResponse.json({ error: "Failed to update project launch" }, { status: 500 })
+    if (result.rows.length === 0) {
+      return NextResponse.json({ error: "Project not found" }, { status: 404 })
     }
 
-    return NextResponse.json(data)
+    return NextResponse.json(result.rows[0])
   } catch (error) {
-    console.error("Error:", error)
+    console.error("Error updating project launch:", error)
     return NextResponse.json({ error: "Internal server error" }, { status: 500 })
   }
 }

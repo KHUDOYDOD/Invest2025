@@ -1,56 +1,53 @@
 import { type NextRequest, NextResponse } from "next/server"
-
-// Локальное хранилище пользователей (в реальном приложении это была бы база данных)
-const registeredUsers: any[] = []
+import bcrypt from "bcryptjs"
+import { query } from "@/lib/database"
 
 export async function POST(request: NextRequest) {
   try {
-    console.log("🔐 Starting registration process...")
+    const { email, password, full_name, phone, country } = await request.json()
 
-    const { email, password, name } = await request.json()
-
-    console.log("📝 Registration data received:", {
-      name: name ? "✅" : "❌",
-      email: email ? "✅" : "❌",
-      password: password ? "✅" : "❌",
-    })
-
-    if (!email || !password || !name) {
-      return NextResponse.json({ error: "Все поля обязательны" }, { status: 400 })
+    if (!email || !password || !full_name) {
+      return NextResponse.json({ error: "Email, пароль и имя обязательны" }, { status: 400 })
     }
 
     // Проверяем, не существует ли уже пользователь с таким email
-    const existingUser = registeredUsers.find((u) => u.email === email)
-    if (existingUser) {
+    const existingUser = await query(
+      'SELECT id FROM users WHERE email = $1',
+      [email]
+    )
+
+    if (existingUser.rows.length > 0) {
       return NextResponse.json({ error: "Пользователь с таким email уже существует" }, { status: 400 })
     }
 
+    // Хешируем пароль
+    const passwordHash = await bcrypt.hash(password, 12)
+
+    // Генерируем реферальный код
+    const referralCode = Math.random().toString(36).substring(2, 8).toUpperCase()
+
     // Создаем нового пользователя
-    const newUser = {
-      id: `user-${Date.now()}`,
-      email,
-      name,
-      balance: 0,
-      isAdmin: false,
-      createdAt: new Date().toISOString(),
-    }
+    const result = await query(
+      `INSERT INTO users (email, full_name, password_hash, phone, country, referral_code, role_id)
+       VALUES ($1, $2, $3, $4, $5, $6, 1)
+       RETURNING id, email, full_name, balance, created_at`,
+      [email, full_name, passwordHash, phone || null, country || null, referralCode]
+    )
 
-    registeredUsers.push(newUser)
-
-    console.log("✅ New user registered:", email)
+    const newUser = result.rows[0]
 
     return NextResponse.json({
       success: true,
       user: {
         id: newUser.id,
         email: newUser.email,
-        name: newUser.name,
+        full_name: newUser.full_name,
         balance: newUser.balance,
-        isAdmin: newUser.isAdmin,
+        created_at: newUser.created_at,
       },
     })
   } catch (error) {
-    console.error("❌ Registration error:", error)
+    console.error("Registration error:", error)
     return NextResponse.json({ error: "Ошибка сервера" }, { status: 500 })
   }
 }

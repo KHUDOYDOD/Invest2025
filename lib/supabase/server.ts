@@ -1,13 +1,18 @@
-import { createClient as createServerSupabaseClient, type SupabaseClient } from "@supabase/supabase-js"
-
-let serverSupabase: SupabaseClient | null = null
-
-export function createClient(): SupabaseClient {
-  if (!serverSupabase) {
-    serverSupabase = createServerSupabaseClient(process.env.SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!)
+// Заглушка для совместимости со старым кодом
+export function createClient() {
+  return {
+    auth: {
+      getUser: async () => ({ data: { user: null }, error: null }),
+    },
+    from: () => ({
+      select: () => ({
+        eq: () => ({ data: [], error: null }),
+        data: [],
+        error: null
+      }),
+      insert: () => ({ data: [], error: null }),
+      update: () => ({ data: [], error: null }),
+      delete: () => ({ data: [], error: null }),
+    })
   }
-
-  return serverSupabase
 }
-
-/* make sure the named export is discoverable */

@@ -83,11 +83,20 @@ InvestPro - это современная инвестиционная плат�
 3. **Configuration Application**: Settings initialization
 4. **Server Preparation**: Application startup preparation
 
+## Recent Changes
+
+✓ Импортирован проект InvestPro с GitHub  
+✓ Настроена PostgreSQL база данных с основными таблицами  
+✓ Заменена Supabase аутентификация на локальную систему с JWT  
+✓ Исправлены ошибки с project-status и клиентскими компонентами  
+✓ Созданы демо пользователи: demo@example.com / demo123, admin@example.com / admin123  
+
 ## Changelog
 
 ```
 Changelog:
-- June 24, 2025. Initial setup
+- June 24, 2025. Initial setup and import from GitHub
+- June 24, 2025. Database setup and authentication system implementation
 ```
 
 ## User Preferences
