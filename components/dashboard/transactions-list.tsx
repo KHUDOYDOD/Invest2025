@@ -10,7 +10,7 @@ import { toast } from "sonner"
 interface Transaction {
   id: string
   type: string
-  amount: number
+  amount: number | string
   status: string
   description: string
   method?: string
