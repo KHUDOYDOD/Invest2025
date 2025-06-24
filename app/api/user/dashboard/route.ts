@@ -27,44 +27,24 @@ export async function POST(request: NextRequest) {
     // Определяем роль
     const isAdmin = user.role_id === 1
 
-    // Получаем инвестиции пользователя (пока создаем демо данные, позже подключим реальную таблицу)
-    const demoInvestments = [
-      {
-        id: "1",
-        user_id: userId,
-        amount: 5000,
-        daily_profit: 50,
-        total_profit: 350,
-        start_date: "2024-01-15T00:00:00Z",
-        end_date: "2024-02-15T00:00:00Z",
-        status: "active",
-        plan_name: "Базовый план",
-        days_left: 12,
-        progress: 75,
-      },
-    ]
+    // Получаем реальные инвестиции пользователя
+    const investmentsResult = await query(
+      `SELECT id, plan_name, amount, daily_profit, total_profit, start_date, end_date, status, progress, days_left, days_total
+       FROM investments 
+       WHERE user_id = $1 AND status = 'active'
+       ORDER BY start_date DESC`,
+      [userId]
+    )
 
-    // Создаем демо транзакции (пока таблица transactions не готова)
-    const demoTransactions = [
-      {
-        id: "tx-1",
-        type: "deposit",
-        amount: 5000,
-        status: "completed",
-        description: "Пополнение баланса",
-        method: "Банковская карта",
-        created_at: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
-      },
-      {
-        id: "tx-2",
-        type: "profit",
-        amount: 75,
-        status: "completed",
-        description: "Ежедневная прибыль",
-        method: "Автоначисление",
-        created_at: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(),
-      },
-    ]
+    // Получаем реальные транзакции пользователя
+    const transactionsResult = await query(
+      `SELECT id, type, amount, status, description, method, fee, final_amount, created_at
+       FROM transactions 
+       WHERE user_id = $1 
+       ORDER BY created_at DESC 
+       LIMIT 5`,
+      [userId]
+    )
 
     const userData = {
       id: user.id,
@@ -82,8 +62,8 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({
       success: true,
       user: userData,
-      investments: demoInvestments,
-      transactions: demoTransactions,
+      investments: investmentsResult.rows,
+      transactions: transactionsResult.rows,
     })
   } catch (error) {
     console.error("Dashboard API error:", error)

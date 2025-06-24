@@ -37,7 +37,12 @@ export function TransactionsList({ userId, limit = 10 }: TransactionsListProps) 
 
       console.log("📊 Loading transactions from API...")
 
-      const response = await fetch("/api/transactions?limit=10")
+      const userId = localStorage.getItem("userId")
+      if (!userId) {
+        throw new Error("Пользователь не авторизован")
+      }
+
+      const response = await fetch(`/api/transactions?userId=${userId}&limit=10`)
 
       if (!response.ok) {
         throw new Error("Ошибка загрузки транзакций")
