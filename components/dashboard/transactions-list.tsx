@@ -283,7 +283,7 @@ export function TransactionsList({ userId, limit = 10 }: TransactionsListProps) 
           </div>
 
           <div className="space-y-3">
-            {transactions.map((transaction, index) => (
+            {Array.isArray(transactions) && transactions.map((transaction, index) => (
               <div
                 key={transaction.id}
                 className="bg-gray-900/50 border border-gray-800 rounded-xl p-4 hover:bg-gray-900/70 transition-colors animate-fade-in"
@@ -313,6 +313,11 @@ export function TransactionsList({ userId, limit = 10 }: TransactionsListProps) 
                 </div>
               </div>
             ))}
+            {!Array.isArray(transactions) || transactions.length === 0 && (
+              <div className="text-center py-8">
+                <p className="text-gray-400">Транзакции не найдены</p>
+              </div>
+            )}
           </div>
         </>
       )}
