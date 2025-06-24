@@ -27,7 +27,9 @@ export default function LoginPage() {
     const newErrors: Record<string, string> = {}
 
     if (!loginField.trim()) {
-      newErrors.loginField = "Email или имя обязательны"
+      newErrors.loginField = "Email обязателен"
+    } else if (!loginField.includes("@")) {
+      newErrors.loginField = "Введите корректный email"
     }
 
     if (!password) {
@@ -56,9 +58,10 @@ export default function LoginPage() {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(
-          loginField.includes("@") ? { email: loginField.trim(), password } : { username: loginField.trim(), password },
-        ),
+        body: JSON.stringify({
+          email: loginField.trim(),
+          password
+        }),
       })
 
       console.log("📡 Response status:", response.status)
@@ -102,23 +105,23 @@ export default function LoginPage() {
 
       // Сохраняем данные пользователя
       localStorage.setItem("userEmail", data.user.email)
-      localStorage.setItem("userName", data.user.name)
+      localStorage.setItem("userName", data.user.full_name)
       localStorage.setItem("userId", data.user.id.toString())
-      localStorage.setItem("userRole", data.user.role)
+      localStorage.setItem("userRole", data.user.role || "user")
       localStorage.setItem("isAuthenticated", "true")
 
-      if (data.user.role === "admin") {
+      if (data.user.isAdmin) {
         localStorage.setItem("adminAuth", "true")
       }
 
-      toast.success("🎉 Вход выполнен успешно!", {
-        description: `Добро пожаловать, ${data.user.name}!`,
+      toast.success("Вход выполнен успешно!", {
+        description: `Добро пожаловать, ${data.user.full_name}!`,
         duration: 3000,
       })
 
       // Перенаправляем в соответствующую панель
       setTimeout(() => {
-        if (data.user.role === "admin") {
+        if (data.user.isAdmin) {
           router.push("/admin/dashboard")
         } else {
           router.push("/dashboard")
@@ -197,14 +200,14 @@ export default function LoginPage() {
                   className="space-y-2"
                 >
                   <Label htmlFor="loginField" className="text-white font-medium">
-                    Email или имя
+                    Email
                   </Label>
                   <div className="relative">
                     <Mail className="absolute left-3 top-3 h-5 w-5 text-white/50" />
                     <Input
                       id="loginField"
                       type="text"
-                      placeholder="name@example.com или Иван"
+                      placeholder="demo@example.com"
                       className={`pl-12 h-12 bg-white/10 border-white/20 text-white placeholder:text-white/50 rounded-xl transition-all duration-300 ${
                         errors.loginField ? "border-red-400 focus:border-red-400" : "focus:border-blue-400"
                       }`}
