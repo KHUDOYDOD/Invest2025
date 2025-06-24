@@ -89,16 +89,19 @@ function DashboardContent() {
       console.log("✅ Dashboard data loaded:", data)
 
       if (data.success) {
+        console.log("Setting dashboard data:", data)
         setUserData(data.user)
-        setInvestments(data.investments)
-        setTransactions(data.transactions)
+        setInvestments(data.investments || [])
+        setTransactions(data.transactions || [])
 
         // Обновляем localStorage с актуальными данными
-        localStorage.setItem("userName", data.user.name)
-        localStorage.setItem("userRole", data.user.isAdmin ? "admin" : "user")
-        localStorage.setItem("userBalance", data.user.balance.toString())
-        localStorage.setItem("userTotalInvested", data.user.totalInvested.toString())
-        localStorage.setItem("userTotalEarned", data.user.totalEarned.toString())
+        if (data.user) {
+          localStorage.setItem("userName", data.user.name || "")
+          localStorage.setItem("userRole", data.user.isAdmin ? "admin" : "user")
+          localStorage.setItem("userBalance", (data.user.balance || 0).toString())
+          localStorage.setItem("userTotalInvested", (data.user.totalInvested || 0).toString())
+          localStorage.setItem("userTotalEarned", (data.user.totalEarned || 0).toString())
+        }
       } else {
         throw new Error(data.error || "Ошибка загрузки данных")
       }
