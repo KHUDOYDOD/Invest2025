@@ -90,14 +90,29 @@ export default function ProfilePage() {
         throw new Error(data.error || "Ошибка загрузки профиля")
       }
 
-      setUser(data.user)
+      // Исправляем структуру данных пользователя  
+      const userData = {
+        ...data.user,
+        balance: parseFloat(data.user.balance || 0),
+        total_invested: parseFloat(data.user.total_invested || 0),
+        total_earned: parseFloat(data.user.total_earned || 0),
+        profile: {
+          phone: data.user.phone || "",
+          country: data.user.country || "",
+          city: data.user.city || "",
+          bio: data.user.bio || "",
+          avatar_url: data.user.avatar_url || "",
+        }
+      }
+      
+      setUser(userData)
       setFormData({
         full_name: data.user.full_name || "",
-        phone: data.user.profile?.phone || "",
-        country: data.user.profile?.country || "",
-        city: data.user.profile?.city || "",
-        bio: data.user.profile?.bio || "",
-        occupation: data.user.profile?.occupation || "",
+        phone: data.user.phone || "",
+        country: data.user.country || "",
+        city: data.user.city || "",
+        bio: data.user.bio || "",
+        occupation: "",
       })
     } catch (error) {
       console.error("Profile loading error:", error)
