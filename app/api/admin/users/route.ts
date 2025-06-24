@@ -8,22 +8,29 @@ export async function GET(request: NextRequest) {
     const limit = parseInt(searchParams.get("limit") || "10")
     const search = searchParams.get("search") || ""
     const status = searchParams.get("status") || "all"
+    const role = searchParams.get("role") || "all"
+    const dateFrom = searchParams.get("dateFrom")
+    const dateTo = searchParams.get("dateTo")
+    const sortBy = searchParams.get("sortBy") || "created_at"
+    const sortOrder = searchParams.get("sortOrder") || "desc"
     
     const offset = (page - 1) * limit
 
-    console.log(`Loading users from database: page=${page}, limit=${limit}, search="${search}", status="${status}"`)
+    console.log(`Loading users with advanced filters: page=${page}, limit=${limit}, search="${search}", status="${status}", role="${role}"`)
 
     // Строим WHERE условие
     let whereConditions = []
     let queryParams = []
     let paramIndex = 1
 
+    // Поиск по email, имени или ID
     if (search) {
-      whereConditions.push(`(email ILIKE $${paramIndex} OR full_name ILIKE $${paramIndex})`)
+      whereConditions.push(`(email ILIKE $${paramIndex} OR full_name ILIKE $${paramIndex} OR id::text ILIKE $${paramIndex})`)
       queryParams.push(`%${search}%`)
       paramIndex++
     }
 
+    // Фильтр по статусу
     if (status !== "all") {
       if (status === "active") {
         whereConditions.push(`is_active = $${paramIndex}`)
@@ -35,7 +42,37 @@ export async function GET(request: NextRequest) {
       paramIndex++
     }
 
+    // Фильтр по роли
+    if (role !== "all") {
+      if (role === "admin") {
+        whereConditions.push(`role_id = $${paramIndex}`)
+        queryParams.push(1)
+      } else if (role === "user") {
+        whereConditions.push(`role_id = $${paramIndex}`)
+        queryParams.push(2)
+      }
+      paramIndex++
+    }
+
+    // Фильтр по дате создания
+    if (dateFrom) {
+      whereConditions.push(`created_at >= $${paramIndex}`)
+      queryParams.push(new Date(dateFrom))
+      paramIndex++
+    }
+
+    if (dateTo) {
+      whereConditions.push(`created_at <= $${paramIndex}`)
+      queryParams.push(new Date(dateTo))
+      paramIndex++
+    }
+
     const whereClause = whereConditions.length > 0 ? `WHERE ${whereConditions.join(' AND ')}` : ''
+
+    // Валидируем и строим ORDER BY
+    const validSortFields = ['created_at', 'email', 'full_name', 'balance', 'total_invested', 'total_earned', 'last_login']
+    const validSortBy = validSortFields.includes(sortBy) ? sortBy : 'created_at'
+    const validSortOrder = ['asc', 'desc'].includes(sortOrder.toLowerCase()) ? sortOrder.toUpperCase() : 'DESC'
 
     // Получаем пользователей
     const usersResult = await query(`
@@ -44,7 +81,7 @@ export async function GET(request: NextRequest) {
         is_active, role_id, created_at, last_login
       FROM users 
       ${whereClause}
-      ORDER BY created_at DESC 
+      ORDER BY ${validSortBy} ${validSortOrder}
       LIMIT $${paramIndex} OFFSET $${paramIndex + 1}
     `, [...queryParams, limit, offset])
 
