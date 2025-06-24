@@ -13,11 +13,10 @@ export async function POST(request: NextRequest) {
 
     // Поиск пользователя в базе данных
     const result = await query(
-      `SELECT u.id, u.email, u.full_name, u.password_hash, u.balance, u.total_invested, 
-              u.total_earned, u.is_active, ur.name as role_name
-       FROM users u
-       LEFT JOIN user_roles ur ON u.role_id = ur.id
-       WHERE u.email = $1`,
+      `SELECT id, email, full_name, password_hash, balance, total_invested, 
+              total_earned, is_active, role_id
+       FROM users
+       WHERE email = $1`,
       [email]
     )
 
@@ -44,12 +43,15 @@ export async function POST(request: NextRequest) {
       [user.id]
     )
 
+    // Определяем роль пользователя (role_id: 1 = admin, 2 = user)
+    const role = user.role_id === 1 ? 'admin' : 'user'
+    
     // Создаем JWT токен
     const token = jwt.sign(
       { 
         userId: user.id, 
         email: user.email,
-        role: user.role_name 
+        role: role 
       },
       process.env.NEXTAUTH_SECRET || 'fallback-secret',
       { expiresIn: '7d' }
@@ -64,8 +66,8 @@ export async function POST(request: NextRequest) {
         balance: user.balance,
         total_invested: user.total_invested,
         total_earned: user.total_earned,
-        role: user.role_name,
-        isAdmin: user.role_name === 'admin',
+        role: role,
+        isAdmin: role === 'admin',
       },
       token
     })
