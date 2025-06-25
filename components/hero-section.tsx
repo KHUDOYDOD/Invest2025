@@ -4,13 +4,13 @@ import { useState, useEffect } from "react"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { useSettings } from "@/components/settings-provider"
-import { isProjectLaunched } from "@/lib/project-status"
+
 import { TrendingUp, Shield, Users, DollarSign, ArrowRight, Play } from "lucide-react"
 
 export function HeroSection() {
   const { siteSettings, loading } = useSettings()
   const [mounted, setMounted] = useState(false)
-  const projectLaunched = isProjectLaunched()
+
 
   useEffect(() => {
     setMounted(true)
@@ -136,8 +136,7 @@ export function HeroSection() {
 
           {/* CTA Buttons */}
           <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-            {projectLaunched ? (
-              <>
+            <>
                 <Link href="/register">
                   <Button
                     size="lg"
@@ -158,31 +157,7 @@ export function HeroSection() {
                   </Button>
                 </Link>
               </>
-            ) : (
-              <div className="space-y-4">
-                <div className="text-yellow-400 font-semibold text-lg">🚀 Скоро запуск!</div>
-                <p className="text-slate-400 max-w-2xl mx-auto">
-                  Мы готовим для вас лучшую инвестиционную платформу. Следите за обновлениями!
-                </p>
-                <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-                  <Button
-                    size="lg"
-                    disabled
-                    className="bg-slate-600 text-slate-300 px-8 py-4 text-lg font-medium rounded-xl cursor-not-allowed opacity-50"
-                  >
-                    Создать аккаунт
-                  </Button>
-                  <Button
-                    size="lg"
-                    variant="outline"
-                    disabled
-                    className="border-slate-600 text-slate-400 px-8 py-4 text-lg font-medium rounded-xl cursor-not-allowed opacity-50"
-                  >
-                    Войти
-                  </Button>
-                </div>
-              </div>
-            )}
+
           </div>
 
           {/* Stats Preview */}

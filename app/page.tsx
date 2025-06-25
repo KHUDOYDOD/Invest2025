@@ -20,11 +20,9 @@ import { PublicStats } from "@/components/public-stats"
 import { ProjectLaunches } from "@/components/project-launches"
 import { AdminAccessButton } from "@/components/admin-access-button"
 import { EducationCenter } from "@/components/education-center"
-import { isProjectLaunched } from "@/lib/project-status"
+
 
 export default function HomePage() {
-  const projectLaunched = isProjectLaunched()
-
   return (
     <div className="min-h-screen relative overflow-hidden">
       <Header />
@@ -130,49 +128,29 @@ export default function HomePage() {
         <div className="absolute inset-0 bg-black/20"></div>
         <div className="container mx-auto max-w-4xl text-center relative z-10">
           <h2 className="text-4xl font-bold mb-6">
-            {projectLaunched ? "Готовы начать инвестировать?" : "Скоро запуск!"}
+            Готовы начать инвестировать?
           </h2>
           <p className="text-xl mb-8 text-blue-100">
-            {projectLaunched
-              ? "Присоединяйтесь к тысячам инвесторов, которые уже получают доход с нашей платформой"
-              : "Подготовьтесь к запуску нашей инвестиционной платформы. Регистрация откроется после запуска!"}
+            Присоединяйтесь к тысячам инвесторов, которые уже зарабатывают с нашей платформой
           </p>
           <div className="flex flex-wrap justify-center gap-4">
-            {projectLaunched ? (
-              <>
-                <Link href="/register">
-                  <Button
-                    size="lg"
-                    className="bg-white text-blue-600 hover:bg-blue-50 transform hover:scale-105 transition-all duration-300 shadow-lg hover:shadow-xl"
-                  >
-                    Создать аккаунт
-                  </Button>
-                </Link>
-                <Link href="/login">
-                  <Button
-                    size="lg"
-                    variant="outline"
-                    className="border-white text-white hover:bg-white hover:text-blue-600 transform hover:scale-105 transition-all duration-300"
-                  >
-                    Войти в систему
-                  </Button>
-                </Link>
-              </>
-            ) : (
-              <>
-                <Button size="lg" disabled className="bg-gray-500 text-white cursor-not-allowed opacity-50">
-                  Регистрация скоро
-                </Button>
-                <Button
-                  size="lg"
-                  disabled
-                  variant="outline"
-                  className="border-gray-500 text-gray-300 cursor-not-allowed opacity-50"
-                >
-                  Вход скоро
-                </Button>
-              </>
-            )}
+            <Link href="/register">
+              <Button
+                size="lg"
+                className="bg-white text-blue-600 hover:bg-blue-50 transform hover:scale-105 transition-all duration-300 shadow-lg hover:shadow-xl"
+              >
+                Создать аккаунт
+              </Button>
+            </Link>
+            <Link href="/login">
+              <Button
+                size="lg"
+                variant="outline"
+                className="border-white text-white hover:bg-white hover:text-blue-600 transform hover:scale-105 transition-all duration-300"
+              >
+                Войти в систему
+              </Button>
+            </Link>
           </div>
         </div>
       </section>

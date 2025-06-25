@@ -43,8 +43,32 @@ export function ProjectLaunches() {
     fetchLaunches()
   }, [])
 
-  if (loading || launches.length === 0) {
-    return null
+  // Показываем загрузку
+  if (loading) {
+    return (
+      <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white py-3">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="animate-pulse">
+            <div className="h-4 bg-white/20 rounded w-1/3 mx-auto"></div>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  // Если нет запусков - показываем базовое сообщение
+  if (launches.length === 0) {
+    return (
+      <div className="bg-gradient-to-r from-green-600 to-blue-600 text-white py-3">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center">
+            <p className="text-sm font-medium">
+              🚀 Платформа InvestPro готова к работе! Присоединяйтесь к нашим инвесторам
+            </p>
+          </div>
+        </div>
+      </div>
+    )
   }
 
   return (
@@ -59,39 +83,24 @@ export function ProjectLaunches() {
               transition={{ duration: 0.5, delay: index * 0.1 }}
             >
               <Card
-                className={`
-                ${
-                  launch.is_launched
-                    ? "bg-gradient-to-r from-green-900/50 to-emerald-900/50 border-green-500/30"
-                    : "bg-gradient-to-r from-blue-900/50 to-indigo-900/50 border-blue-500/30"
-                } 
-                backdrop-blur-sm border
-              `}
+                className="bg-gradient-to-r from-green-900/50 to-emerald-900/50 border-green-500/30 backdrop-blur-sm border"
               >
                 <CardContent className="p-6">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center space-x-4">
-                      <div
-                        className={`
-                        p-3 rounded-full 
-                        ${launch.is_launched ? "bg-green-500/20 text-green-400" : "bg-blue-500/20 text-blue-400"}
-                      `}
+                      <div className="p-3 rounded-full bg-green-500/20 text-green-400"
                       >
-                        {launch.is_launched ? <CheckCircle className="h-6 w-6" /> : <Clock className="h-6 w-6" />}
+                        <CheckCircle className="h-6 w-6" />
                       </div>
 
                       <div>
                         <div className="flex items-center space-x-3 mb-2">
-                          <h3 className="text-xl font-bold text-white">{launch.title}</h3>
+                          <h3 className="text-xl font-bold text-white">{launch.name}</h3>
                           <Badge
-                            variant={launch.is_launched ? "default" : "secondary"}
-                            className={
-                              launch.is_launched
-                                ? "bg-green-500/20 text-green-400 border-green-500/30"
-                                : "bg-blue-500/20 text-blue-400 border-blue-500/30"
-                            }
+                            variant="default"
+                            className="bg-green-500/20 text-green-400 border-green-500/30"
                           >
-                            {launch.is_launched ? "Запущено" : "Скоро"}
+                            Запущено
                           </Badge>
                         </div>
                         <p className="text-slate-300 text-sm">{launch.description}</p>
