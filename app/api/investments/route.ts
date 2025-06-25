@@ -1,153 +1,104 @@
-import { NextResponse } from "next/server"
-import { createClient } from "@/lib/supabase/server"
+import { NextRequest, NextResponse } from 'next/server'
+import { query } from '@/lib/database'
+import { getServerSession } from '@/lib/auth'
 
-export async function GET() {
+export async function POST(request: NextRequest) {
   try {
-    const supabase = createClient()
-
-    // Получаем текущего пользователя
-    const {
-      data: { session },
-    } = await supabase.auth.getSession()
-
-    if (!session?.user?.id) {
-      return NextResponse.json({ error: "Необходима авторизация" }, { status: 401 })
+    const user = await getServerSession(request)
+    if (!user) {
+      return NextResponse.json({ error: 'Необходима авторизация' }, { status: 401 })
     }
 
-    const { data, error } = await supabase
-      .from("investments")
-      .select("*")
-      .eq("user_id", session.user.id)
-      .order("created_at", { ascending: false })
+    const { plan_id, amount } = await request.json()
 
-    if (error) {
-      console.error("❌ Error fetching investments:", error)
-      return NextResponse.json({ error: "Ошибка загрузки инвестиций" }, { status: 500 })
+    if (!plan_id || !amount || amount <= 0) {
+      return NextResponse.json({ error: 'Неверные данные для инвестирования' }, { status: 400 })
     }
 
-    return NextResponse.json(data || [])
-  } catch (error) {
-    console.error("❌ Investments API error:", error)
-    return NextResponse.json({ error: "Внутренняя ошибка сервера" }, { status: 500 })
-  }
-}
+    console.log('Creating investment for user:', user.id, 'plan:', plan_id, 'amount:', amount)
 
-export async function POST(request: Request) {
-  try {
-    const body = await request.json()
-    const { plan_id, amount } = body
+    // Проверяем план инвестирования
+    const planResult = await query(
+      'SELECT * FROM investment_plans WHERE id = $1 AND is_active = true',
+      [plan_id]
+    )
 
-    console.log("📈 Creating investment:", { plan_id, amount })
-
-    if (!plan_id || !amount) {
-      return NextResponse.json({ error: "Не все обязательные поля заполнены" }, { status: 400 })
+    if (planResult.rows.length === 0) {
+      return NextResponse.json({ error: 'План инвестирования не найден' }, { status: 404 })
     }
 
-    const supabase = createClient()
+    const plan = planResult.rows[0]
 
-    // Получаем текущего пользователя
-    const {
-      data: { session },
-    } = await supabase.auth.getSession()
-
-    if (!session?.user?.id) {
-      return NextResponse.json({ error: "Необходима авторизация" }, { status: 401 })
-    }
-
-    const userId = session.user.id
-
-    // Получаем план инвестирования
-    const { data: plan, error: planError } = await supabase
-      .from("investment_plans")
-      .select("*")
-      .eq("id", plan_id)
-      .single()
-
-    if (planError || !plan) {
-      return NextResponse.json({ error: "План инвестирования не найден" }, { status: 404 })
+    // Проверяем минимальную сумму
+    if (amount < plan.min_amount) {
+      return NextResponse.json({ 
+        error: `Минимальная сумма инвестирования: $${plan.min_amount}` 
+      }, { status: 400 })
     }
 
     // Проверяем баланс пользователя
-    const { data: profile, error: profileError } = await supabase
-      .from("user_profiles")
-      .select("balance")
-      .eq("user_id", userId)
-      .single()
+    const userResult = await query(
+      'SELECT balance FROM users WHERE id = $1',
+      [user.id]
+    )
 
-    if (profileError || !profile) {
-      return NextResponse.json({ error: "Ошибка получения баланса" }, { status: 500 })
+    const userBalance = parseFloat(userResult.rows[0]?.balance || '0')
+    if (userBalance < amount) {
+      return NextResponse.json({ error: 'Недостаточно средств на балансе' }, { status: 400 })
     }
 
-    if (Number(profile.balance) < Number(amount)) {
-      return NextResponse.json({ error: "Недостаточно средств на балансе" }, { status: 400 })
-    }
+    // Начинаем транзакцию
+    await query('BEGIN')
 
-    // Создаем инвестицию
-    const { data: investment, error: investmentError } = await supabase
-      .from("investments")
-      .insert([
-        {
-          user_id: userId,
+    try {
+      // Создаем инвестицию
+      const investmentResult = await query(
+        `INSERT INTO investments (user_id, plan_id, amount, status, expected_return, maturity_date, created_at)
+         VALUES ($1, $2, $3, 'active', $4, $5, CURRENT_TIMESTAMP)
+         RETURNING *`,
+        [
+          user.id,
           plan_id,
-          amount: Number(amount),
-          status: "active",
-          profit_earned: 0,
-          start_date: new Date().toISOString(),
-          end_date: new Date(Date.now() + plan.duration_days * 24 * 60 * 60 * 1000).toISOString(),
-        },
-      ])
-      .select()
-      .single()
+          amount,
+          amount * (plan.return_rate / 100),
+          new Date(Date.now() + plan.duration_days * 24 * 60 * 60 * 1000)
+        ]
+      )
 
-    if (investmentError) {
-      console.error("❌ Error creating investment:", investmentError)
-      return NextResponse.json({ error: "Ошибка создания инвестиции" }, { status: 500 })
+      // Создаем транзакцию
+      await query(
+        `INSERT INTO transactions (user_id, type, amount, status, description, payment_method, created_at)
+         VALUES ($1, 'investment', $2, 'completed', $3, 'balance', CURRENT_TIMESTAMP)`,
+        [
+          user.id,
+          amount,
+          `Инвестирование в план "${plan.name}"`
+        ]
+      )
+
+      // Списываем средства с баланса
+      await query(
+        'UPDATE users SET balance = balance - $1, total_invested = total_invested + $1 WHERE id = $2',
+        [amount, user.id]
+      )
+
+      await query('COMMIT')
+
+      console.log('Investment created successfully:', investmentResult.rows[0])
+
+      return NextResponse.json({
+        success: true,
+        investment: investmentResult.rows[0],
+        message: 'Инвестиция успешно создана'
+      })
+
+    } catch (error) {
+      await query('ROLLBACK')
+      throw error
     }
 
-    // Обновляем баланс пользователя
-    const newBalance = Number(profile.balance) - Number(amount)
-    const { error: balanceError } = await supabase
-      .from("user_profiles")
-      .update({ balance: newBalance })
-      .eq("user_id", userId)
-
-    if (balanceError) {
-      console.error("❌ Error updating balance:", balanceError)
-    }
-
-    // Создаем транзакцию в истории
-    const { data: transaction, error: transactionError } = await supabase
-      .from("transactions")
-      .insert([
-        {
-          user_id: userId,
-          type: "investment",
-          amount: Number(amount),
-          status: "completed",
-          description: `Инвестиция в план "${plan.name}"`,
-          method: "balance",
-        },
-      ])
-      .select()
-      .single()
-
-    if (transactionError) {
-      console.error("❌ Error creating transaction:", transactionError)
-      // Не возвращаем ошибку, так как инвестиция уже создана
-    }
-
-    console.log("✅ Investment created:", investment.id)
-    console.log("✅ Transaction created:", transaction?.id)
-    console.log("✅ Balance updated:", newBalance)
-
-    return NextResponse.json({
-      success: true,
-      message: "Инвестиция успешно создана",
-      data: investment,
-      newBalance,
-    })
   } catch (error) {
-    console.error("❌ Investment creation error:", error)
-    return NextResponse.json({ error: "Внутренняя ошибка сервера" }, { status: 500 })
+    console.error('Error creating investment:', error)
+    return NextResponse.json({ error: 'Ошибка создания инвестиции' }, { status: 500 })
   }
 }
