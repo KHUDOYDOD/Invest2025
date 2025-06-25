@@ -36,6 +36,13 @@ export async function POST(request: NextRequest) {
       }, { status: 400 })
     }
 
+    // Проверяем максимальную сумму
+    if (plan.max_amount && amount > plan.max_amount) {
+      return NextResponse.json({ 
+        error: `Максимальная сумма инвестирования: $${plan.max_amount}` 
+      }, { status: 400 })
+    }
+
     // Проверяем баланс пользователя
     const userResult = await query(
       'SELECT balance FROM users WHERE id = $1',
@@ -53,14 +60,13 @@ export async function POST(request: NextRequest) {
     try {
       // Создаем инвестицию
       const investmentResult = await query(
-        `INSERT INTO investments (user_id, plan_id, amount, status, expected_return, maturity_date, created_at)
-         VALUES ($1, $2, $3, 'active', $4, $5, CURRENT_TIMESTAMP)
+        `INSERT INTO investments (user_id, plan_id, amount, status, profit_earned, start_date, end_date, created_at)
+         VALUES ($1, $2, $3, 'active', 0, CURRENT_TIMESTAMP, $4, CURRENT_TIMESTAMP)
          RETURNING *`,
         [
           user.id,
           plan_id,
           amount,
-          amount * (plan.return_rate / 100),
           new Date(Date.now() + plan.duration_days * 24 * 60 * 60 * 1000)
         ]
       )

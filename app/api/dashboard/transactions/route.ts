@@ -33,7 +33,7 @@ export async function GET(request: NextRequest) {
         status,
         created_at,
         description,
-        method
+        payment_method as method
       FROM transactions
       WHERE user_id = $1
       ORDER BY created_at DESC
