@@ -158,11 +158,12 @@ export default function RegisterPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-indigo-900 flex flex-col relative overflow-hidden">
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-violet-900 flex flex-col relative overflow-hidden">
       {/* Animated Background */}
       <div className="absolute inset-0">
-        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-blue-500/10 rounded-full blur-3xl animate-pulse"></div>
-        <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-purple-500/10 rounded-full blur-3xl animate-pulse delay-1000"></div>
+        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-purple-500/15 rounded-full blur-3xl animate-pulse"></div>
+        <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-violet-500/15 rounded-full blur-3xl animate-pulse delay-1000"></div>
+        <div className="absolute top-1/2 right-1/3 w-64 h-64 bg-pink-500/10 rounded-full blur-3xl animate-pulse delay-500"></div>
       </div>
 
       <Header />
@@ -170,7 +171,7 @@ export default function RegisterPage() {
       <main className="flex-grow flex items-center justify-center py-12 px-4 relative z-10">
         <Card className="w-full max-w-lg relative z-10 bg-white/10 backdrop-blur-xl border border-white/20 shadow-2xl rounded-3xl">
           <CardHeader className="space-y-6 text-center pb-8 pt-8">
-            <div className="mx-auto w-20 h-20 bg-gradient-to-r from-emerald-500 to-blue-600 rounded-full flex items-center justify-center shadow-2xl">
+            <div className="mx-auto w-20 h-20 bg-gradient-to-r from-purple-500 to-pink-600 rounded-full flex items-center justify-center shadow-2xl"></div>
               <UserPlus className="w-10 h-10 text-white" />
             </div>
             <div className="space-y-3">
@@ -393,7 +394,7 @@ export default function RegisterPage() {
 
               <Button
                 type="submit"
-                className="w-full h-12 text-base font-semibold bg-gradient-to-r from-emerald-600 to-blue-600 hover:from-emerald-700 hover:to-blue-700 text-white border-none rounded-xl shadow-lg hover:shadow-xl transform hover:scale-[1.02] transition-all duration-300"
+                className="w-full h-12 text-base font-semibold bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white border-none rounded-xl shadow-lg hover:shadow-xl transform hover:scale-[1.02] transition-all duration-300"
                 disabled={isLoading || !formData.email.trim() || !formData.password || !formData.full_name.trim() || !formData.confirmPassword || !formData.agreeTerms}
               >
                 {isLoading ? (
