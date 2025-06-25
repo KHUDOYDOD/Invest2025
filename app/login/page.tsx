@@ -33,6 +33,40 @@ export default function LoginPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+
+    if (!validateForm()) {
+      return
+    }
+
+    setIsLoading(true)
+
+    try {
+      const response = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email: formData.email,
+          password: formData.password,
+        }),
+      })
+
+      const data = await response.json()
+
+      if (response.ok) {
+        toast.success('Успешный вход в систему!')
+        router.push(data.redirect || '/dashboard')
+      } else {
+        toast.error(data.error || 'Ошибка при входе')
+      }
+    } catch (error) {
+      console.error('Login error:', error)
+      toast.error('Ошибка соединения с сервером')
+    } finally {
+      setIsLoading(false)
+    }
+  }
     setIsLoading(true)
     setError(null)
     setSuccess(null)
