@@ -13,7 +13,8 @@ export async function GET() {
         u.full_name as name,
         u.email,
         u.created_at as joined_date,
-        u.country
+        u.country,
+        u.country_name
       FROM users u
       WHERE u.role_id = 2
       ORDER BY u.created_at DESC
@@ -45,7 +46,7 @@ export async function GET() {
     }
 
     const newUsers = result.rows.map(user => {
-      const countryInfo = countryMap[user.country] || { flag: '🌍', name: user.country || 'Неизвестно' }
+      const countryInfo = countryMap[user.country] || { flag: '🌍', name: user.country_name || user.country || 'Неизвестно' }
       return {
         id: user.id,
         name: user.name || 'Anonymous User',
@@ -53,7 +54,7 @@ export async function GET() {
         joinedDate: user.joined_date,
         country: user.country,
         countryFlag: countryInfo.flag,
-        countryName: countryInfo.name
+        countryName: user.country_name || countryInfo.name
       }
     })
 
