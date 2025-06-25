@@ -55,10 +55,18 @@ function DashboardContent() {
       updateInvestmentTimers()
     }, 1000)
 
+    // Автоматическое обновление данных каждые 2 минуты
+    const dataRefreshTimer = setInterval(() => {
+      if (document.visibilityState === 'visible') {
+        fetchDashboardData()
+      }
+    }, 120000)
+
     fetchDashboardData()
 
     return () => {
       clearInterval(timer)
+      clearInterval(dataRefreshTimer)
       console.log("Dashboard: Component unmounted")
     }
   }, [])
@@ -75,15 +83,44 @@ function DashboardContent() {
         throw new Error("Пользователь не авторизован")
       }
 
-      console.log("Dashboard: Fetching user data with token...")
+      // Проверяем кэш
+      const cacheKey = `dashboard_${userId}`
+      const cachedData = localStorage.getItem(cacheKey)
+      const cacheTime = localStorage.getItem(`${cacheKey}_time`)
+      
+      // Если кэш свежий (менее 30 секунд), используем его
+      if (cachedData && cacheTime && Date.now() - parseInt(cacheTime) < 30000) {
+        const data = JSON.parse(cachedData)
+        setUserData(data.user)
+        setInvestments(data.investments || [])
+        setTransactions(data.transactions || [])
+        setLoading(false)
+        return
+      }
 
-      // Получаем данные пользователя
-      const userResponse = await fetch("/api/dashboard/user", {
-        headers: {
-          "Authorization": `Bearer ${token}`,
-          "Content-Type": "application/json"
-        }
-      })
+      console.log("Dashboard: Fetching fresh data...")
+
+      // Параллельно загружаем все данные
+      const [userResponse, investmentsResponse, transactionsResponse] = await Promise.all([
+        fetch("/api/dashboard/user", {
+          headers: {
+            "Authorization": `Bearer ${token}`,
+            "Content-Type": "application/json"
+          }
+        }),
+        fetch("/api/dashboard/investments", {
+          headers: {
+            "Authorization": `Bearer ${token}`,
+            "Content-Type": "application/json"
+          }
+        }),
+        fetch("/api/dashboard/transactions", {
+          headers: {
+            "Authorization": `Bearer ${token}`,
+            "Content-Type": "application/json"
+          }
+        })
+      ])
 
       if (!userResponse.ok) {
         if (userResponse.status === 401) {
@@ -94,35 +131,25 @@ function DashboardContent() {
         throw new Error(`Ошибка ${userResponse.status}`)
       }
 
-      const userData = await userResponse.json()
-      console.log("Dashboard: User data loaded:", userData)
-      setUserData(userData.user)
+      const [userData, investmentsData, transactionsData] = await Promise.all([
+        userResponse.json(),
+        investmentsResponse.ok ? investmentsResponse.json() : { investments: [] },
+        transactionsResponse.ok ? transactionsResponse.json() : { transactions: [] }
+      ])
 
-      // Получаем инвестиции
-      const investmentsResponse = await fetch("/api/dashboard/investments", {
-        headers: {
-          "Authorization": `Bearer ${token}`,
-          "Content-Type": "application/json"
-        }
-      })
-
-      if (investmentsResponse.ok) {
-        const investmentsData = await investmentsResponse.json()
-        setInvestments(investmentsData.investments || [])
+      const dashboardData = {
+        user: userData.user,
+        investments: investmentsData.investments || [],
+        transactions: transactionsData.transactions || []
       }
 
-      // Получаем транзакции
-      const transactionsResponse = await fetch("/api/dashboard/transactions", {
-        headers: {
-          "Authorization": `Bearer ${token}`,
-          "Content-Type": "application/json"
-        }
-      })
+      // Кэшируем данные
+      localStorage.setItem(cacheKey, JSON.stringify(dashboardData))
+      localStorage.setItem(`${cacheKey}_time`, Date.now().toString())
 
-      if (transactionsResponse.ok) {
-        const transactionsData = await transactionsResponse.json()
-        setTransactions(transactionsData.transactions || [])
-      }
+      setUserData(dashboardData.user)
+      setInvestments(dashboardData.investments)
+      setTransactions(dashboardData.transactions)
 
       console.log("Dashboard: All data loaded successfully")
 
@@ -169,11 +196,18 @@ function DashboardContent() {
     try {
       console.log("💰 Handling deposit:", { amount, method })
 
+      // Очищаем кэш для обновления данных
+      const userId = localStorage.getItem("userId")
+      if (userId) {
+        localStorage.removeItem(`dashboard_${userId}`)
+        localStorage.removeItem(`dashboard_${userId}_time`)
+      }
+
       // Обновляем данные после создания заявки
       setTimeout(() => {
         fetchDashboardData()
         setShowDepositForm(false)
-      }, 1000)
+      }, 500)
     } catch (error) {
       console.error("❌ Error handling deposit:", error)
       toast.error("Ошибка обработки пополнения")
