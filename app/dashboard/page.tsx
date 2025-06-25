@@ -32,6 +32,7 @@ import { toast } from "sonner"
 import { useVoiceNotifications } from "@/hooks/use-voice-notifications"
 import Link from "next/link"
 import { InvestmentDialog } from "@/components/dashboard/investment-dialog"
+import { useRouter } from "next/navigation";
 
 function DashboardContent() {
   const [currentTime, setCurrentTime] = useState(new Date())
@@ -45,6 +46,8 @@ function DashboardContent() {
   const [showInvestmentDialog, setShowInvestmentDialog] = useState(false)
   const [timeLeft, setTimeLeft] = useState<{ [key: string]: string }>({})
   const { playInvestmentNotification, playDepositNotification, playErrorNotification } = useVoiceNotifications()
+  const [investmentPlans, setInvestmentPlans] = useState<any[]>([]);
+  const router = useRouter();
 
   useEffect(() => {
     console.log("Dashboard: Component mounted")

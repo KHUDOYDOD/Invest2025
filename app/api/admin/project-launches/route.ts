@@ -9,11 +9,10 @@ export async function GET() {
         name,
         COALESCE(title, name) as title,
         description,
-        status,
         launch_date,
         target_amount,
         raised_amount,
-        COALESCE(is_launched, (status = 'active')) as is_launched,
+        COALESCE(is_launched, (false)) as is_launched,
         COALESCE(is_active, true) as is_active,
         COALESCE(show_on_site, false) as show_on_site,
         COALESCE(position, 0) as position,
@@ -39,14 +38,13 @@ export async function POST(request: Request) {
 
     const result = await query(
       `INSERT INTO project_launches (
-        name, title, description, status, launch_date, target_amount, raised_amount,
+        name, title, description, launch_date, target_amount, raised_amount,
         is_launched, is_active, show_on_site, position, icon_type, background_type, color_scheme
       ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14) RETURNING *`,
       [
         body.name || 'Новый проект',
         body.title || body.name || 'Новый проект', 
         body.description || 'Описание проекта', 
-        body.status || 'active', 
         body.launch_date || new Date().toISOString(), 
         body.target_amount || 0, 
         body.raised_amount || 0,
@@ -77,17 +75,16 @@ export async function PUT(request: Request) {
 
     const result = await query(
       `UPDATE project_launches 
-       SET name = $1, title = $2, description = $3, status = $4, launch_date = $5,
-           target_amount = $6, raised_amount = $7, is_launched = $8, is_active = $9,
-           show_on_site = $10, position = $11, icon_type = $12, background_type = $13,
-           color_scheme = $14, updated_at = CURRENT_TIMESTAMP
-       WHERE id = $15
+       SET name = $1, title = $2, description = $3, launch_date = $4,
+           target_amount = $5, raised_amount = $6, is_launched = $7, is_active = $8,
+           show_on_site = $9, position = $10, icon_type = $11, background_type = $12,
+           color_scheme = $13, updated_at = CURRENT_TIMESTAMP
+       WHERE id = $14
        RETURNING *`,
       [
         body.name,
         body.title || body.name,
         body.description,
-        body.status || 'active',
         body.launch_date,
         body.target_amount || 0,
         body.raised_amount || 0,
