@@ -38,11 +38,6 @@ export default function HomePage() {
         <TrustIndicators />
       </div>
 
-      {/* Platform Statistics */}
-      <div className="relative z-10">
-        <PlatformStatistics />
-      </div>
-
       {/* User Activity Rows */}
       <div className="relative z-10">
         <UserActivityRows />
@@ -56,11 +51,6 @@ export default function HomePage() {
       {/* Live Activity Feed */}
       <div className="relative z-10">
         <LiveActivityFeed />
-      </div>
-
-      {/* Platform Statistics */}
-      <div className="relative z-10">
-        <PlatformStatistics />
       </div>
 
       {/* Statistics */}
