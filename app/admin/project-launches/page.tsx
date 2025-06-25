@@ -108,7 +108,8 @@ export default function ProjectLaunchesPage() {
       }
 
       const data = await response.json()
-      setLaunches(Array.isArray(data) ? data : [])
+      console.log('Loaded launches:', data)
+      setLaunches(Array.isArray(data) ? data : data.launches || [])
 
       toast({
         title: "Успешно",
