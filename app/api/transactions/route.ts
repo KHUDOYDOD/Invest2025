@@ -1,33 +1,53 @@
-import { type NextRequest, NextResponse } from "next/server"
-import { query } from "@/lib/database"
+import { NextRequest, NextResponse } from 'next/server'
+import { query } from '@/lib/database'
 
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url)
-    const limit = parseInt(searchParams.get("limit") || "10")
-    const userId = searchParams.get("userId")
+    const userId = searchParams.get('userId')
+    const limit = parseInt(searchParams.get('limit') || '10')
 
     if (!userId) {
-      return NextResponse.json({ error: "User ID обязателен" }, { status: 400 })
+      return NextResponse.json({ error: 'userId is required' }, { status: 400 })
     }
 
-    console.log(`Loading transactions for user: ${userId}`)
+    console.log('Fetching transactions for user:', userId, 'limit:', limit)
 
-    // Получаем реальные транзакции из базы данных
+    // Получаем транзакции пользователя
     const result = await query(
-      `SELECT id, type, amount, status, description, method, fee, final_amount, created_at, updated_at
-       FROM transactions 
-       WHERE user_id = $1 
-       ORDER BY created_at DESC 
-       LIMIT $2`,
+      `SELECT 
+        t.id,
+        t.type,
+        t.amount,
+        t.status,
+        t.created_at,
+        t.description,
+        t.payment_method,
+        CASE 
+          WHEN t.type = 'investment' THEN ip.name
+          ELSE NULL
+        END as plan_name
+      FROM transactions t
+      LEFT JOIN investments i ON t.user_id = i.user_id AND t.type = 'investment' AND t.created_at = i.created_at
+      LEFT JOIN investment_plans ip ON i.plan_id = ip.id
+      WHERE t.user_id = $1
+      ORDER BY t.created_at DESC
+      LIMIT $2`,
       [userId, limit]
     )
 
-    console.log(`✅ Transactions loaded from database: ${result.rows.length}`)
+    console.log(`Found ${result.rows.length} transactions for user ${userId}`)
 
-    return NextResponse.json(result.rows)
+    return NextResponse.json({
+      success: true,
+      transactions: result.rows
+    })
+
   } catch (error) {
-    console.error("Transactions API error:", error)
-    return NextResponse.json({ error: "Ошибка загрузки транзакций" }, { status: 500 })
+    console.error('Transactions API error:', error)
+    return NextResponse.json({ 
+      error: 'Ошибка загрузки транзакций',
+      details: error.message 
+    }, { status: 500 })
   }
 }

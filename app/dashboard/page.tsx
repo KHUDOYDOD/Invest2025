@@ -609,7 +609,7 @@ function DashboardContent() {
                 </Link>
               </div>
 
-              <TransactionsList userId={userData.id} />
+              <TransactionsList userId={userData.id} limit={5} />
             </motion.div>
 
             {/* Status Cards */}
