@@ -28,7 +28,7 @@ export function TransactionsList({ userId, limit = 5 }: TransactionsListProps) {
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
-    if (userId) {
+    if (userId && userId.trim() !== "") {
       fetchTransactions()
     }
   }, [userId, limit])

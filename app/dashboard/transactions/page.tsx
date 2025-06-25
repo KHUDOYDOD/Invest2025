@@ -7,8 +7,34 @@ import { TransactionsList } from "@/components/dashboard/transactions-list"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Receipt, TrendingUp, ArrowUpRight, ArrowDownRight } from "lucide-react"
 import { motion } from "framer-motion"
+import { useState, useEffect } from "react"
 
 function TransactionsContent() {
+  const [userId, setUserId] = useState<string>("")
+
+  useEffect(() => {
+    const fetchUserId = async () => {
+      try {
+        const token = localStorage.getItem('token')
+        if (token) {
+          const response = await fetch('/api/dashboard/user', {
+            headers: {
+              'Authorization': `Bearer ${token}`
+            }
+          })
+          const data = await response.json()
+          if (data.success && data.user) {
+            setUserId(data.user.id)
+          }
+        }
+      } catch (error) {
+        console.error('Error fetching user ID:', error)
+      }
+    }
+
+    fetchUserId()
+  }, [])
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-indigo-900 relative overflow-hidden">
       {/* Enhanced Animated Background */}
@@ -117,7 +143,7 @@ function TransactionsContent() {
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="p-6">
-                  <TransactionsList />
+                  <TransactionsList userId={userId} />
                 </CardContent>
               </Card>
             </motion.div>
