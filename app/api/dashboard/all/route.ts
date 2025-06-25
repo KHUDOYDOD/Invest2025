@@ -81,7 +81,6 @@ export async function GET(request: NextRequest) {
         fee::decimal as fee,
         status,
         method,
-        payment_details,
         created_at,
         processed_at
       FROM transactions
@@ -107,6 +106,20 @@ export async function GET(request: NextRequest) {
       WHERE is_active = true
       ORDER BY min_amount ASC`
     )
+
+    // Получаем заявки на пополнение
+    const depositRequestsResult = await query(`
+      SELECT 
+        dr.id,
+        dr.amount::decimal as amount,
+        dr.method,
+        dr.status,
+        dr.created_at
+      FROM deposit_requests dr
+      WHERE dr.user_id = $1
+      ORDER BY dr.created_at DESC
+      LIMIT 10
+    `, [userId]);
 
     console.log('Dashboard data loaded successfully for user:', userId)
 
@@ -140,7 +153,6 @@ export async function GET(request: NextRequest) {
         fee: parseFloat(tx.fee || '0'),
         status: tx.status,
         method: tx.method,
-        payment_details: tx.payment_details,
         created_at: tx.created_at,
         processed_at: tx.processed_at
       })),
