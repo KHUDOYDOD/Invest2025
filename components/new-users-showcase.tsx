@@ -2,7 +2,9 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { Users, Clock, Globe, MapPin, Zap } from "lucide-react"
+import { Users, Clock, Globe, MapPin, Zap, Search, Filter } from "lucide-react"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
 
 interface NewUser {
   id: string
@@ -86,6 +88,8 @@ const getRandomCountry = () => {
 export function NewUsersShowcase() {
   const [newUsers, setNewUsers] = useState<NewUser[]>([])
   const [loading, setLoading] = useState(true)
+  const [searchTerm, setSearchTerm] = useState("")
+  const [filterCountry, setFilterCountry] = useState("all")
 
   useEffect(() => {
     const fetchNewUsers = async () => {
@@ -141,13 +145,14 @@ export function NewUsersShowcase() {
     }
   }
 
-  const getInitials = (name: string) => {
-    return name
-      .split(' ')
-      .map(word => word.charAt(0))
-      .join('')
-      .toUpperCase()
-      .slice(0, 2)
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString)
+    return new Intl.DateTimeFormat("ru-RU", {
+      day: "2-digit",
+      month: "short",
+      hour: "2-digit",
+      minute: "2-digit",
+    }).format(date)
   }
 
   const generateNickname = (name: string, email: string) => {
@@ -165,18 +170,26 @@ export function NewUsersShowcase() {
     return emailPart.charAt(0).toUpperCase() + emailPart.slice(1, 8)
   }
 
+  const filteredUsers = newUsers.filter((user) => {
+    const nickname = generateNickname(user.name, user.email)
+    const matchesSearch = nickname.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         user.name.toLowerCase().includes(searchTerm.toLowerCase())
+    const matchesFilter = filterCountry === "all" || user.country === filterCountry
+    return matchesSearch && matchesFilter
+  })
+
+  const uniqueCountries = Array.from(new Set(newUsers.map(u => u.country).filter(Boolean)))
+
   if (loading) {
     return (
       <section className="py-20 px-4 bg-gradient-to-br from-slate-950 via-gray-900 to-slate-950 relative overflow-hidden">
         <div className="absolute inset-0">
           <div className="absolute top-1/3 left-1/3 w-72 h-72 bg-gradient-to-r from-emerald-600/10 to-teal-600/10 rounded-full blur-3xl animate-pulse"></div>
-          <div className="absolute bottom-1/3 right-1/3 w-72 h-72 bg-gradient-to-r from-blue-600/10 to-indigo-600/10 rounded-full blur-3xl animate-pulse delay-1000"></div>
         </div>
 
         <div className="container mx-auto max-w-7xl relative z-10">
-          <div className="text-center">
-            <div className="w-12 h-12 border-4 border-t-emerald-500 border-r-transparent border-b-blue-500 border-l-transparent rounded-full mx-auto mb-4 animate-spin"></div>
-            <p className="text-slate-300 text-lg">Загрузка новых участников...</p>
+          <div className="flex justify-center">
+            <div className="w-12 h-12 border-4 border-t-emerald-500 border-r-transparent border-b-teal-500 border-l-transparent rounded-full animate-spin"></div>
           </div>
         </div>
       </section>
@@ -193,105 +206,156 @@ export function NewUsersShowcase() {
       <div className="absolute inset-0">
         <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-gradient-to-r from-emerald-600/10 to-teal-600/10 rounded-full blur-3xl animate-pulse"></div>
         <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-gradient-to-r from-blue-600/10 to-indigo-600/10 rounded-full blur-3xl animate-pulse delay-1000"></div>
-        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-gradient-to-r from-purple-600/5 to-pink-600/5 rounded-full blur-3xl animate-spin-slow"></div>
       </div>
 
       <div className="container mx-auto max-w-7xl relative z-10">
         <div className="text-center mb-16 animate-fade-in">
-          <div className="inline-flex items-center gap-3 mb-6">
-            <div className="w-3 h-3 bg-emerald-400 rounded-full animate-pulse"></div>
-            <h2 className="text-5xl font-bold bg-gradient-to-r from-white via-emerald-100 to-blue-200 bg-clip-text text-transparent">
-              Новые участники
-            </h2>
-            <div className="w-3 h-3 bg-blue-400 rounded-full animate-pulse delay-1000"></div>
-          </div>
+          <h2 className="text-5xl font-bold bg-gradient-to-r from-white via-emerald-100 to-teal-200 bg-clip-text text-transparent mb-6">
+            Новые участники
+          </h2>
           <p className="text-xl text-slate-300 max-w-3xl mx-auto leading-relaxed">
             Последние зарегистрированные пользователи со всего мира
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8">
-          {newUsers.map((user, index) => {
-            const nickname = generateNickname(user.name, user.email)
-            const countryFlag = user.country ? countryFlags[user.country] || '🌍' : '🌍'
-            const countryName = user.country ? countryNames[user.country] || 'Неизвестно' : 'Неизвестно'
-            
-            return (
-              <div
-                key={user.id}
-                className="p-6 rounded-2xl border border-emerald-500/30 bg-gradient-to-br from-emerald-500/20 to-blue-600/20 backdrop-blur-xl shadow-xl shadow-emerald-500/25 hover:shadow-2xl transition-all duration-500 relative overflow-hidden group animate-slide-up"
-                style={{ animationDelay: `${index * 100}ms` }}
+        {/* Фильтры */}
+        <div className="mb-12 flex flex-col sm:flex-row gap-4 justify-between items-center animate-slide-up">
+          <div className="relative flex-1 max-w-md">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-slate-400" />
+            <Input
+              placeholder="Поиск по имени пользователя..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-10 bg-white/5 border-white/10 text-white placeholder:text-slate-400 focus:border-emerald-500/50"
+            />
+          </div>
+
+          <div className="flex gap-2">
+            <Button
+              variant={filterCountry === "all" ? "default" : "outline"}
+              size="sm"
+              onClick={() => setFilterCountry("all")}
+              className={`${
+                filterCountry === "all"
+                  ? "bg-gradient-to-r from-emerald-500 to-teal-600 text-white"
+                  : "bg-white/5 border-white/10 text-slate-300 hover:bg-white/10"
+              }`}
+            >
+              <Filter className="h-4 w-4 mr-2" />
+              Все страны
+            </Button>
+            {uniqueCountries.slice(0, 3).map((country) => (
+              <Button
+                key={country}
+                variant={filterCountry === country ? "default" : "outline"}
+                size="sm"
+                onClick={() => setFilterCountry(country || "all")}
+                className={`${
+                  filterCountry === country
+                    ? "bg-gradient-to-r from-emerald-500 to-teal-600 text-white"
+                    : "bg-white/5 border-white/10 text-slate-300 hover:bg-white/10"
+                }`}
               >
-                <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-
-                <div className="flex items-start relative z-10">
-                  <div className="p-3 rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-600 text-white shadow-lg mr-4 group-hover:scale-110 transition-transform duration-300">
-                    <Users className="h-5 w-5" />
-                  </div>
-
-                  <div className="flex-1">
-                    <div className="flex items-center gap-3 mb-2">
-                      <span className="text-white text-lg font-semibold bg-gradient-to-r from-white to-emerald-200 bg-clip-text text-transparent">
-                        {nickname}
-                      </span>
-                      <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 backdrop-blur-sm border border-white/20">
-                        <span className="text-2xl" title={countryName}>
-                          {countryFlag}
-                        </span>
-                        <span className="text-slate-300 text-sm font-medium">
-                          {countryName}
-                        </span>
-                      </div>
-                    </div>
-                    
-                    <p className="text-slate-300 text-sm mb-3 flex items-center gap-2">
-                      <MapPin className="h-4 w-4 text-emerald-400" />
-                      Зарегистрировался на платформе
-                    </p>
-
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <Clock className="h-4 w-4 text-slate-400" />
-                        <p className="text-slate-400 text-sm font-medium">
-                          {formatTimeAgo(user.joinedDate)}
-                        </p>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <div className="w-2 h-2 bg-emerald-400 rounded-full animate-pulse"></div>
-                        <span className="text-emerald-400 text-xs font-medium">НОВЫЙ</span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Дополнительная информация */}
-                <div className="mt-4 pt-4 border-t border-white/10 relative z-10">
-                  <div className="flex items-center justify-between text-sm">
-                    <div className="flex items-center gap-2 text-slate-400">
-                      <Globe className="h-4 w-4" />
-                      <span>ID: {user.id.slice(0, 8)}</span>
-                    </div>
-                    <div className="flex items-center gap-2 text-slate-400">
-                      <Zap className="h-4 w-4 text-blue-400" />
-                      <span className="text-blue-400">Активен</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            )
-          })}
+                {country && countryFlags[country]} {country && countryNames[country]}
+              </Button>
+            ))}
+          </div>
         </div>
 
-        {/* Статистика и индикатор */}
-        <div className="mt-16 grid grid-cols-1 md:grid-cols-3 gap-8 animate-fade-in-delayed">
+        {/* Таблица */}
+        <div className="overflow-hidden bg-gradient-to-br from-white/5 to-white/10 backdrop-blur-xl border border-white/10 rounded-3xl shadow-2xl animate-slide-up">
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead>
+                <tr className="border-b border-white/10">
+                  <th className="px-8 py-6 text-left text-sm font-semibold text-slate-300 uppercase tracking-wider">
+                    Пользователь
+                  </th>
+                  <th className="px-8 py-6 text-left text-sm font-semibold text-slate-300 uppercase tracking-wider">
+                    Страна
+                  </th>
+                  <th className="px-8 py-6 text-left text-sm font-semibold text-slate-300 uppercase tracking-wider">
+                    Статус
+                  </th>
+                  <th className="px-8 py-6 text-left text-sm font-semibold text-slate-300 uppercase tracking-wider">
+                    Дата регистрации
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-white/5">
+                {filteredUsers.map((user, index) => {
+                  const nickname = generateNickname(user.name, user.email)
+                  const countryFlag = user.country ? countryFlags[user.country] || '🌍' : '🌍'
+                  const countryName = user.country ? countryNames[user.country] || 'Неизвестно' : 'Неизвестно'
+                  
+                  return (
+                    <tr
+                      key={user.id}
+                      className="hover:bg-white/5 transition-colors duration-300 group animate-fade-in"
+                      style={{ animationDelay: `${index * 50}ms` }}
+                    >
+                      <td className="px-8 py-6 whitespace-nowrap">
+                        <div className="flex items-center">
+                          <div className="w-10 h-10 bg-gradient-to-r from-emerald-500 to-teal-600 rounded-full flex items-center justify-center text-white font-semibold text-sm mr-4">
+                            {nickname.charAt(0).toUpperCase()}
+                          </div>
+                          <div className="text-lg font-medium text-white group-hover:text-emerald-300 transition-colors">
+                            {nickname}
+                          </div>
+                        </div>
+                      </td>
+                      <td className="px-8 py-6 whitespace-nowrap">
+                        <div className="flex items-center">
+                          <span className="p-2 rounded-xl bg-emerald-500/20 border border-emerald-500/30 mr-3">
+                            <Globe className="h-5 w-5 text-emerald-400" />
+                          </span>
+                          <div className="flex items-center gap-3">
+                            <span className="text-2xl" title={countryName}>
+                              {countryFlag}
+                            </span>
+                            <span className="text-lg font-medium text-emerald-400">{countryName}</span>
+                          </div>
+                        </div>
+                      </td>
+                      <td className="px-8 py-6 whitespace-nowrap">
+                        <div className="flex items-center gap-2">
+                          <div className="w-2 h-2 bg-emerald-400 rounded-full animate-pulse"></div>
+                          <span className="text-emerald-400 text-lg font-medium">НОВЫЙ</span>
+                        </div>
+                      </td>
+                      <td className="px-8 py-6 whitespace-nowrap">
+                        <div className="flex items-center text-slate-400">
+                          <Clock className="h-4 w-4 mr-2" />
+                          <div>
+                            <div className="text-sm font-medium">{formatDate(user.joinedDate)}</div>
+                            <div className="text-xs text-slate-500">{formatTimeAgo(user.joinedDate)}</div>
+                          </div>
+                        </div>
+                      </td>
+                    </tr>
+                  )
+                })}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        {filteredUsers.length === 0 && (
+          <div className="text-center py-12 animate-fade-in">
+            <p className="text-slate-400 text-lg">Пользователи не найдены</p>
+          </div>
+        )}
+
+        {/* Статистика в подвале */}
+        <div className="mt-12 grid grid-cols-1 md:grid-cols-3 gap-8 animate-fade-in-delayed">
           <div className="text-center p-6 bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl">
-            <div className="text-3xl font-bold text-emerald-400 mb-2">{newUsers.length}</div>
-            <div className="text-slate-300 text-sm">Новых участников</div>
+            <div className="text-3xl font-bold text-emerald-400 mb-2">{filteredUsers.length}</div>
+            <div className="text-slate-300 text-sm">Показано участников</div>
           </div>
           
           <div className="text-center p-6 bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl">
-            <div className="text-3xl font-bold text-blue-400 mb-2">
-              {new Set(newUsers.map(u => u.country)).size}
+            <div className="text-3xl font-bold text-teal-400 mb-2">
+              {uniqueCountries.length}
             </div>
             <div className="text-slate-300 text-sm">Стран представлено</div>
           </div>
