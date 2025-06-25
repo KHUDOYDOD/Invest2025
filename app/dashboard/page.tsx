@@ -29,7 +29,9 @@ import {
   RefreshCw,
 } from "lucide-react"
 import { toast } from "sonner"
+import { useVoiceNotifications } from "@/hooks/use-voice-notifications"
 import Link from "next/link"
+import { InvestmentDialog } from "@/components/dashboard/investment-dialog"
 
 function DashboardContent() {
   const [currentTime, setCurrentTime] = useState(new Date())
@@ -39,7 +41,10 @@ function DashboardContent() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [showDepositForm, setShowDepositForm] = useState(false)
+  const [selectedPlan, setSelectedPlan] = useState<any>(null)
+  const [showInvestmentDialog, setShowInvestmentDialog] = useState(false)
   const [timeLeft, setTimeLeft] = useState<{ [key: string]: string }>({})
+  const { playInvestmentNotification, playDepositNotification, playErrorNotification } = useVoiceNotifications()
 
   useEffect(() => {
     console.log("Dashboard: Component mounted")

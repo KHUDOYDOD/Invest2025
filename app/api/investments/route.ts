@@ -110,7 +110,11 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({
         success: true,
         investment: investmentResult.rows[0],
-        message: 'Инвестиция успешно создана'
+        message: 'Инвестиция успешно создана',
+        voiceData: {
+          amount: amount,
+          planName: plan.name
+        }
       })
 
     } catch (error) {
