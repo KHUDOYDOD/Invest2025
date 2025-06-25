@@ -1,89 +1,83 @@
-import { type NextRequest, NextResponse } from "next/server"
-import bcrypt from "bcryptjs"
-import jwt from "jsonwebtoken"
-import { query } from "@/lib/database"
+import { NextRequest, NextResponse } from 'next/server'
+import bcrypt from 'bcryptjs'
+import jwt from 'jsonwebtoken'
+import { query } from '@/lib/database'
 
 export async function POST(request: NextRequest) {
   try {
-    const { email, password } = await request.json()
+    const { loginField, password } = await request.json()
 
-    if (!email || !password) {
-      return NextResponse.json({ error: "Email и пароль обязательны" }, { status: 400 })
+    if (!loginField || !password) {
+      return NextResponse.json({ error: 'Email/логин и пароль обязательны' }, { status: 400 })
     }
 
-    // Поиск пользователя в базе данных (по email или username)
-    const result = await query(
-      `SELECT id, email, full_name, password_hash, balance, total_invested, 
-              total_earned, is_active, role_id
-       FROM users
-       WHERE email = $1 OR full_name = $1`,
-      [email]
+    console.log('Login attempt for:', loginField)
+
+    // Ищем пользователя по email или логину
+    const userResult = await query(
+      `SELECT 
+        id, 
+        email, 
+        full_name, 
+        password_hash, 
+        role_id, 
+        is_active,
+        COALESCE(balance, 0) as balance,
+        COALESCE(total_invested, 0) as total_invested,
+        COALESCE(total_earned, 0) as total_earned
+      FROM users 
+      WHERE (email = $1 OR email = $1) AND is_active = true`,
+      [loginField]
     )
 
-    if (result.rows.length === 0) {
-      return NextResponse.json({ error: "Неверный email или пароль" }, { status: 401 })
+    if (userResult.rows.length === 0) {
+      return NextResponse.json({ error: 'Неверный email/логин или пароль' }, { status: 401 })
     }
 
-    const user = result.rows[0]
-
-    if (!user.is_active) {
-      return NextResponse.json({ error: "Аккаунт заблокирован" }, { status: 403 })
-    }
+    const user = userResult.rows[0]
 
     // Проверяем пароль
     const isPasswordValid = await bcrypt.compare(password, user.password_hash)
-
     if (!isPasswordValid) {
-      return NextResponse.json({ error: "Неверный email или пароль" }, { status: 401 })
+      return NextResponse.json({ error: 'Неверный email/логин или пароль' }, { status: 401 })
     }
 
     // Обновляем время последнего входа
     await query(
-      'UPDATE users SET last_login = NOW() WHERE id = $1',
+      'UPDATE users SET last_login = CURRENT_TIMESTAMP WHERE id = $1',
       [user.id]
     )
 
-    // Определяем роль пользователя (role_id: 1 = admin, 2 = user)  
-    const role = user.role_id === 1 ? 'admin' : 'user'
-    console.log(`User ${user.email} has role_id: ${user.role_id}, role: ${role}`)
-    
     // Создаем JWT токен
     const token = jwt.sign(
       { 
         userId: user.id, 
         email: user.email,
-        role: role 
+        role: user.role_id === 1 ? 'admin' : 'user'
       },
       process.env.NEXTAUTH_SECRET || 'fallback-secret',
       { expiresIn: '7d' }
     )
 
-    const response = NextResponse.json({
+    console.log('Login successful for user:', user.email)
+
+    return NextResponse.json({
       success: true,
       user: {
         id: user.id,
         email: user.email,
         full_name: user.full_name,
-        balance: user.balance,
-        total_invested: user.total_invested,
-        total_earned: user.total_earned,
-        role: role,
-        isAdmin: role === 'admin',
+        balance: parseFloat(user.balance),
+        total_invested: parseFloat(user.total_invested),
+        total_earned: parseFloat(user.total_earned),
+        role: user.role_id === 1 ? 'admin' : 'user',
+        isAdmin: user.role_id === 1
       },
       token
     })
 
-    // Устанавливаем cookie с токеном
-    response.cookies.set('auth-token', token, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
-      maxAge: 7 * 24 * 60 * 60 // 7 дней
-    })
-
-    return response
   } catch (error) {
-    console.error("Login error:", error)
-    return NextResponse.json({ error: "Ошибка сервера" }, { status: 500 })
+    console.error('Login error:', error)
+    return NextResponse.json({ error: 'Ошибка сервера' }, { status: 500 })
   }
 }
