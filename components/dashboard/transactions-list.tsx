@@ -18,42 +18,44 @@ interface Transaction {
 }
 
 interface TransactionsListProps {
-  userId: string
   limit?: number
 }
 
-export function TransactionsList({ userId, limit = 5 }: TransactionsListProps) {
+export function TransactionsList({ limit = 10 }: TransactionsListProps) {
   const [transactions, setTransactions] = useState<Transaction[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
-    if (userId && userId.trim() !== "") {
       fetchTransactions()
-    }
-  }, [userId, limit])
+  }, [limit])
 
   const fetchTransactions = async () => {
     try {
       setLoading(true)
       setError(null)
-      
-      console.log('Fetching transactions for userId:', userId)
-      
-      const response = await fetch(`/api/transactions?userId=${userId}&limit=${limit}`)
+
+      const token = localStorage.getItem('token')
+      if (!token) {
+        setError('Токен не найден')
+        return
+      }
+
+      const response = await fetch('/api/dashboard/transactions', {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      })
       const data = await response.json()
 
-      console.log('Transactions API response:', data)
-
-      if (data.success) {
+      if (response.ok) {
         setTransactions(data.transactions || [])
       } else {
-        console.error('Transactions API error:', data.error)
         setError(data.error || 'Ошибка загрузки транзакций')
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error fetching transactions:', error)
-      setError('Ошибка соединения с сервером')
+      setError(error.message || 'Ошибка соединения')
     } finally {
       setLoading(false)
     }

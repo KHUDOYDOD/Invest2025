@@ -1,3 +1,4 @@
+
 import { NextRequest, NextResponse } from 'next/server'
 import { query } from '@/lib/database'
 import jwt from 'jsonwebtoken'
@@ -24,6 +25,8 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Недействительный токен' }, { status: 401 })
     }
 
+    console.log('Fetching transactions for user:', decoded.userId)
+
     // Получаем транзакции пользователя
     const result = await query(
       `SELECT 
@@ -41,13 +44,18 @@ export async function GET(request: NextRequest) {
       [decoded.userId]
     )
 
+    console.log(`Found ${result.rows.length} transactions for user ${decoded.userId}`)
+
     return NextResponse.json({
       success: true,
       transactions: result.rows
     })
 
   } catch (error) {
-    console.error('Dashboard transactions API error:', error)
-    return NextResponse.json({ error: 'Ошибка сервера' }, { status: 500 })
+    console.error('Error fetching transactions:', error)
+    return NextResponse.json({ 
+      error: 'Ошибка получения транзакций',
+      details: error.message 
+    }, { status: 500 })
   }
 }
