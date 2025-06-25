@@ -11,7 +11,7 @@ import { HeroSection } from "@/components/hero-section"
 import { ProfitCalculator } from "@/components/profit-calculator"
 import { LiveChat } from "@/components/live-chat"
 import { NewsSection } from "@/components/news-section"
-import { CurrencyRates } from "@/components/currency-rates"
+
 import { MobileApp } from "@/components/mobile-app"
 import { TrustIndicators } from "@/components/trust-indicators"
 import { LiveActivityFeed } from "@/components/live-activity-feed"
@@ -73,22 +73,11 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Currency Rates */}
-      <div className="relative z-10">
-        <CurrencyRates />
-      </div>
+      
 
       {/* Investment Plans */}
       <section id="plans" className="py-20 px-4 bg-slate-100 relative z-10">
         <div className="container mx-auto max-w-6xl">
-          <div className="text-center mb-12">
-            <h2 className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-4">
-              Инвестиционные планы
-            </h2>
-            <p className="text-xl text-slate-600 max-w-3xl mx-auto">
-              Выберите подходящий план инвестирования и начните получать доход уже сегодня
-            </p>
-          </div>
           <InvestmentPlans />
         </div>
       </section>
