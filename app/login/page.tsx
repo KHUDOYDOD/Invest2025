@@ -1,3 +1,4 @@
+
 "use client"
 
 import { useState } from 'react'
@@ -24,7 +25,7 @@ export default function LoginPage() {
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target
     setFormData(prev => ({ ...prev, [name]: value }))
-    // Очищаем ошибки при изменении полей
+    // Очищаем сообщения при изменении полей
     if (error) setError(null)
     if (success) setSuccess(null)
   }
@@ -36,49 +37,51 @@ export default function LoginPage() {
     setSuccess(null)
 
     try {
-      console.log('Attempting login with:', formData.email)
+      console.log('🔐 Attempting login with:', formData.email)
 
       const response = await fetch('/api/auth/login', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(formData),
+        body: JSON.stringify({
+          email: formData.email.trim(),
+          password: formData.password
+        }),
       })
 
       const data = await response.json()
-      console.log('Login response:', data)
+      console.log('📥 Login response:', data)
 
-      if (!response.ok) {
+      if (!response.ok || !data.success) {
         throw new Error(data.error || 'Ошибка входа')
       }
 
-      if (data.success) {
-        setSuccess('Вход выполнен успешно! Перенаправление...')
+      // Успешный вход
+      setSuccess('Вход выполнен успешно! Перенаправление...')
 
-        // Сохраняем данные пользователя в localStorage
-        if (data.user) {
-          localStorage.setItem('user', JSON.stringify(data.user))
-          localStorage.setItem('auth-token', data.token)
+      // Сохраняем данные пользователя
+      if (data.user && data.token) {
+        localStorage.setItem('user', JSON.stringify(data.user))
+        localStorage.setItem('auth-token', data.token)
+        
+        // Устанавливаем данные для админа если нужно
+        if (data.user.isAdmin) {
+          localStorage.setItem('adminAuth', 'true')
+          localStorage.setItem('adminUser', JSON.stringify(data.user))
         }
-
-        // Перенаправляем в зависимости от роли
-        setTimeout(() => {
-          if (data.redirect) {
-            router.push(data.redirect)
-          } else if (data.user?.isAdmin) {
-            router.push('/admin/dashboard')
-          } else {
-            router.push('/dashboard')
-          }
-        }, 1000)
-      } else {
-        throw new Error(data.error || 'Неизвестная ошибка')
       }
 
+      // Перенаправляем через 1 секунду
+      setTimeout(() => {
+        const redirectPath = data.redirect || (data.user?.isAdmin ? '/admin/dashboard' : '/dashboard')
+        router.push(redirectPath)
+        router.refresh() // Обновляем страницу для применения изменений
+      }, 1000)
+
     } catch (err: any) {
-      console.error('Login error:', err)
-      setError(err.message || 'Произошла ошибка при входе. Попробуйте еще раз.')
+      console.error('❌ Login error:', err)
+      setError(err.message || 'Произошла ошибка при входе. Проверьте данные и попробуйте еще раз.')
     } finally {
       setIsLoading(false)
     }
@@ -124,6 +127,7 @@ export default function LoginPage() {
                 required
                 disabled={isLoading}
                 className="transition-colors"
+                autoComplete="email"
               />
             </div>
 
@@ -140,6 +144,7 @@ export default function LoginPage() {
                   required
                   disabled={isLoading}
                   className="pr-10 transition-colors"
+                  autoComplete="current-password"
                 />
                 <Button
                   type="button"
@@ -157,7 +162,7 @@ export default function LoginPage() {
             <Button 
               type="submit" 
               className="w-full" 
-              disabled={isLoading || !formData.email || !formData.password}
+              disabled={isLoading || !formData.email.trim() || !formData.password}
             >
               {isLoading ? (
                 <>
@@ -172,11 +177,12 @@ export default function LoginPage() {
 
           <div className="text-center space-y-2">
             <div className="text-sm text-gray-500">
-              Демо аккаунты для тестирования:
+              Тестовые аккаунты:
             </div>
-            <div className="text-xs space-y-1 text-gray-400">
-              <div>Админ: admin@example.com / admin123</div>
-              <div>Пользователь: user@example.com / demo123</div>
+            <div className="text-xs space-y-1 text-gray-400 bg-gray-50 p-2 rounded">
+              <div><strong>Админ:</strong> admin@example.com / admin123</div>
+              <div><strong>Пользователь:</strong> user@example.com / demo123</div>
+              <div><strong>Ваш аккаунт:</strong> zabon@mail.ru / zabon123</div>
             </div>
           </div>
         </CardContent>
