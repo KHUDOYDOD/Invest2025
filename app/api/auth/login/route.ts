@@ -13,7 +13,7 @@ export async function POST(request: NextRequest) {
 
     console.log('Login attempt for:', loginField)
 
-    // Ищем пользователя по email или логину
+    // Ищем пользователя по email
     const userResult = await query(
       `SELECT 
         id, 
@@ -26,7 +26,7 @@ export async function POST(request: NextRequest) {
         COALESCE(total_invested, 0) as total_invested,
         COALESCE(total_earned, 0) as total_earned
       FROM users 
-      WHERE (email = $1 OR email = $1) AND is_active = true`,
+      WHERE email = $1 AND is_active = true`,
       [loginField]
     )
 

@@ -15,10 +15,10 @@ export async function GET(request: NextRequest) {
         t.amount,
         t.status,
         t.created_at,
-        t.method,
+        t.payment_method as method,
         t.description,
-        COALESCE(t.fee, 0) as fee,
-        t.final_amount
+        0 as fee,
+        t.amount as final_amount
       FROM transactions t
       JOIN users u ON t.user_id = u.id
       WHERE t.type = 'deposit'
@@ -49,8 +49,8 @@ export async function POST(request: NextRequest) {
 
     // Создаем новый запрос на пополнение
     const result = await query(
-      `INSERT INTO transactions (user_id, type, amount, status, method, description, final_amount, created_at)
-       VALUES ($1, 'deposit', $2, 'pending', $3, $4, $2, CURRENT_TIMESTAMP)
+      `INSERT INTO transactions (user_id, type, amount, status, payment_method, description, created_at)
+       VALUES ($1, 'deposit', $2, 'pending', $3, $4, CURRENT_TIMESTAMP)
        RETURNING *`,
       [user_id, amount, method || 'bank_transfer', description || 'Запрос на пополнение баланса']
     )

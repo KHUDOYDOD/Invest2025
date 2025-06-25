@@ -15,10 +15,10 @@ export async function GET(request: NextRequest) {
         t.amount,
         t.status,
         t.created_at,
-        t.method,
+        t.payment_method as method,
         t.description,
-        COALESCE(t.fee, 0) as fee,
-        t.final_amount
+        0 as fee,
+        t.amount as final_amount
       FROM transactions t
       JOIN users u ON t.user_id = u.id
       WHERE t.type = 'withdrawal'
@@ -66,12 +66,12 @@ export async function POST(request: NextRequest) {
     const fee = amount * 0.05
     const finalAmount = amount - fee
 
-    // Создаем новый запрос на вывод
+    // Создаем новый запрос на вывод  
     const result = await query(
-      `INSERT INTO transactions (user_id, type, amount, status, method, description, fee, final_amount, created_at)
-       VALUES ($1, 'withdrawal', $2, 'pending', $3, $4, $5, $6, CURRENT_TIMESTAMP)
+      `INSERT INTO transactions (user_id, type, amount, status, payment_method, description, created_at)
+       VALUES ($1, 'withdrawal', $2, 'pending', $3, $4, CURRENT_TIMESTAMP)
        RETURNING *`,
-      [user_id, amount, method || 'bank_transfer', description || 'Запрос на вывод средств', fee, finalAmount]
+      [user_id, amount, method || 'bank_transfer', description || 'Запрос на вывод средств']
     )
 
     console.log('✅ Created new withdrawal request:', result.rows[0])
