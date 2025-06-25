@@ -4,7 +4,22 @@ import { query } from '@/lib/database'
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url)
-    const userId = searchParams.get('userId')
+    let userId = searchParams.get('userId')
+
+    // Если userId не передан в параметрах, попробуем получить из токена
+    if (!userId) {
+      const authorization = request.headers.get('authorization')
+      if (authorization?.startsWith('Bearer ')) {
+        const token = authorization.slice(7)
+        try {
+          const jwt = require('jsonwebtoken')
+          const decoded = jwt.verify(token, process.env.NEXTAUTH_SECRET || 'fallback-secret') as any
+          userId = decoded.userId
+        } catch (err) {
+          console.error('JWT decode error:', err)
+        }
+      }
+    }
 
     if (!userId) {
       return NextResponse.json({ error: 'userId is required' }, { status: 400 })

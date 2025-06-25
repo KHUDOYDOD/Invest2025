@@ -104,7 +104,7 @@ function DashboardContent() {
       console.log("Dashboard: Fetching fresh data...")
 
       // Используем оптимизированный endpoint, который загружает все данные одним запросом
-      const response = await fetch("/api/dashboard/all", {
+      const response = await fetch(`/api/dashboard/all?userId=${userId}`, {
         headers: {
           "Authorization": `Bearer ${token}`,
           "Content-Type": "application/json"
