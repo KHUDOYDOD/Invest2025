@@ -95,7 +95,7 @@ export function ProjectLaunches() {
 
                       <div>
                         <div className="flex items-center space-x-3 mb-2">
-                          <h3 className="text-xl font-bold text-white">{launch.name}</h3>
+                          <h3 className="text-xl font-bold text-white">{launch.title || launch.name}</h3>
                           <Badge
                             variant="default"
                             className="bg-green-500/20 text-green-400 border-green-500/30"

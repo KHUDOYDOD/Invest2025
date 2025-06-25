@@ -1,132 +1,131 @@
-import { NextRequest, NextResponse } from "next/server"
-import { query } from "@/lib/database"
+import { NextRequest, NextResponse } from 'next/server'
+import { query } from '@/lib/database'
+import { requireAdmin } from '@/lib/auth'
 
-export async function GET(request: NextRequest) {
+// GET - получить все транзакции
+export const GET = requireAdmin(async (request: NextRequest) => {
   try {
-    const { searchParams } = new URL(request.url)
-    const page = parseInt(searchParams.get("page") || "1")
-    const limit = parseInt(searchParams.get("limit") || "20")
-    const search = searchParams.get("search") || ""
-    const type = searchParams.get("transactionType") || "all"
-    const status = searchParams.get("status") || "all"
-    const amountMin = searchParams.get("amountMin")
-    const amountMax = searchParams.get("amountMax")
-    const dateFrom = searchParams.get("dateFrom")
-    const dateTo = searchParams.get("dateTo")
-    const sortBy = searchParams.get("sortBy") || "created_at"
-    const sortOrder = searchParams.get("sortOrder") || "desc"
-    
+    const url = new URL(request.url)
+    const page = parseInt(url.searchParams.get('page') || '1')
+    const limit = parseInt(url.searchParams.get('limit') || '50')
+    const search = url.searchParams.get('search') || ''
+    const status = url.searchParams.get('status') || ''
+    const type = url.searchParams.get('type') || ''
+    const sortBy = url.searchParams.get('sortBy') || 'created_at'
+    const sortOrder = url.searchParams.get('sortOrder') || 'DESC'
+
     const offset = (page - 1) * limit
 
-    console.log(`Loading admin transactions with advanced filters: page=${page}, limit=${limit}`)
-
-    // Строим WHERE условие
     let whereConditions = []
-    let queryParams = []
+    let params = []
     let paramIndex = 1
 
-    // Поиск по пользователю, описанию или ID транзакции
+    // Фильтр по поиску (пользователь)
     if (search) {
-      whereConditions.push(`(u.email ILIKE $${paramIndex} OR u.full_name ILIKE $${paramIndex} OR t.description ILIKE $${paramIndex} OR t.id::text ILIKE $${paramIndex})`)
-      queryParams.push(`%${search}%`)
-      paramIndex++
-    }
-
-    // Фильтр по типу транзакции
-    if (type !== "all") {
-      whereConditions.push(`t.type = $${paramIndex}`)
-      queryParams.push(type)
+      whereConditions.push(`u.full_name ILIKE $${paramIndex}`)
+      params.push(`%${search}%`)
       paramIndex++
     }
 
     // Фильтр по статусу
-    if (status !== "all") {
+    if (status) {
       whereConditions.push(`t.status = $${paramIndex}`)
-      queryParams.push(status)
+      params.push(status)
       paramIndex++
     }
 
-    // Фильтр по минимальной сумме
-    if (amountMin && !isNaN(parseFloat(amountMin))) {
-      whereConditions.push(`t.amount >= $${paramIndex}`)
-      queryParams.push(parseFloat(amountMin))
-      paramIndex++
-    }
-
-    // Фильтр по максимальной сумме
-    if (amountMax && !isNaN(parseFloat(amountMax))) {
-      whereConditions.push(`t.amount <= $${paramIndex}`)
-      queryParams.push(parseFloat(amountMax))
-      paramIndex++
-    }
-
-    // Фильтр по дате создания
-    if (dateFrom) {
-      whereConditions.push(`t.created_at >= $${paramIndex}`)
-      queryParams.push(new Date(dateFrom))
-      paramIndex++
-    }
-
-    if (dateTo) {
-      whereConditions.push(`t.created_at <= $${paramIndex}`)
-      queryParams.push(new Date(dateTo))
+    // Фильтр по типу
+    if (type) {
+      whereConditions.push(`t.type = $${paramIndex}`)
+      params.push(type)
       paramIndex++
     }
 
     const whereClause = whereConditions.length > 0 ? `WHERE ${whereConditions.join(' AND ')}` : ''
 
-    // Валидируем и строим ORDER BY
-    const validSortFields = ['created_at', 'amount', 'type', 'status', 'user_name']
-    const validSortBy = validSortFields.includes(sortBy) ? 
-      (sortBy === 'user_name' ? 'u.full_name' : `t.${sortBy}`) : 't.created_at'
-    const validSortOrder = ['asc', 'desc'].includes(sortOrder.toLowerCase()) ? sortOrder.toUpperCase() : 'DESC'
-
-    // Получаем транзакции с информацией о пользователях
-    const transactionsResult = await query(`
+    // Основной запрос
+    const transactionsQuery = `
       SELECT 
-        t.id, t.user_id, t.type, t.amount, t.status, t.description, 
-        t.method, t.fee, t.final_amount, t.created_at, t.updated_at,
-        u.email as user_email, u.full_name as user_name
+        t.id,
+        t.user_id,
+        u.full_name as user_name,
+        u.email as user_email,
+        t.type,
+        t.amount,
+        t.status,
+        t.description,
+        t.created_at,
+        t.updated_at
       FROM transactions t
       JOIN users u ON t.user_id = u.id
       ${whereClause}
-      ORDER BY ${validSortBy} ${validSortOrder}
+      ORDER BY t.${sortBy} ${sortOrder}
       LIMIT $${paramIndex} OFFSET $${paramIndex + 1}
-    `, [...queryParams, limit, offset])
+    `
+    params.push(limit, offset)
 
-    // Получаем общее количество транзакций
-    const countResult = await query(`
-      SELECT COUNT(*) as total 
+    // Запрос для подсчета общего количества
+    const countQuery = `
+      SELECT COUNT(*) as total
       FROM transactions t
       JOIN users u ON t.user_id = u.id
       ${whereClause}
-    `, queryParams)
+    `
+    const countParams = params.slice(0, -2) // убираем limit и offset
 
-    const transactions = transactionsResult.rows.map(tx => ({
-      ...tx,
-      amount: parseFloat(tx.amount || 0),
-      fee: parseFloat(tx.fee || 0),
-      final_amount: parseFloat(tx.final_amount || 0)
-    }))
+    const [transactionsResult, countResult] = await Promise.all([
+      query(transactionsQuery, params),
+      query(countQuery, countParams)
+    ])
 
-    const totalTransactions = parseInt(countResult.rows[0].total)
-    const totalPages = Math.ceil(totalTransactions / limit)
-
-    console.log(`✅ Admin transactions loaded from database: ${transactions.length} transactions`)
+    const total = parseInt(countResult.rows[0].total)
+    const totalPages = Math.ceil(total / limit)
 
     return NextResponse.json({
-      transactions,
+      transactions: transactionsResult.rows,
       pagination: {
         page,
         limit,
-        total: totalTransactions,
-        totalPages,
-        hasNext: page < totalPages,
-        hasPrev: page > 1
+        total,
+        totalPages
       }
     })
   } catch (error) {
-    console.error("Admin transactions API error:", error)
-    return NextResponse.json({ error: "Ошибка загрузки транзакций" }, { status: 500 })
+    console.error('Error fetching transactions:', error)
+    return NextResponse.json({ error: 'Failed to fetch transactions' }, { status: 500 })
   }
-}
+})
+
+// POST - создать новую транзакцию
+export const POST = requireAdmin(async (request: NextRequest) => {
+  try {
+    const data = await request.json()
+    const { user_id, type, amount, status = 'pending', description = '' } = data
+
+    const result = await query(
+      `INSERT INTO transactions (user_id, type, amount, status, description) 
+       VALUES ($1, $2, $3, $4, $5) RETURNING *`,
+      [user_id, type, amount, status, description]
+    )
+
+    // Обновляем баланс пользователя для депозитов и выводов
+    if (status === 'completed') {
+      if (type === 'deposit') {
+        await query(
+          'UPDATE users SET balance = balance + $1 WHERE id = $2',
+          [amount, user_id]
+        )
+      } else if (type === 'withdrawal') {
+        await query(
+          'UPDATE users SET balance = balance - $1 WHERE id = $2',
+          [amount, user_id]
+        )
+      }
+    }
+
+    return NextResponse.json(result.rows[0])
+  } catch (error) {
+    console.error('Error creating transaction:', error)
+    return NextResponse.json({ error: 'Failed to create transaction' }, { status: 500 })
+  }
+})
