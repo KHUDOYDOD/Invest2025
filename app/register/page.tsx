@@ -89,6 +89,39 @@ export default function RegisterPage() {
     setIsLoading(true)
 
     try {
+      const response = await fetch('/api/auth/register', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email: formData.email,
+          password: formData.password,
+          fullName: formData.full_name,
+        }),
+      })
+
+      const data = await response.json()
+
+      if (response.ok) {
+        toast.success('Регистрация успешна! Добро пожаловать!')
+        router.push('/dashboard')
+      } else {
+        toast.error(data.error || 'Ошибка при регистрации')
+      }
+    } catch (error) {
+      console.error('Registration error:', error)
+      toast.error('Ошибка соединения с сервером')
+    } finally {
+      setIsLoading(false)
+    }
+  }
+      return
+    }
+
+    setIsLoading(true)
+
+    try {
       console.log("🚀 Отправка данных регистрации...")
 
       const response = await fetch("/api/auth/register", {
