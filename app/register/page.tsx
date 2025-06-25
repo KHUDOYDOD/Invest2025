@@ -102,12 +102,12 @@ export default function RegisterPage() {
       const requestData = {
         email: formData.email.trim(),
         password: formData.password,
-        full_name: formData.full_name.trim(),
+        name: formData.name.trim(),
       }
       
       console.log("📤 Sending registration request with data:", { 
         email: requestData.email, 
-        full_name: requestData.full_name,
+        name: requestData.name,
         passwordLength: requestData.password.length 
       })
 
