@@ -16,12 +16,10 @@ import { MobileApp } from "@/components/mobile-app"
 import { TrustIndicators } from "@/components/trust-indicators"
 import { LiveActivityFeed } from "@/components/live-activity-feed"
 import { UserActivityRows } from "@/components/user-activity-rows"
-import { PlatformStatistics } from "@/components/platform-statistics"
 import { ProjectLaunches } from "@/components/project-launches"
 import { AdminAccessButton } from "@/components/admin-access-button"
 import { EducationCenter } from "@/components/education-center"
 import { NewUsersShowcase } from "@/components/new-users-showcase"
-import { PlatformStatistics } from "@/components/platform-statistics"
 
 
 export default function HomePage() {
