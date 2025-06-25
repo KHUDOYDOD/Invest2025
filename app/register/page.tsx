@@ -101,9 +101,9 @@ export default function RegisterPage() {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          email: formData.email,
+          email: formData.email.trim(),
           password: formData.password,
-          fullName: formData.full_name,
+          fullName: formData.full_name.trim(),
           country: formData.country,
         }),
       })

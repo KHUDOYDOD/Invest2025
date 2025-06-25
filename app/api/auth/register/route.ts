@@ -12,7 +12,7 @@ export async function POST(request: NextRequest) {
     const { email, password, fullName, phone, country } = await request.json();
 
     // Валидация данных
-    if (!email || !password || !fullName) {
+    if (!email || !password || !fullName || !country) {
       return NextResponse.json(
         { error: 'Email, пароль и полное имя обязательны' },
         { status: 400 }
