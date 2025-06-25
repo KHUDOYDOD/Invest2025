@@ -57,7 +57,7 @@ export default function LoginPage() {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          email: loginField.trim(),
+          loginField: loginField.trim(),
           password
         }),
       })

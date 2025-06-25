@@ -17,13 +17,23 @@ export function AuthGuard({ children }: { children: React.ReactNode }) {
 
         const userEmail = localStorage.getItem("userEmail")
         const isAuth = localStorage.getItem("isAuthenticated")
+        const authToken = localStorage.getItem("authToken")
+        const userId = localStorage.getItem("userId")
 
-        console.log("AuthGuard: User email:", userEmail)
+        console.log("AuthGuard: Checking auth data", { 
+          userEmail, 
+          isAuth, 
+          hasToken: !!authToken, 
+          userId 
+        })
 
-        if (!userEmail || !isAuth) {
-          console.log("AuthGuard: No authentication found")
-          setError("Пользователь не авторизован")
+        if (!userEmail || !isAuth || !authToken || !userId) {
+          console.log("AuthGuard: Missing auth data, redirecting to login")
+          setError("Необходима авторизация")
           setIsLoading(false)
+          setTimeout(() => {
+            window.location.href = "/login"
+          }, 1000)
           return
         }
 
