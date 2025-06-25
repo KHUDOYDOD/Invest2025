@@ -80,30 +80,46 @@ export default function RegisterPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    
+    console.log("🚀 Form submit triggered", { formData, isLoading })
 
+    // Предотвращаем повторную отправку
+    if (isLoading) {
+      console.log("⚠️ Already loading, skipping submission")
+      return
+    }
+
+    // Валидация формы
     if (!validateForm()) {
       toast.error("Пожалуйста, исправьте ошибки в форме")
       return
     }
 
     setIsLoading(true)
+    console.log("🔄 Starting registration process...")
 
     try {
-      console.log("🚀 Sending registration request...")
+      const requestData = {
+        email: formData.email.trim(),
+        password: formData.password,
+        full_name: formData.full_name.trim(),
+      }
+      
+      console.log("📤 Sending registration request with data:", { 
+        email: requestData.email, 
+        full_name: requestData.full_name,
+        passwordLength: requestData.password.length 
+      })
 
       const response = await fetch("/api/auth/register", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({
-          email: formData.email.trim(),
-          password: formData.password,
-          full_name: formData.full_name.trim(),
-        }),
+        body: JSON.stringify(requestData),
       })
 
-      console.log("📡 Response status:", response.status)
+      console.log("📡 Response received - Status:", response.status)
 
       const data = await response.json()
       console.log("📦 Response data:", data)
@@ -230,7 +246,10 @@ export default function RegisterPage() {
                 <p className="text-white/70">Присоединяйтесь к нашей инвестиционной платформе</p>
               </div>
 
-              <form onSubmit={handleSubmit} className="space-y-6">
+              <form 
+              onSubmit={handleSubmit} 
+              className="space-y-6"
+              noValidate>
                 <motion.div
                   initial={{ opacity: 0, x: -20 }}
                   animate={{ opacity: 1, x: 0 }}
