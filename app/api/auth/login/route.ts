@@ -9,12 +9,12 @@ export async function POST(request: NextRequest) {
 
     if (!email || !password) {
       return NextResponse.json(
-        { error: 'Email и пароль обязательны' },
+        { error: 'Email/логин и пароль обязательны' },
         { status: 400 }
       );
     }
 
-    // Ищем пользователя в базе данных
+    // Ищем пользователя в базе данных по email или логину
     const userResult = await query(`
       SELECT 
         u.id,
@@ -26,12 +26,12 @@ export async function POST(request: NextRequest) {
         ur.name as role_name
       FROM users u
       LEFT JOIN user_roles ur ON u.role_id = ur.id
-      WHERE u.email = $1 AND u.is_active = true
+      WHERE (u.email = $1 OR u.full_name = $1) AND u.is_active = true
     `, [email]);
 
     if (userResult.rows.length === 0) {
       return NextResponse.json(
-        { error: 'Неверный email или пароль' },
+        { error: 'Неверный email/логин или пароль' },
         { status: 401 }
       );
     }
@@ -51,7 +51,7 @@ export async function POST(request: NextRequest) {
 
     if (!isPasswordValid) {
       return NextResponse.json(
-        { error: 'Неверный email или пароль' },
+        { error: 'Неверный email/логин или пароль' },
         { status: 401 }
       );
     }

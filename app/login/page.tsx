@@ -1,4 +1,3 @@
-
 "use client"
 
 import { useState } from 'react'
@@ -70,12 +69,12 @@ export default function LoginPage() {
         localStorage.setItem('userId', data.user.id)
         localStorage.setItem('userRole', data.user.role || 'user')
         localStorage.setItem('isAuthenticated', 'true')
-        
+
         if (data.token) {
           localStorage.setItem('auth-token', data.token)
           localStorage.setItem('authToken', data.token)
         }
-        
+
         // Устанавливаем данные для админа если нужно
         if (data.user.isAdmin || data.user.role === 'admin') {
           localStorage.setItem('adminAuth', 'true')
@@ -143,13 +142,13 @@ export default function LoginPage() {
           <form onSubmit={handleSubmit} className="space-y-8">
             <div className="space-y-3">
               <Label htmlFor="email" className="text-white font-medium">
-                Email адрес
+                Email или логин
               </Label>
               <Input
                 id="email"
                 name="email"
-                type="email"
-                placeholder="example@domain.com"
+                type="text"
+                placeholder="example@domain.com или ваш логин"
                 value={formData.email}
                 onChange={handleInputChange}
                 required
