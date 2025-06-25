@@ -1,4 +1,3 @@
-
 "use client"
 
 import { useState, useEffect } from "react"
@@ -15,36 +14,26 @@ interface NewUser {
 }
 
 const countryFlags: Record<string, string> = {
-  'RU': '🇷🇺',
-  'US': '🇺🇸', 
-  'GB': '🇬🇧',
-  'DE': '🇩🇪',
-  'FR': '🇫🇷',
-  'IT': '🇮🇹',
-  'ES': '🇪🇸',
-  'CA': '🇨🇦',
-  'AU': '🇦🇺',
-  'JP': '🇯🇵',
-  'KR': '🇰🇷',
-  'CN': '🇨🇳',
-  'IN': '🇮🇳',
-  'BR': '🇧🇷',
-  'MX': '🇲🇽',
-  'UA': '🇺🇦',
-  'PL': '🇵🇱',
-  'NL': '🇳🇱',
-  'SE': '🇸🇪',
-  'NO': '🇳🇴',
-  'TR': '🇹🇷',
-  'AR': '🇦🇷',
-  'CL': '🇨🇱',
-  'CO': '🇨🇴',
-  'VE': '🇻🇪',
-  'PT': '🇵🇹',
-  'GR': '🇬🇷',
-  'FI': '🇫🇮',
-  'DK': '🇩🇰',
-  'AT': '🇦🇹'
+  'AF': '🇦🇫', 'AL': '🇦🇱', 'DZ': '🇩🇿', 'AD': '🇦🇩', 'AO': '🇦🇴', 'AG': '🇦🇬', 'AR': '🇦🇷', 'AM': '🇦🇲', 'AU': '🇦🇺', 'AT': '🇦🇹',
+  'AZ': '🇦🇿', 'BS': '🇧🇸', 'BH': '🇧🇭', 'BD': '🇧🇩', 'BB': '🇧🇧', 'BY': '🇧🇾', 'BE': '🇧🇪', 'BZ': '🇧🇿', 'BJ': '🇧🇯', 'BT': '🇧🇹',
+  'BO': '🇧🇴', 'BA': '🇧🇦', 'BW': '🇧🇼', 'BR': '🇧🇷', 'BN': '🇧🇳', 'BG': '🇧🇬', 'BF': '🇧🇫', 'BI': '🇧🇮', 'KH': '🇰🇭', 'CM': '🇨🇲',
+  'CA': '🇨🇦', 'CV': '🇨🇻', 'CF': '🇨🇫', 'TD': '🇹🇩', 'CL': '🇨🇱', 'CN': '🇨🇳', 'CO': '🇨🇴', 'KM': '🇰🇲', 'CG': '🇨🇬', 'CD': '🇨🇩',
+  'CR': '🇨🇷', 'CI': '🇨🇮', 'HR': '🇭🇷', 'CU': '🇨🇺', 'CY': '🇨🇾', 'CZ': '🇨🇿', 'DK': '🇩🇰', 'DJ': '🇩🇯', 'DM': '🇩🇲', 'DO': '🇩🇴',
+  'EC': '🇪🇨', 'EG': '🇪🇬', 'SV': '🇸🇻', 'GQ': '🇬🇶', 'ER': '🇪🇷', 'EE': '🇪🇪', 'SZ': '🇸🇿', 'ET': '🇪🇹', 'FJ': '🇫🇯', 'FI': '🇫🇮',
+  'FR': '🇫🇷', 'GA': '🇬🇦', 'GM': '🇬🇲', 'GE': '🇬🇪', 'DE': '🇩🇪', 'GH': '🇬🇭', 'GR': '🇬🇷', 'GD': '🇬🇩', 'GT': '🇬🇹', 'GN': '🇬🇳',
+  'GW': '🇬🇼', 'GY': '🇬🇾', 'HT': '🇭🇹', 'HN': '🇭🇳', 'HU': '🇭🇺', 'IS': '🇮🇸', 'IN': '🇮🇳', 'ID': '🇮🇩', 'IR': '🇮🇷', 'IQ': '🇮🇶',
+  'IE': '🇮🇪', 'IL': '🇮🇱', 'IT': '🇮🇹', 'JM': '🇯🇲', 'JP': '🇯🇵', 'JO': '🇯🇴', 'KZ': '🇰🇿', 'KE': '🇰🇪', 'KI': '🇰🇮', 'KP': '🇰🇵',
+  'KR': '🇰🇷', 'KW': '🇰🇼', 'KG': '🇰🇬', 'LA': '🇱🇦', 'LV': '🇱🇻', 'LB': '🇱🇧', 'LS': '🇱🇸', 'LR': '🇱🇷', 'LY': '🇱🇾', 'LI': '🇱🇮',
+  'LT': '🇱🇹', 'LU': '🇱🇺', 'MG': '🇲🇬', 'MW': '🇲🇼', 'MY': '🇲🇾', 'MV': '🇲🇻', 'ML': '🇲🇱', 'MT': '🇲🇹', 'MH': '🇲🇭', 'MR': '🇲🇷',
+  'MU': '🇲🇺', 'MX': '🇲🇽', 'FM': '🇫🇲', 'MD': '🇲🇩', 'MC': '🇲🇨', 'MN': '🇲🇳', 'ME': '🇲🇪', 'MA': '🇲🇦', 'MZ': '🇲🇿', 'MM': '🇲🇲',
+  'NA': '🇳🇦', 'NR': '🇳🇷', 'NP': '🇳🇵', 'NL': '🇳🇱', 'NZ': '🇳🇿', 'NI': '🇳🇮', 'NE': '🇳🇪', 'NG': '🇳🇬', 'MK': '🇲🇰', 'NO': '🇳🇴',
+  'OM': '🇴🇲', 'PK': '🇵🇰', 'PW': '🇵🇼', 'PA': '🇵🇦', 'PG': '🇵🇬', 'PY': '🇵🇾', 'PE': '🇵🇪', 'PH': '🇵🇭', 'PL': '🇵🇱', 'PT': '🇵🇹',
+  'QA': '🇶🇦', 'RO': '🇷🇴', 'RU': '🇷🇺', 'RW': '🇷🇼', 'KN': '🇰🇳', 'LC': '🇱🇨', 'VC': '🇻🇨', 'WS': '🇼🇸', 'SM': '🇸🇲', 'ST': '🇸🇹',
+  'SA': '🇸🇦', 'SN': '🇸🇳', 'RS': '🇷🇸', 'SC': '🇸🇨', 'SL': '🇸🇱', 'SG': '🇸🇬', 'SK': '🇸🇰', 'SI': '🇸🇮', 'SB': '🇸🇧', 'SO': '🇸🇴',
+  'ZA': '🇿🇦', 'SS': '🇸🇸', 'ES': '🇪🇸', 'LK': '🇱🇰', 'SD': '🇸🇩', 'SR': '🇸🇷', 'SE': '🇸🇪', 'CH': '🇨🇭', 'SY': '🇸🇾', 'TJ': '🇹🇯',
+  'TZ': '🇹🇿', 'TH': '🇹🇭', 'TL': '🇹🇱', 'TG': '🇹🇬', 'TO': '🇹🇴', 'TT': '🇹🇹', 'TN': '🇹🇳', 'TR': '🇹🇷', 'TM': '🇹🇲', 'TV': '🇹🇻',
+  'UG': '🇺🇬', 'UA': '🇺🇦', 'AE': '🇦🇪', 'GB': '🇬🇧', 'US': '🇺🇸', 'UY': '🇺🇾', 'UZ': '🇺🇿', 'VU': '🇻🇺', 'VA': '🇻🇦', 'VE': '🇻🇪',
+  'VN': '🇻🇳', 'YE': '🇾🇪', 'ZM': '🇿🇲', 'ZW': '🇿🇼'
 }
 
 const countryNames: Record<string, string> = {
@@ -127,7 +116,7 @@ export function NewUsersShowcase() {
     const date = new Date(dateString)
     const now = new Date()
     const diffInSeconds = Math.floor((now.getTime() - date.getTime()) / 1000)
-    
+
     if (diffInSeconds < 60) {
       return "только что"
     } else if (diffInSeconds < 3600) {
@@ -161,7 +150,7 @@ export function NewUsersShowcase() {
       }
       return nameParts[0]
     }
-    
+
     // Используем часть email до @
     const emailPart = email.split('@')[0]
     return emailPart.charAt(0).toUpperCase() + emailPart.slice(1, 8)
@@ -284,7 +273,7 @@ export function NewUsersShowcase() {
                   const nickname = generateNickname(user.name, user.email)
                   const countryFlag = user.country ? countryFlags[user.country] || '🌍' : '🌍'
                   const countryName = user.country ? countryNames[user.country] || 'Неизвестно' : 'Неизвестно'
-                  
+
                   return (
                     <tr
                       key={user.id}
@@ -349,14 +338,14 @@ export function NewUsersShowcase() {
             <div className="text-3xl font-bold text-emerald-400 mb-2">{filteredUsers.length}</div>
             <div className="text-slate-300 text-sm">Показано участников</div>
           </div>
-          
+
           <div className="text-center p-6 bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl">
             <div className="text-3xl font-bold text-teal-400 mb-2">
               {uniqueCountries.length}
             </div>
             <div className="text-slate-300 text-sm">Стран представлено</div>
           </div>
-          
+
           <div className="text-center p-6 bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl">
             <div className="flex items-center justify-center gap-2 mb-2">
               <div className="w-2 h-2 bg-emerald-400 rounded-full animate-pulse"></div>
