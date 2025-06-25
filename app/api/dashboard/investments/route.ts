@@ -32,12 +32,13 @@ export async function GET(request: NextRequest) {
         i.status,
         i.start_date,
         i.end_date,
-        i.profit_earned,
+        i.total_profit as profit_earned,
         ip.name as plan_name,
         ip.min_amount,
         ip.max_amount,
-        ip.daily_profit,
-        ip.duration_days
+        ip.daily_profit_rate,
+        ip.duration_days,
+        i.created_at
       FROM investments i
       JOIN investment_plans ip ON i.plan_id = ip.id
       WHERE i.user_id = $1
