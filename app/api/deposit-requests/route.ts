@@ -1,31 +1,53 @@
-import { NextResponse } from "next/server"
 
-// Локальное хранилище заявок на пополнение
-const depositRequests: any[] = [
-  {
-    id: "dep-1",
-    user_id: "user-1",
-    amount: 1000,
-    method: "Банковская карта",
-    payment_details: { cardNumber: "**** 1234" },
-    status: "pending",
-    created_at: new Date().toISOString(),
-    users: {
-      id: "user-1",
-      full_name: "Демо Пользователь",
-      email: "demo@example.com",
-    },
-  },
-]
+import { NextRequest, NextResponse } from 'next/server'
+import { query } from '@/lib/database'
 
 export async function GET() {
   try {
-    console.log("✅ Deposit requests loaded:", depositRequests.length)
+    console.log("🔄 Fetching deposit requests from database...")
+
+    // Получаем все запросы на пополнение из транзакций
+    const result = await query(
+      `SELECT 
+        t.id,
+        t.user_id,
+        u.full_name,
+        u.email,
+        t.amount,
+        t.status,
+        t.payment_method as method,
+        t.description,
+        t.created_at,
+        t.updated_at
+      FROM transactions t
+      JOIN users u ON t.user_id = u.id
+      WHERE t.type = 'deposit'
+      ORDER BY t.created_at DESC`,
+      []
+    )
+
+    console.log(`✅ Found ${result.rows.length} deposit requests`)
+
+    // Преобразуем данные в нужный формат
+    const depositRequests = result.rows.map(row => ({
+      id: row.id,
+      user_id: row.user_id,
+      amount: parseFloat(row.amount),
+      method: row.method || 'Банковская карта',
+      payment_details: { description: row.description },
+      status: row.status,
+      created_at: row.created_at,
+      users: {
+        id: row.user_id,
+        full_name: row.full_name,
+        email: row.email
+      }
+    }))
 
     return NextResponse.json(depositRequests)
   } catch (error) {
     console.error("❌ Error loading deposit requests:", error)
-    return NextResponse.json({ error: "Ошибка загрузки заявок" }, { status: 500 })
+    return NextResponse.json({ error: "Ошибка загрузки заявок на пополнение" }, { status: 500 })
   }
 }
 
@@ -47,8 +69,6 @@ export async function POST(request: Request) {
         email: data.userEmail || "user@example.com",
       },
     }
-
-    depositRequests.push(newRequest)
 
     console.log("✅ New deposit request created:", newRequest.id)
 

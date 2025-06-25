@@ -94,31 +94,27 @@ export default function RequestsPage() {
       const depositResponse = await fetch("/api/deposit-requests")
       console.log("Deposit response status:", depositResponse.status)
 
-      if (depositResponse.ok) {
-        const depositData = await depositResponse.json()
-        console.log("✅ Loaded deposit requests:", depositData.length)
-        setDepositRequests(depositData)
-      } else {
-        const errorData = await depositResponse.json()
-        console.error("❌ Deposit fetch error:", errorData)
-        setError(`Ошибка загрузки запросов на пополнение: ${errorData.error}`)
+      if (!depositResponse.ok) {
+        throw new Error(`HTTP error! status: ${depositResponse.status}`)
       }
+
+      const depositData = await depositResponse.json()
+      console.log("✅ Deposit requests loaded:", depositData.length)
+      setDepositRequests(Array.isArray(depositData) ? depositData : [])
 
       // Fetch withdrawal requests
       const withdrawalResponse = await fetch("/api/withdrawal-requests")
       console.log("Withdrawal response status:", withdrawalResponse.status)
 
-      if (withdrawalResponse.ok) {
-        const withdrawalData = await withdrawalResponse.json()
-        console.log("✅ Loaded withdrawal requests:", withdrawalData.length)
-        setWithdrawalRequests(withdrawalData)
-      } else {
-        const errorData = await withdrawalResponse.json()
-        console.error("❌ Withdrawal fetch error:", errorData)
-        setError(`Ошибка загрузки запросов на вывод: ${errorData.error}`)
+      if (!withdrawalResponse.ok) {
+        throw new Error(`HTTP error! status: ${withdrawalResponse.status}`)
       }
+
+      const withdrawalData = await withdrawalResponse.json()
+      console.log("✅ Withdrawal requests loaded:", withdrawalData.length)
+      setWithdrawalRequests(Array.isArray(withdrawalData) ? withdrawalData : [])
     } catch (error) {
-      console.error("Error fetching requests:", error)
+      console.error("❌ Error fetching requests:", error)
       setError("Ошибка подключения к серверу")
       toast.error("Ошибка загрузки запросов")
     } finally {
@@ -167,7 +163,7 @@ export default function RequestsPage() {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          status: "rejected",
+          status: "failed",
           admin_comment: reason,
         }),
       })
@@ -176,18 +172,13 @@ export default function RequestsPage() {
         setDepositRequests((prev) =>
           prev.map((req) =>
             req.id === requestId
-              ? {
-                  ...req,
-                  status: "rejected",
-                  admin_comment: reason,
-                  processed_at: new Date().toISOString(),
-                }
+              ? { ...req, status: "failed", admin_comment: reason, processed_at: new Date().toISOString() }
               : req,
           ),
         )
         toast.success("Запрос на пополнение отклонен")
-        setIsDialogOpen(false)
-        setRejectReason("")
+        // Перезагружаем данные
+        fetchRequests()
       } else {
         const errorData = await response.json()
         throw new Error(errorData.error || "Failed to reject request")
@@ -209,17 +200,18 @@ export default function RequestsPage() {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          status: "approved",
+          status: "completed",
         }),
       })
 
       if (response.ok) {
         setWithdrawalRequests((prev) =>
           prev.map((req) =>
-            req.id === requestId ? { ...req, status: "approved", processed_at: new Date().toISOString() } : req,
+            req.id === requestId ? { ...req, status: "completed", processed_at: new Date().toISOString() } : req,
           ),
         )
         toast.success("Запрос на вывод одобрен")
+        fetchRequests()
       } else {
         const errorData = await response.json()
         throw new Error(errorData.error || "Failed to approve request")
@@ -241,7 +233,7 @@ export default function RequestsPage() {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          status: "rejected",
+          status: "failed",
           admin_comment: reason,
         }),
       })
@@ -250,18 +242,12 @@ export default function RequestsPage() {
         setWithdrawalRequests((prev) =>
           prev.map((req) =>
             req.id === requestId
-              ? {
-                  ...req,
-                  status: "rejected",
-                  admin_comment: reason,
-                  processed_at: new Date().toISOString(),
-                }
+              ? { ...req, status: "failed", admin_comment: reason, processed_at: new Date().toISOString() }
               : req,
           ),
         )
         toast.success("Запрос на вывод отклонен")
-        setIsDialogOpen(false)
-        setRejectReason("")
+        fetchRequests()
       } else {
         const errorData = await response.json()
         throw new Error(errorData.error || "Failed to reject request")
