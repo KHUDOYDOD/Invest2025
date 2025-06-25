@@ -20,6 +20,7 @@ import { PublicStats } from "@/components/public-stats"
 import { ProjectLaunches } from "@/components/project-launches"
 import { AdminAccessButton } from "@/components/admin-access-button"
 import { EducationCenter } from "@/components/education-center"
+import { NewUsersShowcase } from "@/components/new-users-showcase"
 
 
 export default function HomePage() {
@@ -46,6 +47,11 @@ export default function HomePage() {
       {/* User Activity Rows */}
       <div className="relative z-10">
         <UserActivityRows />
+      </div>
+
+      {/* New Users Showcase */}
+      <div className="relative z-10">
+        <NewUsersShowcase />
       </div>
 
       {/* Live Activity Feed */}
