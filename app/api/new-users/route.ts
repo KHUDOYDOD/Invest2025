@@ -20,12 +20,42 @@ export async function GET() {
       LIMIT 8
     `)
 
-    const newUsers = result.rows.map(user => ({
-      id: user.id,
-      name: user.name || 'Anonymous User',
-      email: user.email,
-      joinedDate: user.joined_date
-    }))
+    // Маппинг кодов стран на флаги и названия
+    const countryMap: Record<string, { flag: string; name: string }> = {
+      'RU': { flag: '🇷🇺', name: 'Россия' },
+      'US': { flag: '🇺🇸', name: 'США' },
+      'GB': { flag: '🇬🇧', name: 'Великобритания' },
+      'DE': { flag: '🇩🇪', name: 'Германия' },
+      'FR': { flag: '🇫🇷', name: 'Франция' },
+      'CN': { flag: '🇨🇳', name: 'Китай' },
+      'JP': { flag: '🇯🇵', name: 'Япония' },
+      'KR': { flag: '🇰🇷', name: 'Южная Корея' },
+      'IN': { flag: '🇮🇳', name: 'Индия' },
+      'BR': { flag: '🇧🇷', name: 'Бразилия' },
+      'IT': { flag: '🇮🇹', name: 'Италия' },
+      'ES': { flag: '🇪🇸', name: 'Испания' },
+      'CA': { flag: '🇨🇦', name: 'Канада' },
+      'AU': { flag: '🇦🇺', name: 'Австралия' },
+      'MX': { flag: '🇲🇽', name: 'Мексика' },
+      'AR': { flag: '🇦🇷', name: 'Аргентина' },
+      'TR': { flag: '🇹🇷', name: 'Турция' },
+      'UA': { flag: '🇺🇦', name: 'Украина' },
+      'BY': { flag: '🇧🇾', name: 'Беларусь' },
+      'KZ': { flag: '🇰🇿', name: 'Казахстан' }
+    }
+
+    const newUsers = result.rows.map(user => {
+      const countryInfo = countryMap[user.country] || { flag: '🌍', name: user.country || 'Неизвестно' }
+      return {
+        id: user.id,
+        name: user.name || 'Anonymous User',
+        email: user.email,
+        joinedDate: user.joined_date,
+        country: user.country,
+        countryFlag: countryInfo.flag,
+        countryName: countryInfo.name
+      }
+    })
 
     console.log(`✅ Loaded ${newUsers.length} new users from database`)
 

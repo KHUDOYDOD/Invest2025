@@ -69,6 +69,15 @@ const countryNames: Record<string, string> = {
   'AT': 'Австрия'
 }
 
+interface User {
+  id: string
+  name: string
+  email: string
+  joinedDate: string
+  country: string
+  countryFlag: string
+  countryName: string
+}
 
 
 export function NewUsersShowcase() {

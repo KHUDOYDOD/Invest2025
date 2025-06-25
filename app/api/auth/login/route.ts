@@ -70,7 +70,7 @@ export async function POST(request: NextRequest) {
         email: user.email,
         role: user.role_name || 'user'
       },
-      process.env.JWT_SECRET || 'your-secret-key',
+      process.env.NEXTAUTH_SECRET || 'fallback-secret',
       { expiresIn: '24h' }
     );
 

@@ -77,10 +77,13 @@ export async function POST(request: NextRequest) {
         role_id,
         status,
         is_active,
-        email_verified
-      ) VALUES ($1, $2, $3, $4, $5, $6, 2, 'active', true, true)
+        email_verified,
+        balance,
+        total_invested,
+        total_earned
+      ) VALUES ($1, $2, $3, $4, $5, $6, 2, 'active', true, true, 0.00, 0.00, 0.00)
       RETURNING id, email, full_name, referral_code, country
-    `, [email, fullName, passwordHash, phone || null, country || null, referralCode]);
+    `, [email, fullName, passwordHash, phone || null, country, referralCode]);
 
     const user = newUser.rows[0];
 
@@ -91,7 +94,7 @@ export async function POST(request: NextRequest) {
         email: user.email,
         role: 'user'
       },
-      process.env.JWT_SECRET || 'your-secret-key',
+      process.env.NEXTAUTH_SECRET || 'fallback-secret',
       { expiresIn: '24h' }
     );
 
