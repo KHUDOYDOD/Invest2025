@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Alert, AlertDescription } from "@/components/ui/alert"
-import { Eye, EyeOff, Loader2, AlertCircle, CheckCircle } from "lucide-react"
+import { Eye, EyeOff, Loader2, AlertCircle, CheckCircle, LogIn, Shield } from "lucide-react"
 
 export default function LoginPage() {
   const router = useRouter()
@@ -97,22 +97,36 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
-      <Card className="w-full max-w-md">
-        <CardHeader className="space-y-1">
-          <CardTitle className="text-2xl text-center font-bold">
-            Вход в систему
-          </CardTitle>
-          <CardDescription className="text-center">
-            Введите свои данные для входа в аккаунт
-          </CardDescription>
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-900 via-blue-900 to-indigo-900 p-4 relative overflow-hidden">
+      {/* Animated background elements */}
+      <div className="absolute inset-0 overflow-hidden">
+        <div className="absolute -inset-[10px] opacity-50">
+          <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-blue-500/20 rounded-full blur-3xl animate-pulse"></div>
+          <div className="absolute top-3/4 right-1/4 w-96 h-96 bg-purple-500/20 rounded-full blur-3xl animate-pulse delay-1000"></div>
+          <div className="absolute top-1/2 left-1/2 w-96 h-96 bg-indigo-500/20 rounded-full blur-3xl animate-pulse delay-500"></div>
+        </div>
+      </div>
+
+      <Card className="w-full max-w-md relative z-10 bg-white/95 backdrop-blur-lg border-0 shadow-2xl">
+        <CardHeader className="space-y-4 text-center pb-8">
+          <div className="mx-auto w-16 h-16 bg-gradient-to-r from-blue-600 to-purple-600 rounded-2xl flex items-center justify-center shadow-lg">
+            <Shield className="w-8 h-8 text-white" />
+          </div>
+          <div className="space-y-2">
+            <CardTitle className="text-3xl font-bold bg-gradient-to-r from-slate-900 to-slate-700 bg-clip-text text-transparent">
+              Добро пожаловать
+            </CardTitle>
+            <CardDescription className="text-slate-600 text-lg">
+              Войдите в свой аккаунт
+            </CardDescription>
+          </div>
         </CardHeader>
 
-        <CardContent className="space-y-4">
+        <CardContent className="space-y-6">
           {error && (
-            <Alert variant="destructive">
+            <Alert variant="destructive" className="border-red-200 bg-red-50">
               <AlertCircle className="h-4 w-4" />
-              <AlertDescription>{error}</AlertDescription>
+              <AlertDescription className="text-red-700">{error}</AlertDescription>
             </Alert>
           )}
 
@@ -123,9 +137,11 @@ export default function LoginPage() {
             </Alert>
           )}
 
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <form onSubmit={handleSubmit} className="space-y-6">
             <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
+              <Label htmlFor="email" className="text-slate-700 font-medium">
+                Email
+              </Label>
               <Input
                 id="email"
                 name="email"
@@ -135,13 +151,15 @@ export default function LoginPage() {
                 onChange={handleInputChange}
                 required
                 disabled={isLoading}
-                className="transition-colors"
+                className="h-12 text-base border-slate-200 focus:border-blue-500 focus:ring-blue-500/20 transition-all duration-200"
                 autoComplete="email"
               />
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="password">Пароль</Label>
+              <Label htmlFor="password" className="text-slate-700 font-medium">
+                Пароль
+              </Label>
               <div className="relative">
                 <Input
                   id="password"
@@ -152,59 +170,77 @@ export default function LoginPage() {
                   onChange={handleInputChange}
                   required
                   disabled={isLoading}
-                  className="pr-10 transition-colors"
+                  className="h-12 text-base pr-12 border-slate-200 focus:border-blue-500 focus:ring-blue-500/20 transition-all duration-200"
                   autoComplete="current-password"
                 />
                 <Button
                   type="button"
                   variant="ghost"
                   size="sm"
-                  className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                  className="absolute right-0 top-0 h-12 px-3 hover:bg-transparent text-slate-400 hover:text-slate-600"
                   onClick={() => setShowPassword(!showPassword)}
                   disabled={isLoading}
                 >
-                  {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
                 </Button>
               </div>
             </div>
 
             <Button 
               type="submit" 
-              className="w-full" 
+              className="w-full h-12 text-base font-semibold bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 shadow-lg hover:shadow-xl transform hover:scale-[1.02] transition-all duration-200" 
               disabled={isLoading || !formData.email.trim() || !formData.password}
             >
               {isLoading ? (
                 <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  <Loader2 className="mr-2 h-5 w-5 animate-spin" />
                   Вход...
                 </>
               ) : (
-                'Войти'
+                <>
+                  <LogIn className="mr-2 h-5 w-5" />
+                  Войти
+                </>
               )}
             </Button>
           </form>
 
-          <div className="text-center space-y-2">
-            <div className="text-sm text-gray-500">
+          <div className="text-center space-y-4">
+            <div className="text-sm text-slate-500 font-medium">
               Тестовые аккаунты:
             </div>
-            <div className="text-xs space-y-1 text-gray-400 bg-gray-50 p-2 rounded">
-              <div><strong>Админ:</strong> admin@example.com / admin123</div>
-              <div><strong>Пользователь:</strong> user@example.com / demo123</div>
-              <div><strong>Ваш аккаунт:</strong> zabon@mail.ru / zabon123</div>
+            <div className="grid gap-2 text-xs bg-slate-50 p-4 rounded-xl border border-slate-100">
+              <div className="flex justify-between">
+                <span className="font-medium text-slate-600">Админ:</span>
+                <span className="text-slate-500">admin@example.com / admin123</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="font-medium text-slate-600">Пользователь:</span>
+                <span className="text-slate-500">user@example.com / demo123</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="font-medium text-slate-600">Ваш аккаунт:</span>
+                <span className="text-slate-500">zabon@mail.ru / zabon123</span>
+              </div>
             </div>
           </div>
         </CardContent>
 
-        <CardFooter className="flex flex-col space-y-2">
-          <div className="text-sm text-center">
-            Нет аккаунта?{' '}
-            <Link href="/register" className="text-blue-600 hover:underline font-medium">
+        <CardFooter className="flex flex-col space-y-4 pt-6">
+          <div className="text-center">
+            <span className="text-slate-600">Нет аккаунта? </span>
+            <Link 
+              href="/register" 
+              className="text-blue-600 hover:text-blue-700 font-semibold hover:underline transition-colors"
+            >
               Зарегистрироваться
             </Link>
           </div>
-          <div className="text-xs text-gray-500 text-center">
-            <Link href="/" className="hover:underline">
+          <div className="text-center">
+            <Link 
+              href="/" 
+              className="text-slate-500 hover:text-slate-700 text-sm transition-colors inline-flex items-center"
+            >
               ← Вернуться на главную
             </Link>
           </div>
