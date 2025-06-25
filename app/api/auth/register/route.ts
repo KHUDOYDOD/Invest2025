@@ -12,9 +12,16 @@ export async function POST(request: NextRequest) {
     const { email, password, fullName, phone, country } = await request.json();
 
     // Валидация данных
-    if (!email || !password || !fullName || !country) {
+    if (!email || !password || !fullName) {
       return NextResponse.json(
         { error: 'Email, пароль и полное имя обязательны' },
+        { status: 400 }
+      );
+    }
+
+    if (!country) {
+      return NextResponse.json(
+        { error: 'Выбор страны обязателен' },
         { status: 400 }
       );
     }
@@ -83,8 +90,8 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Сохраняем пароль без хеширования (только для разработки!)
-    const passwordHash = password;
+    // Хешируем пароль
+    const passwordHash = await bcrypt.hash(password, 12);
 
     // Генерируем уникальный реферальный код
     let referralCode;
@@ -171,8 +178,19 @@ export async function POST(request: NextRequest) {
 
   } catch (error) {
     console.error('Registration error:', error);
+    console.error('Full error details:', {
+      message: error instanceof Error ? error.message : 'Unknown error',
+      stack: error instanceof Error ? error.stack : 'No stack trace',
+      email,
+      fullName,
+      country
+    });
+    
     return NextResponse.json(
-      { error: 'Ошибка сервера при регистрации' },
+      { 
+        error: 'Ошибка сервера при регистрации',
+        details: error instanceof Error ? error.message : 'Неизвестная ошибка'
+      },
       { status: 500 }
     );
   }
