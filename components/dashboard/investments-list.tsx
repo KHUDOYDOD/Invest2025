@@ -26,62 +26,33 @@ export function InvestmentsList() {
   const [error, setError] = useState<string | null>(null)
   const [currentUserId, setCurrentUserId] = useState<string | null>(null)
 
-  const fetchInvestments = async () => {
+  const loadInvestments = async () => {
     try {
       setLoading(true)
       setError(null)
-
-      // Показываем демо данные для предотвращения ошибок загрузки
-      const demoInvestments = [
-        {
-          id: "demo-1",
-          amount: 1000,
-          daily_profit: 15,
-          total_profit: 150,
-          start_date: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000).toISOString(),
-          end_date: new Date(Date.now() + 20 * 24 * 60 * 60 * 1000).toISOString(),
-          status: "active",
-          plan_name: "Starter Plan",
-          days_left: 20,
-          progress: 33,
-        },
-        {
-          id: "demo-2",
-          amount: 5000,
-          daily_profit: 100,
-          total_profit: 800,
-          start_date: new Date(Date.now() - 8 * 24 * 60 * 60 * 1000).toISOString(),
-          end_date: new Date(Date.now() + 37 * 24 * 60 * 60 * 1000).toISOString(),
-          status: "active",
-          plan_name: "Professional Plan",
-          days_left: 37,
-          progress: 18,
-        },
-        {
-          id: "demo-3",
-          amount: 2500,
-          daily_profit: 50,
-          total_profit: 1200,
-          start_date: new Date(Date.now() - 24 * 24 * 60 * 60 * 1000).toISOString(),
-          end_date: new Date(Date.now() + 6 * 24 * 60 * 60 * 1000).toISOString(),
-          status: "active",
-          plan_name: "Gold Plan",
-          days_left: 6,
-          progress: 80,
-        },
-      ]
-
-      setInvestments(demoInvestments)
-      setLoading(false)
-    } catch (err) {
-      console.error("Error fetching investments:", err)
-      setError("Не удалось загрузить инвестиции")
+      
+      const response = await fetch('/api/dashboard/investments')
+      if (!response.ok) {
+        throw new Error('Failed to load investments')
+      }
+      
+      const data = await response.json()
+      if (data.success) {
+        setInvestments(data.investments)
+      } else {
+        throw new Error(data.error || 'Failed to load investments')
+      }
+    } catch (error) {
+      console.error("Error loading investments:", error)
+      setError("Ошибка загрузки инвестиций")
+      setInvestments([])
+    } finally {
       setLoading(false)
     }
   }
 
   useEffect(() => {
-    fetchInvestments()
+    loadInvestments()
   }, [])
 
   const formatDate = (dateString: string) => {
