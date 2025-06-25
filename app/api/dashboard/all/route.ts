@@ -58,13 +58,13 @@ export async function GET(request: NextRequest) {
       `SELECT 
         i.id,
         i.amount::decimal as amount,
-        i.profit::decimal as profit,
+        i.total_profit::decimal as profit,
         i.status,
         i.created_at,
-        i.expires_at,
+        i.end_date as expires_at,
         ip.name as plan_name,
-        ip.daily_return_rate::decimal as daily_return_rate,
-        ip.duration_days
+        ip.daily_percent::decimal as daily_return_rate,
+        ip.duration as duration_days
       FROM investments i
       LEFT JOIN investment_plans ip ON i.plan_id = ip.id
       WHERE i.user_id = $1
@@ -98,8 +98,8 @@ export async function GET(request: NextRequest) {
         name,
         min_amount::decimal as min_amount,
         max_amount::decimal as max_amount,
-        daily_return_rate::decimal as daily_return_rate,
-        duration_days,
+        daily_percent::decimal as daily_return_rate,
+        duration as duration_days,
         description,
         features,
         is_active
