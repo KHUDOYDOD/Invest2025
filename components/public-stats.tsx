@@ -31,15 +31,22 @@ export function PublicStats() {
       setIsLoading(true)
       setError(null)
 
-      // Используем демо данные без базы данных
-      const demoStats = {
-        totalUsers: 15420,
-        totalInvested: 2850000,
-        totalPaid: 1250000,
-        totalProfit: 850000,
+      // Загружаем реальную статистику
+      const response = await fetch('/api/statistics')
+      if (response.ok) {
+        const data = await response.json()
+        if (data.success) {
+          const realStats = {
+            totalUsers: data.data.totalUsers || 0,
+            totalInvested: data.data.totalInvested || 0,
+            totalPaid: data.data.totalPaid || 0,
+            totalProfit: Math.round((data.data.totalPaid || 0) * 0.3), // Примерно 30% от выплат это прибыль
+          }
+          setStats(realStats)
+        }
+      } else {
+        console.warn("Failed to fetch statistics, using default values")
       }
-
-      setStats(demoStats)
     } catch (err) {
       console.error("Error loading statistics:", err)
       setError(null)

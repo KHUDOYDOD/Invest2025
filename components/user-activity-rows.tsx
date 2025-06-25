@@ -27,55 +27,28 @@ export function UserActivityRows() {
       try {
         setLoading(true)
 
-        // Используем демо данные без базы данных
-        const demoTransactions = [
-          {
-            id: "1",
-            user_id: "demo1",
-            type: "deposit",
-            amount: 1000,
-            status: "completed",
-            created_at: new Date(Date.now() - 2 * 60 * 1000).toISOString(),
-            user_name: "Александр К.",
-          },
-          {
-            id: "2",
-            user_id: "demo2",
-            type: "investment",
-            amount: 5000,
-            status: "completed",
-            created_at: new Date(Date.now() - 5 * 60 * 1000).toISOString(),
-            user_name: "Мария С.",
-          },
-          {
-            id: "3",
-            user_id: "demo3",
-            type: "withdrawal",
-            amount: 2500,
-            status: "completed",
-            created_at: new Date(Date.now() - 10 * 60 * 1000).toISOString(),
-            user_name: "Дмитрий В.",
-          },
-          {
-            id: "4",
-            user_id: "demo4",
-            type: "deposit",
-            amount: 750,
-            status: "completed",
-            created_at: new Date(Date.now() - 15 * 60 * 1000).toISOString(),
-            user_name: "Елена М.",
-          },
-          {
-            id: "5",
-            user_id: "demo5",
-            type: "investment",
-            amount: 3000,
-            status: "completed",
-            created_at: new Date(Date.now() - 20 * 60 * 1000).toISOString(),
-            user_name: "Игорь П.",
-          },
-        ]
-        setTransactions(demoTransactions)
+        // Загружаем реальные данные активности
+        const response = await fetch('/api/user-activity')
+        if (response.ok) {
+          const data = await response.json()
+          if (data.success && Array.isArray(data.data)) {
+            const formattedTransactions = data.data.map((activity: any) => ({
+              id: activity.id,
+              user_id: activity.user_id || 'unknown',
+              type: activity.type,
+              amount: activity.amount || 0,
+              status: activity.status || 'completed',
+              created_at: activity.time,
+              user_name: activity.user_name || 'Anonymous',
+            }))
+            setTransactions(formattedTransactions)
+          } else {
+            setTransactions([])
+          }
+        } else {
+          console.warn("Failed to fetch user activity, showing empty list")
+          setTransactions([])
+        }
         setError(null)
       } catch (err) {
         console.error("Ошибка загрузки транзакций:", err)

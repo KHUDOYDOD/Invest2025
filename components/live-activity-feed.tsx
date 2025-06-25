@@ -22,53 +22,27 @@ export function LiveActivityFeed() {
       try {
         setLoading(true)
 
-        // Используем демо данные без базы данных
-        const demoActivities = [
-          {
-            id: "1",
-            type: "deposit",
-            amount: 1000,
-            user_name: "Александр К.",
-            time: "2 минуты назад",
-          },
-          {
-            id: "2",
-            type: "investment",
-            amount: 5000,
-            user_name: "Мария С.",
-            time: "5 минут назад",
-            plan_name: "Золотой план",
-          },
-          {
-            id: "3",
-            type: "withdrawal",
-            amount: 2500,
-            user_name: "Дмитрий В.",
-            time: "10 минут назад",
-          },
-          {
-            id: "4",
-            type: "profit",
-            amount: 150,
-            user_name: "Елена М.",
-            time: "15 минут назад",
-          },
-          {
-            id: "5",
-            type: "referral",
-            amount: 300,
-            user_name: "Игорь П.",
-            time: "20 минут назад",
-          },
-          {
-            id: "6",
-            type: "deposit",
-            amount: 750,
-            user_name: "Анна Л.",
-            time: "25 минут назад",
-          },
-        ]
-        setActivities(demoActivities)
+        // Загружаем реальные данные активности
+        const response = await fetch('/api/user-activity')
+        if (response.ok) {
+          const data = await response.json()
+          if (data.success && Array.isArray(data.data)) {
+            const formattedActivities = data.data.map((activity: any) => ({
+              id: activity.id,
+              type: activity.type,
+              amount: activity.amount,
+              user_name: activity.user_name,
+              time: formatTimeAgo(new Date(activity.time)),
+              plan_name: activity.plan_name,
+            }))
+            setActivities(formattedActivities)
+          } else {
+            setActivities([])
+          }
+        } else {
+          console.warn("Failed to fetch user activity, showing empty list")
+          setActivities([])
+        }
         setError(null)
       } catch (err) {
         console.error("Ошибка загрузки активности:", err)

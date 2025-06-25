@@ -39,19 +39,28 @@ export function Statistics() {
       setLoading(true)
       setError(null)
 
-      // Используем демо данные без базы данных
-      const demoStats = {
-        usersCount: 15420,
-        usersChange: 12.5,
-        investmentsAmount: 2850000,
-        investmentsChange: 8.3,
-        payoutsAmount: 1250000,
-        payoutsChange: 15.7,
-        profitabilityRate: 18.5,
-        profitabilityChange: 2.1,
+      // Загружаем реальную статистику
+      const response = await fetch('/api/statistics')
+      if (response.ok) {
+        const data = await response.json()
+        if (data.success) {
+          const realStats = {
+            usersCount: data.data.totalUsers || 0,
+            usersChange: 12.5, // Можно добавить расчет изменений позже
+            investmentsAmount: data.data.totalInvested || 0,
+            investmentsChange: 8.3,
+            payoutsAmount: data.data.totalPaid || 0,
+            payoutsChange: 15.7,
+            profitabilityRate: data.data.averageReturn || 0,
+            profitabilityChange: 2.1,
+          }
+          setStats(realStats)
+        } else {
+          throw new Error("Failed to load statistics")
+        }
+      } else {
+        throw new Error("Failed to fetch statistics")
       }
-
-      setStats(demoStats)
     } catch (error) {
       console.error("Ошибка загрузки статистики:", error)
       setError(null)
