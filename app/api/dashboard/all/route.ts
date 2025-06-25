@@ -82,7 +82,7 @@ export async function GET(request: NextRequest) {
     const data = result.rows[0].dashboard_data
     const user = data.user
 
-    return NextResponse.json({
+    const response = NextResponse.json({
       success: true,
       user: {
         id: user.id,
@@ -101,6 +101,11 @@ export async function GET(request: NextRequest) {
       investments: data.investments || [],
       transactions: data.transactions || []
     })
+
+    // Добавляем заголовки кэширования для браузера
+    response.headers.set('Cache-Control', 'public, max-age=30, stale-while-revalidate=60')
+    
+    return response
 
   } catch (error) {
     console.error('Dashboard all API error:', error)

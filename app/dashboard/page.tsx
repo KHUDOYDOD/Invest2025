@@ -83,13 +83,13 @@ function DashboardContent() {
         throw new Error("Пользователь не авторизован")
       }
 
-      // Проверяем кэш
+      // Проверяем кэш (увеличиваем время кэша до 60 секунд)
       const cacheKey = `dashboard_${userId}`
       const cachedData = localStorage.getItem(cacheKey)
       const cacheTime = localStorage.getItem(`${cacheKey}_time`)
       
-      // Если кэш свежий (менее 30 секунд), используем его
-      if (cachedData && cacheTime && Date.now() - parseInt(cacheTime) < 30000) {
+      // Если кэш свежий (менее 60 секунд), используем его
+      if (cachedData && cacheTime && Date.now() - parseInt(cacheTime) < 60000) {
         const data = JSON.parse(cachedData)
         setUserData(data.user)
         setInvestments(data.investments || [])
@@ -100,56 +100,32 @@ function DashboardContent() {
 
       console.log("Dashboard: Fetching fresh data...")
 
-      // Параллельно загружаем все данные
-      const [userResponse, investmentsResponse, transactionsResponse] = await Promise.all([
-        fetch("/api/dashboard/user", {
-          headers: {
-            "Authorization": `Bearer ${token}`,
-            "Content-Type": "application/json"
-          }
-        }),
-        fetch("/api/dashboard/investments", {
-          headers: {
-            "Authorization": `Bearer ${token}`,
-            "Content-Type": "application/json"
-          }
-        }),
-        fetch("/api/dashboard/transactions", {
-          headers: {
-            "Authorization": `Bearer ${token}`,
-            "Content-Type": "application/json"
-          }
-        })
-      ])
+      // Используем оптимизированный endpoint, который загружает все данные одним запросом
+      const response = await fetch("/api/dashboard/all", {
+        headers: {
+          "Authorization": `Bearer ${token}`,
+          "Content-Type": "application/json"
+        }
+      })
 
-      if (!userResponse.ok) {
-        if (userResponse.status === 401) {
+      if (!response.ok) {
+        if (response.status === 401) {
           localStorage.clear()
           window.location.href = "/login"
           return
         }
-        throw new Error(`Ошибка ${userResponse.status}`)
+        throw new Error(`Ошибка ${response.status}`)
       }
 
-      const [userData, investmentsData, transactionsData] = await Promise.all([
-        userResponse.json(),
-        investmentsResponse.ok ? investmentsResponse.json() : { investments: [] },
-        transactionsResponse.ok ? transactionsResponse.json() : { transactions: [] }
-      ])
+      const data = await response.json()
 
-      const dashboardData = {
-        user: userData.user,
-        investments: investmentsData.investments || [],
-        transactions: transactionsData.transactions || []
-      }
-
-      // Кэшируем данные
-      localStorage.setItem(cacheKey, JSON.stringify(dashboardData))
+      // Кэшируем данные на 60 секунд
+      localStorage.setItem(cacheKey, JSON.stringify(data))
       localStorage.setItem(`${cacheKey}_time`, Date.now().toString())
 
-      setUserData(dashboardData.user)
-      setInvestments(dashboardData.investments)
-      setTransactions(dashboardData.transactions)
+      setUserData(data.user)
+      setInvestments(data.investments || [])
+      setTransactions(data.transactions || [])
 
       console.log("Dashboard: All data loaded successfully")
 
