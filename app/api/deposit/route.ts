@@ -1,3 +1,4 @@
+
 import { NextRequest, NextResponse } from 'next/server'
 import { query } from '@/lib/database'
 import jwt from 'jsonwebtoken'
@@ -24,43 +25,60 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Недействительный токен' }, { status: 401 })
     }
 
-    const { amount, payment_method, wallet_address, card_number } = await request.json()
+    const { amount, payment_method } = await request.json()
 
+    // Валидация данных
     if (!amount || amount <= 0) {
-      return NextResponse.json({ error: 'Укажите корректную сумму' }, { status: 400 })
+      return NextResponse.json({ error: 'Некорректная сумма' }, { status: 400 })
     }
 
     if (!payment_method) {
-      return NextResponse.json({ error: 'Выберите способ пополнения' }, { status: 400 })
+      return NextResponse.json({ error: 'Способ оплаты не указан' }, { status: 400 })
     }
 
-    console.log('Creating deposit transaction for user:', decoded.userId, 'amount:', amount)
+    console.log('Creating deposit for user:', decoded.userId, 'amount:', amount)
 
-    // Создаем транзакцию депозита
+    // Создаем транзакцию пополнения
     const result = await query(
       `INSERT INTO transactions (user_id, type, amount, status, description, payment_method, created_at)
        VALUES ($1, $2, $3, $4, $5, $6, NOW())
-       RETURNING *`,
-      [
-        decoded.userId,
-        'deposit',
-        amount,
-        'pending', // Депозиты требуют подтверждения администратором
-        `Пополнение баланса на $${amount}`,
-        payment_method
-      ]
+       RETURNING id, amount, status, created_at`,
+      [decoded.userId, 'deposit', amount, 'pending', 'Пополнение баланса', payment_method]
     )
 
-    console.log('✅ Deposit transaction created:', result.rows[0].id)
+    if (result.rows.length === 0) {
+      return NextResponse.json({ error: 'Ошибка создания транзакции' }, { status: 500 })
+    }
+
+    const transaction = result.rows[0]
+
+    // Если способ оплаты - с баланса, сразу обновляем баланс пользователя
+    if (payment_method === 'balance') {
+      await query(
+        `UPDATE users SET balance = balance + $1 WHERE id = $2`,
+        [amount, decoded.userId]
+      )
+
+      // Обновляем статус транзакции на завершенную
+      await query(
+        `UPDATE transactions SET status = 'completed' WHERE id = $1`,
+        [transaction.id]
+      )
+    }
 
     return NextResponse.json({
       success: true,
-      message: 'Заявка на пополнение создана и отправлена на модерацию',
-      transaction: result.rows[0]
+      message: 'Заявка на пополнение создана',
+      transaction: {
+        id: transaction.id,
+        amount: transaction.amount,
+        status: payment_method === 'balance' ? 'completed' : 'pending',
+        created_at: transaction.created_at
+      }
     })
 
   } catch (error) {
-    console.error('Deposit API error:', error)
+    console.error('Error creating deposit:', error)
     return NextResponse.json({ 
       error: 'Ошибка создания заявки на пополнение',
       details: error.message 

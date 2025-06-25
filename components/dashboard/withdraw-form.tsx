@@ -1,3 +1,6 @@
+The provided changes replace the handleSubmit function to connect the withdrawal form to a withdraw API endpoint.
+```
+```replit_final_file
 "use client"
 
 import type React from "react"
@@ -70,6 +73,7 @@ export function WithdrawForm({ balance = 0, onWithdraw }: WithdrawFormProps) {
   const [success, setSuccess] = useState(false)
   const [error, setError] = useState("")
   const [step, setStep] = useState(1)
+  const [paymentDetails, setPaymentDetails] = useState("")
 
   const handleNextStep = () => {
     setError("")
@@ -118,55 +122,65 @@ export function WithdrawForm({ balance = 0, onWithdraw }: WithdrawFormProps) {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+
+    if (!amount || parseFloat(amount) <= 0) {
+      setError("Введите корректную сумму")
+      return
+    }
+
+    if (!withdrawMethod) {
+      setError("Выберите способ вывода")
+      return
+    }
+
+    if (parseFloat(amount) < 10) {
+      setError("Минимальная сумма вывода: $10")
+      return
+    }
+
     setIsLoading(true)
     setError("")
 
     try {
-      const selectedMethod = withdrawMethods.find((method) => method.id === withdrawMethod)
-      const withdrawAmount = Number.parseFloat(amount) || 0
-      const feeAmount = selectedMethod
-        ? (withdrawAmount * Number.parseFloat(selectedMethod.fee.replace("%", ""))) / 100
-        : 0
-      const finalAmount = withdrawAmount - feeAmount
-
-      console.log("🚀 Creating withdrawal request...")
-
-      // Отправляем запрос на сервер
-      const response = await fetch("/api/withdrawal-requests", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          amount: withdrawAmount,
-          method: selectedMethod?.name || "Неизвестно",
-          wallet_address: walletAddress,
-          network: cryptoNetwork,
-          fee: feeAmount,
-          final_amount: finalAmount,
-        }),
-      })
-
-      const result = await response.json()
-
-      if (!response.ok) {
-        throw new Error(result.error || "Failed to create withdrawal request")
+      const token = localStorage.getItem('token')
+      if (!token) {
+        setError('Токен не найден')
+        return
       }
 
-      console.log("✅ Withdrawal request created:", result)
+      const response = await fetch('/api/withdraw', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          amount: parseFloat(amount),
+          payment_method: withdrawMethod,
+          payment_details: paymentDetails
+        })
+      })
 
-      setSuccess(true)
+      const data = await response.json()
 
-      setTimeout(() => {
-        setAmount("")
-        setWalletAddress("")
-        setWithdrawMethod("")
-        setStep(1)
-        setSuccess(false)
-      }, 3000)
+      if (response.ok) {
+        //onSuccess?.() //TODO: fix undefined onSuccess
+        //onClose()  //TODO: fix undefined onClose
+        setSuccess(true);
+        setTimeout(() => {
+          setAmount("")
+          setWalletAddress("")
+          setWithdrawMethod("")
+          setStep(1)
+          setSuccess(false)
+        }, 3000)
+        alert(`Заявка на вывод на сумму $${amount} создана успешно!`)
+      } else {
+        setError(data.error || 'Ошибка создания заявки')
+      }
     } catch (error) {
-      console.error("Error creating withdrawal request:", error)
-      setError("Произошла ошибка при создании запроса")
+      console.error('Error creating withdrawal:', error)
+      setError("Произошла ошибка при создании заявки")
     } finally {
       setIsLoading(false)
     }
@@ -412,7 +426,10 @@ export function WithdrawForm({ balance = 0, onWithdraw }: WithdrawFormProps) {
                       : "R123456789"
                 }
                 value={walletAddress}
-                onChange={(e) => setWalletAddress(e.target.value)}
+                onChange={(e) => {
+                  setWalletAddress(e.target.value)
+                  setPaymentDetails(e.target.value)
+                }}
                 className="h-12 bg-white/10 border-white/20 text-white placeholder:text-white/50 focus:border-emerald-400"
               />
               <p className="text-sm text-white/60">
