@@ -135,7 +135,9 @@ export default function ProjectLaunchesPage() {
 
     try {
       const method = launch.id ? "PUT" : "POST"
-      const response = await fetch("/api/admin/project-launches", {
+      const url = launch.id ? `/api/admin/project-launches/${launch.id}` : "/api/admin/project-launches"
+      
+      const response = await fetch(url, {
         method,
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(launch),
@@ -149,7 +151,7 @@ export default function ProjectLaunchesPage() {
       const savedLaunch = await response.json()
 
       if (launch.id) {
-        setLaunches((prev) => prev.map((c) => (c.id === launch.id ? savedLaunch : c)))
+        setLaunches((prev) => prev.map((item) => (item.id === launch.id ? savedLaunch : item)))
       } else {
         setLaunches((prev) => [...prev, savedLaunch])
       }
@@ -182,22 +184,27 @@ export default function ProjectLaunchesPage() {
     try {
       const response = await fetch(`/api/admin/project-launches/${id}`, {
         method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+        },
       })
 
       if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`)
+        const errorData = await response.json()
+        throw new Error(errorData.error || `HTTP error! status: ${response.status}`)
       }
 
-      setLaunches((prev) => prev.filter((c) => c.id !== id))
+      setLaunches((prev) => prev.filter((launch) => launch.id !== id))
       toast({
         title: "Успешно",
         description: "Счетчик запуска удален",
       })
     } catch (error) {
       console.error("Error deleting project launch:", error)
+      const errorMessage = error instanceof Error ? error.message : "Неизвестная ошибка"
       toast({
         title: "Ошибка",
-        description: "Не удалось удалить счетчик запуска",
+        description: errorMessage,
         variant: "destructive",
       })
     }
@@ -212,11 +219,12 @@ export default function ProjectLaunchesPage() {
       })
 
       if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`)
+        const errorData = await response.json()
+        throw new Error(errorData.error || `HTTP error! status: ${response.status}`)
       }
 
       const updatedLaunch = await response.json()
-      setLaunches((prev) => prev.map((c) => (c.id === id ? updatedLaunch : c)))
+      setLaunches((prev) => prev.map((launch) => (launch.id === id ? updatedLaunch : launch)))
 
       toast({
         title: "Успешно",
@@ -224,9 +232,10 @@ export default function ProjectLaunchesPage() {
       })
     } catch (error) {
       console.error("Error toggling visibility:", error)
+      const errorMessage = error instanceof Error ? error.message : "Неизвестная ошибка"
       toast({
         title: "Ошибка",
-        description: "Не удалось изменить видимость",
+        description: errorMessage,
         variant: "destructive",
       })
     }
@@ -244,11 +253,12 @@ export default function ProjectLaunchesPage() {
       })
 
       if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`)
+        const errorData = await response.json()
+        throw new Error(errorData.error || `HTTP error! status: ${response.status}`)
       }
 
       const updatedLaunch = await response.json()
-      setLaunches((prev) => prev.map((c) => (c.id === id ? updatedLaunch : c)))
+      setLaunches((prev) => prev.map((launch) => (launch.id === id ? updatedLaunch : launch)))
 
       toast({
         title: "Проект запущен!",
@@ -256,9 +266,10 @@ export default function ProjectLaunchesPage() {
       })
     } catch (error) {
       console.error("Error launching project:", error)
+      const errorMessage = error instanceof Error ? error.message : "Неизвестная ошибка"
       toast({
         title: "Ошибка",
-        description: "Не удалось запустить проект",
+        description: errorMessage,
         variant: "destructive",
       })
     }

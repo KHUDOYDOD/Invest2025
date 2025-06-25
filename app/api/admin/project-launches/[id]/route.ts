@@ -1,9 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { query } from '@/lib/database'
-import { requireAdmin } from '@/lib/auth'
 
 // PATCH - частичное обновление проекта
-export const PATCH = requireAdmin(async (request: NextRequest, { params }: { params: { id: string } }) => {
+export async function PATCH(request: NextRequest, { params }: { params: { id: string } }) {
   try {
     const { id } = params
     const body = await request.json()
@@ -61,10 +60,10 @@ export const PATCH = requireAdmin(async (request: NextRequest, { params }: { par
     console.error('Error updating project launch:', error)
     return NextResponse.json({ error: 'Failed to update project launch' }, { status: 500 })
   }
-})
+}
 
 // DELETE - удаление проекта
-export const DELETE = requireAdmin(async (request: NextRequest, { params }: { params: { id: string } }) => {
+export async function DELETE(request: NextRequest, { params }: { params: { id: string } }) {
   try {
     const { id } = params
 
@@ -79,4 +78,4 @@ export const DELETE = requireAdmin(async (request: NextRequest, { params }: { pa
     console.error('Error deleting project launch:', error)
     return NextResponse.json({ error: 'Failed to delete project launch' }, { status: 500 })
   }
-})
+}
