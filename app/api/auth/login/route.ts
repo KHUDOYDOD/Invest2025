@@ -8,11 +8,12 @@ export async function POST(request: NextRequest) {
   try {
     const { email, password } = await request.json()
 
-    console.log('Login attempt:', { email })
+    console.log('Login attempt for:', email)
 
     // Валидация входных данных
     if (!email || !password) {
       return NextResponse.json({ 
+        success: false,
         error: 'Email и пароль обязательны' 
       }, { status: 400 })
     }
@@ -21,6 +22,7 @@ export async function POST(request: NextRequest) {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
     if (!emailRegex.test(email)) {
       return NextResponse.json({ 
+        success: false,
         error: 'Некорректный формат email' 
       }, { status: 400 })
     }
@@ -43,17 +45,24 @@ export async function POST(request: NextRequest) {
       [email.toLowerCase().trim()]
     )
 
+    console.log('Database query result:', userResult.rows.length)
+
     if (userResult.rows.length === 0) {
+      console.log('User not found:', email)
       return NextResponse.json({ 
+        success: false,
         error: 'Неверный email или пароль' 
       }, { status: 401 })
     }
 
     const user = userResult.rows[0]
+    console.log('User found:', user.email, 'Status:', user.status)
 
     // Проверяем статус пользователя
     if (user.status !== 'active') {
+      console.log('User account is not active:', user.status)
       return NextResponse.json({ 
+        success: false,
         error: 'Аккаунт заблокирован или неактивен' 
       }, { status: 401 })
     }
@@ -61,26 +70,35 @@ export async function POST(request: NextRequest) {
     // Проверяем пароль
     let passwordValid = false
     
-    if (user.password_hash) {
-      // Если есть хеш пароля, используем bcrypt
-      passwordValid = await bcrypt.compare(password, user.password_hash)
-    } else {
-      // Для демо пользователей используем простые пароли
-      const demoPasswords = {
-        'admin@example.com': 'admin123',
-        'user@example.com': 'demo123',
-        'demo@example.com': 'demo123'
+    try {
+      if (user.password_hash) {
+        // Если есть хеш пароля, используем bcrypt
+        passwordValid = await bcrypt.compare(password, user.password_hash)
+        console.log('Password check with bcrypt:', passwordValid)
+      } else {
+        // Для демо пользователей используем простые пароли
+        const demoPasswords = {
+          'admin@example.com': 'admin123',
+          'user@example.com': 'demo123',
+          'demo@example.com': 'demo123'
+        }
+        passwordValid = demoPasswords[email.toLowerCase()] === password
+        console.log('Password check with demo passwords:', passwordValid)
       }
-      passwordValid = demoPasswords[email.toLowerCase()] === password
+    } catch (error) {
+      console.error('Password validation error:', error)
+      passwordValid = false
     }
 
     if (!passwordValid) {
+      console.log('Invalid password for user:', email)
       return NextResponse.json({ 
+        success: false,
         error: 'Неверный email или пароль' 
       }, { status: 401 })
     }
 
-    console.log('User authenticated successfully:', user.email)
+    console.log('Password validation successful for:', user.email)
 
     // Определяем роль пользователя
     const isAdmin = user.role_id === 1
@@ -97,9 +115,10 @@ export async function POST(request: NextRequest) {
       { expiresIn: '7d' }
     )
 
-    console.log('Login successful for:', user.email)
+    console.log('Login successful for:', user.email, 'Role:', role)
 
-    return NextResponse.json({
+    // Создаем ответ с токеном в куках
+    const response = NextResponse.json({
       success: true,
       message: 'Авторизация прошла успешно',
       user: {
@@ -113,20 +132,26 @@ export async function POST(request: NextRequest) {
         isAdmin: isAdmin,
         created_at: user.created_at
       },
-      token
+      token,
+      redirect: isAdmin ? '/admin/dashboard' : '/dashboard'
     }, { status: 200 })
+
+    // Устанавливаем токен в куки
+    response.cookies.set('auth-token', token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      maxAge: 7 * 24 * 60 * 60 // 7 дней
+    })
+
+    return response
 
   } catch (error) {
     console.error('Login error:', error)
     
-    if (error instanceof Error) {
-      return NextResponse.json({ 
-        error: `Ошибка авторизации: ${error.message}` 
-      }, { status: 500 })
-    }
-
     return NextResponse.json({ 
-      error: 'Внутренняя ошибка сервера' 
+      success: false,
+      error: 'Внутренняя ошибка сервера. Попробуйте позже.' 
     }, { status: 500 })
   }
 }
