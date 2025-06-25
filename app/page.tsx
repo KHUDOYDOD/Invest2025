@@ -16,7 +16,7 @@ import { MobileApp } from "@/components/mobile-app"
 import { TrustIndicators } from "@/components/trust-indicators"
 import { LiveActivityFeed } from "@/components/live-activity-feed"
 import { UserActivityRows } from "@/components/user-activity-rows"
-import { PublicStats } from "@/components/public-stats"
+import { PlatformStatistics } from "@/components/platform-statistics"
 import { ProjectLaunches } from "@/components/project-launches"
 import { AdminAccessButton } from "@/components/admin-access-button"
 import { EducationCenter } from "@/components/education-center"
@@ -42,6 +42,11 @@ export default function HomePage() {
       {/* Public Statistics */}
       <div className="relative z-10">
         <PublicStats />
+      </div>
+
+      {/* Platform Statistics */}
+      <div className="relative z-10">
+        <PlatformStatistics />
       </div>
 
       {/* User Activity Rows */}
@@ -79,7 +84,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      
+
 
       {/* Investment Plans */}
       <section id="plans" className="py-20 px-4 bg-slate-100 relative z-10">
