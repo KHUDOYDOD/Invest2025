@@ -61,12 +61,21 @@ export default function LoginPage() {
       setSuccess('Вход выполнен успешно! Перенаправление...')
 
       // Сохраняем данные пользователя
-      if (data.user && data.token) {
+      if (data.user) {
         localStorage.setItem('user', JSON.stringify(data.user))
-        localStorage.setItem('auth-token', data.token)
+        localStorage.setItem('userEmail', data.user.email)
+        localStorage.setItem('userName', data.user.fullName)
+        localStorage.setItem('userId', data.user.id)
+        localStorage.setItem('userRole', data.user.role || 'user')
+        localStorage.setItem('isAuthenticated', 'true')
+        
+        if (data.token) {
+          localStorage.setItem('auth-token', data.token)
+          localStorage.setItem('authToken', data.token)
+        }
         
         // Устанавливаем данные для админа если нужно
-        if (data.user.isAdmin) {
+        if (data.user.isAdmin || data.user.role === 'admin') {
           localStorage.setItem('adminAuth', 'true')
           localStorage.setItem('adminUser', JSON.stringify(data.user))
         }

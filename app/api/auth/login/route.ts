@@ -84,9 +84,11 @@ export async function POST(request: NextRequest) {
         id: user.id,
         email: user.email,
         fullName: user.full_name,
-        role: user.role_name || 'user'
+        role: user.role_name || 'user',
+        isAdmin: user.role_id === 1
       },
-      redirectUrl
+      token: token,
+      redirect: redirectUrl
     });
 
     // Устанавливаем cookie с токеном

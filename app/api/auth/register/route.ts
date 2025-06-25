@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import bcrypt from 'bcryptjs';
+import jwt from 'jsonwebtoken';
 import { query } from '@/lib/database';
 
 function generateReferralCode() {
@@ -84,16 +85,41 @@ export async function POST(request: NextRequest) {
 
     const user = newUser.rows[0];
 
-    return NextResponse.json({
+    // Создаем JWT токен для автоматического входа
+    const token = jwt.sign(
+      { 
+        userId: user.id,
+        email: user.email,
+        role: 'user'
+      },
+      process.env.JWT_SECRET || 'your-secret-key',
+      { expiresIn: '24h' }
+    );
+
+    const response = NextResponse.json({
       success: true,
       message: 'Регистрация успешно завершена',
       user: {
         id: user.id,
         email: user.email,
         fullName: user.full_name,
-        referralCode: user.referral_code
-      }
+        referralCode: user.referral_code,
+        role: 'user',
+        balance: 0.00
+      },
+      token: token,
+      redirect: '/dashboard'
     });
+
+    // Устанавливаем cookie с токеном
+    response.cookies.set('auth-token', token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      maxAge: 60 * 60 * 24 // 24 hours
+    });
+
+    return response;
 
   } catch (error) {
     console.error('Registration error:', error);

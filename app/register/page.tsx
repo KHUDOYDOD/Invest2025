@@ -112,8 +112,9 @@ export default function RegisterPage() {
 
       // Сохраняем данные пользователя
       if (data.user) {
+        localStorage.setItem("user", JSON.stringify(data.user))
         localStorage.setItem("userEmail", data.user.email)
-        localStorage.setItem("userName", data.user.full_name)
+        localStorage.setItem("userName", data.user.fullName)
         localStorage.setItem("userId", data.user.id)
         localStorage.setItem("userRole", data.user.role || "user")
         localStorage.setItem("userBalance", data.user.balance?.toString() || "0.00")
@@ -122,16 +123,18 @@ export default function RegisterPage() {
       
       if (data.token) {
         localStorage.setItem("authToken", data.token)
+        localStorage.setItem("auth-token", data.token)
       }
 
       toast.success("🎉 Регистрация успешна!", {
-        description: `Добро пожаловать, ${data.user.full_name}!`,
+        description: `Добро пожаловать, ${data.user.fullName}!`,
         duration: 3000,
       })
 
       // Перенаправляем в дашборд
       setTimeout(() => {
-        router.push("/dashboard")
+        const redirectPath = data.redirect || "/dashboard"
+        router.push(redirectPath)
       }, 1500)
 
     } catch (error) {
