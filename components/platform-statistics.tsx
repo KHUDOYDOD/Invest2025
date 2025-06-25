@@ -2,72 +2,68 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { Users, DollarSign, TrendingUp, Award, BarChart, Activity } from "lucide-react"
+import { Card, CardContent } from "@/components/ui/card"
+import { Users, DollarSign, TrendingUp, Award, Activity, Clock } from "lucide-react"
+import { motion, AnimatePresence } from "framer-motion"
 
-interface Stats {
+interface PlatformStats {
   totalUsers: number
   totalInvested: number
-  totalPaid: number
+  totalWithdrawals: number
+  totalProfit: number
   activeInvestments: number
-  totalProjects: number
-  successRate: number
-  averageReturn: number
-  onlineUsers: number
+  lastUpdated: string
 }
 
 export function PlatformStatistics() {
-  const [stats, setStats] = useState<Stats>({
+  const [stats, setStats] = useState<PlatformStats>({
     totalUsers: 0,
     totalInvested: 0,
-    totalPaid: 0,
+    totalWithdrawals: 0,
+    totalProfit: 0,
     activeInvestments: 0,
-    totalProjects: 0,
-    successRate: 0,
-    averageReturn: 0,
-    onlineUsers: 0,
+    lastUpdated: new Date().toLocaleTimeString('ru-RU'),
   })
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
+  const [isLoading, setIsLoading] = useState(true)
+  const [lastUpdateTime, setLastUpdateTime] = useState<Date>(new Date())
 
   useEffect(() => {
-    const fetchStats = async () => {
-      try {
-        setLoading(true)
-
-        const response = await fetch('/api/statistics')
-        if (response.ok) {
-          const data = await response.json()
-          if (data.success) {
-            setStats(data.data)
-          } else {
-            setStats({
-              totalUsers: 0,
-              totalInvested: 0,
-              totalPaid: 0,
-              activeInvestments: 0,
-              totalProjects: 0,
-              successRate: 95.0,
-              averageReturn: 24.5,
-              onlineUsers: 0,
-            })
-          }
-        } else {
-          console.warn("Failed to fetch statistics, using default values")
-        }
-        setError(null)
-      } catch (err) {
-        console.error("Ошибка загрузки статистики:", err)
-        setError(null)
-      } finally {
-        setLoading(false)
-      }
-    }
-
-    fetchStats()
-    const interval = setInterval(fetchStats, 300000) // Обновление каждые 5 минут
+    loadStats()
+    
+    // Обновление каждые 5 минут (300000 мс)
+    const interval = setInterval(() => {
+      loadStats()
+    }, 300000)
 
     return () => clearInterval(interval)
   }, [])
+
+  const loadStats = async () => {
+    try {
+      setIsLoading(true)
+      
+      const response = await fetch('/api/statistics')
+      if (response.ok) {
+        const data = await response.json()
+        if (data.success) {
+          const newStats = {
+            totalUsers: data.data.totalUsers || 0,
+            totalInvested: data.data.totalInvested || 0,
+            totalWithdrawals: data.data.totalPaid || 0,
+            totalProfit: data.data.totalProfit || 0,
+            activeInvestments: data.data.activeInvestments || 0,
+            lastUpdated: new Date().toLocaleTimeString('ru-RU'),
+          }
+          setStats(newStats)
+          setLastUpdateTime(new Date())
+        }
+      }
+    } catch (error) {
+      console.error("Error loading platform statistics:", error)
+    } finally {
+      setIsLoading(false)
+    }
+  }
 
   const formatNumber = (num: number) => {
     if (num >= 1000000) {
@@ -75,174 +71,171 @@ export function PlatformStatistics() {
     } else if (num >= 1000) {
       return `${(num / 1000).toFixed(1)}K`
     }
-    return num.toLocaleString()
+    return num.toLocaleString('ru-RU')
   }
 
-  const statisticsData = [
+  const formatCurrency = (amount: number) => {
+    return `$${formatNumber(amount)}`
+  }
+
+  const statsData = [
     {
       title: "Всего пользователей",
       value: formatNumber(stats.totalUsers),
       icon: Users,
-      color: "from-blue-500 to-cyan-600",
-      bgGradient: "from-blue-500/20 to-cyan-600/20",
-      borderColor: "border-blue-500/30",
-      textColor: "text-blue-400",
-      shadowColor: "shadow-blue-500/25",
+      color: "from-blue-500 to-cyan-500",
+      bgColor: "bg-blue-500/10",
+      borderColor: "border-blue-500/20",
     },
     {
-      title: "Общие инвестиции",
-      value: `$${formatNumber(stats.totalInvested)}`,
+      title: "Общие инвестиции", 
+      value: formatCurrency(stats.totalInvested),
       icon: DollarSign,
-      color: "from-emerald-500 to-teal-600",
-      bgGradient: "from-emerald-500/20 to-teal-600/20",
-      borderColor: "border-emerald-500/30",
-      textColor: "text-emerald-400",
-      shadowColor: "shadow-emerald-500/25",
-    },
-    {
-      title: "Общие выплаты",
-      value: `$${formatNumber(stats.totalPaid)}`,
-      icon: TrendingUp,
-      color: "from-purple-500 to-violet-600",
-      bgGradient: "from-purple-500/20 to-violet-600/20",
-      borderColor: "border-purple-500/30",
-      textColor: "text-purple-400",
-      shadowColor: "shadow-purple-500/25",
+      color: "from-green-500 to-emerald-500",
+      bgColor: "bg-green-500/10",
+      borderColor: "border-green-500/20",
     },
     {
       title: "Активные инвестиции",
       value: formatNumber(stats.activeInvestments),
       icon: Activity,
-      color: "from-orange-500 to-red-600",
-      bgGradient: "from-orange-500/20 to-red-600/20",
-      borderColor: "border-orange-500/30",
-      textColor: "text-orange-400",
-      shadowColor: "shadow-orange-500/25",
+      color: "from-purple-500 to-pink-500",
+      bgColor: "bg-purple-500/10",
+      borderColor: "border-purple-500/20",
     },
     {
-      title: "Инвестиционные планы",
-      value: formatNumber(stats.totalProjects),
-      icon: BarChart,
-      color: "from-yellow-500 to-amber-600",
-      bgGradient: "from-yellow-500/20 to-amber-600/20",
-      borderColor: "border-yellow-500/30",
-      textColor: "text-yellow-400",
-      shadowColor: "shadow-yellow-500/25",
-    },
-    {
-      title: "Успешность платформы",
-      value: `${stats.successRate}%`,
-      icon: Award,
-      color: "from-pink-500 to-rose-600",
-      bgGradient: "from-pink-500/20 to-rose-600/20",
-      borderColor: "border-pink-500/30",
-      textColor: "text-pink-400",
-      shadowColor: "shadow-pink-500/25",
+      title: "Общие выплаты",
+      value: formatCurrency(stats.totalWithdrawals),
+      icon: TrendingUp,
+      color: "from-orange-500 to-red-500",
+      bgColor: "bg-orange-500/10",
+      borderColor: "border-orange-500/20",
     },
   ]
 
-  if (loading) {
-    return (
-      <section className="py-20 px-4 bg-gradient-to-br from-slate-950 via-gray-900 to-slate-950 relative overflow-hidden">
-        <div className="absolute inset-0">
-          <div className="absolute top-1/3 left-1/3 w-72 h-72 bg-gradient-to-r from-cyan-600/10 to-blue-600/10 rounded-full blur-3xl animate-pulse"></div>
-          <div className="absolute bottom-1/3 right-1/3 w-72 h-72 bg-gradient-to-r from-purple-600/10 to-pink-600/10 rounded-full blur-3xl animate-pulse delay-1000"></div>
-        </div>
-
-        <div className="container mx-auto max-w-7xl relative z-10">
-          <div className="text-center">
-            <div className="w-12 h-12 border-4 border-t-cyan-500 border-r-transparent border-b-purple-500 border-l-transparent rounded-full mx-auto mb-4 animate-spin"></div>
-            <p className="text-slate-300 text-lg">Загрузка статистики...</p>
-          </div>
-        </div>
-      </section>
-    )
+  const timeAgo = () => {
+    const now = new Date()
+    const diffInSeconds = Math.floor((now.getTime() - lastUpdateTime.getTime()) / 1000)
+    
+    if (diffInSeconds < 60) return `${diffInSeconds} сек назад`
+    if (diffInSeconds < 3600) return `${Math.floor(diffInSeconds / 60)} мин назад`
+    return `${Math.floor(diffInSeconds / 3600)} ч назад`
   }
 
   return (
-    <section className="py-20 px-4 bg-gradient-to-br from-slate-950 via-gray-900 to-slate-950 relative overflow-hidden">
-      {/* Анимированный фон */}
+    <section className="py-16 px-4 bg-gradient-to-br from-slate-950 via-gray-900 to-slate-950 relative overflow-hidden">
+      {/* Animated Background */}
       <div className="absolute inset-0">
-        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-gradient-to-r from-cyan-600/10 to-blue-600/10 rounded-full blur-3xl animate-pulse"></div>
-        <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-gradient-to-r from-purple-600/10 to-pink-600/10 rounded-full blur-3xl animate-pulse delay-1000"></div>
-        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-gradient-to-r from-emerald-600/5 to-teal-600/5 rounded-full blur-3xl animate-spin-slow"></div>
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-blue-900/20 via-transparent to-transparent"></div>
+        <div className="absolute top-0 left-0 w-full h-full bg-[url('data:image/svg+xml,%3Csvg width="60" height="60" viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg"%3E%3Cg fill="none" fill-rule="evenodd"%3E%3Cg fill="%239C92AC" fill-opacity="0.02"%3E%3Ccircle cx="30" cy="30" r="1"/%3E%3C/g%3E%3C/g%3E%3C/svg%3E')]"></div>
       </div>
 
       <div className="container mx-auto max-w-7xl relative z-10">
-        <div className="text-center mb-16 animate-fade-in">
-          <div className="inline-flex items-center gap-3 mb-6">
-            <div className="w-3 h-3 bg-blue-400 rounded-full animate-pulse"></div>
-            <h2 className="text-5xl font-bold bg-gradient-to-r from-white via-cyan-100 to-purple-200 bg-clip-text text-transparent">
-              Статистика платформы
-            </h2>
-            <div className="w-3 h-3 bg-purple-400 rounded-full animate-pulse delay-1000"></div>
-          </div>
-          <p className="text-xl text-slate-300 max-w-3xl mx-auto leading-relaxed">
+        {/* Header */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="text-center mb-12"
+        >
+          <h2 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-blue-400 via-purple-400 to-cyan-400 bg-clip-text text-transparent mb-6">
+            Статистика платформы
+          </h2>
+          <p className="text-xl text-slate-300 max-w-3xl mx-auto leading-relaxed mb-4">
             Актуальные данные нашей инвестиционной платформы в режиме реального времени
           </p>
-        </div>
+          
+          {/* Last Update Time */}
+          <div className="flex items-center justify-center gap-2 text-slate-400">
+            <Clock className="h-4 w-4" />
+            <span className="text-sm">
+              Последнее обновление: {timeAgo()}
+            </span>
+            {isLoading && (
+              <div className="w-4 h-4 border-2 border-blue-500/30 border-t-blue-500 rounded-full animate-spin"></div>
+            )}
+          </div>
+        </motion.div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8">
-          {statisticsData.map((stat, index) => (
-            <div
-              key={stat.title}
-              className={`p-6 rounded-2xl border ${stat.borderColor} bg-gradient-to-br ${stat.bgGradient} backdrop-blur-xl shadow-xl ${stat.shadowColor} hover:shadow-2xl transition-all duration-500 relative overflow-hidden group animate-slide-up`}
-              style={{ animationDelay: `${index * 100}ms` }}
-            >
-              <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-
-              <div className="flex items-start relative z-10">
-                <div
-                  className={`p-3 rounded-2xl bg-gradient-to-r ${stat.color} text-white shadow-lg mr-4 group-hover:scale-110 transition-transform duration-300`}
+        {/* Stats Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-8">
+          <AnimatePresence mode="wait">
+            {statsData.map((stat, index) => (
+              <motion.div
+                key={stat.title}
+                initial={{ opacity: 0, y: 50, scale: 0.9 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                transition={{
+                  delay: index * 0.15,
+                  duration: 0.6,
+                  type: "spring",
+                  stiffness: 100,
+                }}
+                whileHover={{
+                  scale: 1.05,
+                  transition: { duration: 0.2 },
+                }}
+                className="group"
+              >
+                <Card
+                  className={`bg-gradient-to-br ${stat.bgColor} backdrop-blur-xl border ${stat.borderColor} shadow-2xl hover:shadow-3xl transition-all duration-500 transform group-hover:scale-105 overflow-hidden relative`}
                 >
-                  <stat.icon className="h-6 w-6" />
-                </div>
-
-                <div className="flex-1">
-                  <h3 className="text-3xl font-bold bg-gradient-to-r from-white to-slate-200 bg-clip-text text-transparent mb-2">
-                    {stat.value}
-                  </h3>
-                  <p className="text-slate-300 text-lg font-medium">{stat.title}</p>
-                </div>
-              </div>
-            </div>
-          ))}
+                  {/* Animated border */}
+                  <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 transform -translate-x-full group-hover:translate-x-full"></div>
+                  
+                  <CardContent className="p-8 text-center relative z-10">
+                    {/* Icon */}
+                    <div className="relative mb-6">
+                      <div
+                        className={`inline-flex p-4 rounded-2xl bg-gradient-to-r ${stat.color} text-white shadow-2xl group-hover:shadow-3xl transition-all duration-300`}
+                      >
+                        <stat.icon className="h-8 w-8" />
+                      </div>
+                      <div className="absolute inset-0 bg-gradient-to-r from-white/20 to-transparent rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                    </div>
+                    
+                    {/* Value */}
+                    <div className="mb-4">
+                      {isLoading ? (
+                        <div className="animate-pulse bg-slate-700/50 h-10 w-24 mx-auto rounded-lg"></div>
+                      ) : (
+                        <motion.h3
+                          key={stat.value}
+                          initial={{ scale: 0.8, opacity: 0 }}
+                          animate={{ scale: 1, opacity: 1 }}
+                          className="text-3xl md:text-4xl font-bold text-white mb-2 group-hover:text-blue-300 transition-colors duration-300"
+                        >
+                          {stat.value}
+                        </motion.h3>
+                      )}
+                    </div>
+                    
+                    {/* Title */}
+                    <p className="text-slate-300 text-lg font-medium group-hover:text-white transition-colors duration-300">
+                      {stat.title}
+                    </p>
+                    
+                    {/* Decorative elements */}
+                    <div className="absolute top-4 right-4 w-16 h-16 bg-gradient-to-br from-white/5 to-transparent rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                    <div className="absolute bottom-4 left-4 w-8 h-8 bg-gradient-to-br from-white/10 to-transparent rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-700"></div>
+                  </CardContent>
+                </Card>
+              </motion.div>
+            ))}
+          </AnimatePresence>
         </div>
 
-        {/* Дополнительные статистики */}
-        <div className="mt-16 grid grid-cols-1 md:grid-cols-2 gap-8">
-          <div className="p-6 rounded-2xl border border-emerald-500/30 bg-gradient-to-br from-emerald-500/20 to-teal-600/20 backdrop-blur-xl shadow-xl">
-            <div className="flex items-center justify-between">
-              <div>
-                <h4 className="text-2xl font-bold text-white mb-2">Средняя доходность</h4>
-                <p className="text-emerald-400 text-3xl font-bold">{stats.averageReturn}%</p>
-              </div>
-              <div className="p-3 rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-600 text-white">
-                <TrendingUp className="h-8 w-8" />
-              </div>
-            </div>
+        {/* Update Info */}
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.8 }}
+          className="text-center mt-12"
+        >
+          <div className="inline-flex items-center gap-2 px-4 py-2 bg-slate-800/50 backdrop-blur-sm border border-slate-700/50 rounded-full text-slate-400 text-sm">
+            <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+            Автоматическое обновление каждые 5 минут
           </div>
-
-          <div className="p-6 rounded-2xl border border-blue-500/30 bg-gradient-to-br from-blue-500/20 to-cyan-600/20 backdrop-blur-xl shadow-xl">
-            <div className="flex items-center justify-between">
-              <div>
-                <h4 className="text-2xl font-bold text-white mb-2">Пользователи онлайн</h4>
-                <p className="text-blue-400 text-3xl font-bold">{formatNumber(stats.onlineUsers)}</p>
-              </div>
-              <div className="p-3 rounded-2xl bg-gradient-to-r from-blue-500 to-cyan-600 text-white">
-                <Users className="h-8 w-8" />
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Индикатор обновления */}
-        <div className="mt-16 text-center animate-fade-in-delayed">
-          <div className="inline-flex items-center gap-3 px-6 py-3 bg-white/5 backdrop-blur-sm border border-white/10 rounded-full">
-            <div className="w-2 h-2 bg-blue-400 rounded-full animate-pulse"></div>
-            <span className="text-slate-300 text-sm font-medium">Обновляется каждые 5 минут</span>
-          </div>
-        </div>
+        </motion.div>
       </div>
     </section>
   )
