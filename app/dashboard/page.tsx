@@ -114,7 +114,30 @@ function DashboardContent() {
           window.location.href = "/login"
           return
         }
-        throw new Error(`Ошибка ${response.status}`)
+        
+        // Если основной API не работает, пробуем загрузить только данные пользователя
+        console.warn("Main API failed, trying user endpoint only...")
+        try {
+          const userResponse = await fetch("/api/dashboard/user", {
+            headers: {
+              "Authorization": `Bearer ${token}`,
+              "Content-Type": "application/json"
+            }
+          })
+          
+          if (userResponse.ok) {
+            const userData = await userResponse.json()
+            setUserData(userData.user)
+            setInvestments([])
+            setTransactions([])
+            console.log("Fallback: User data loaded successfully")
+            return
+          }
+        } catch (fallbackError) {
+          console.error("Fallback failed:", fallbackError)
+        }
+        
+        throw new Error(`Ошибка ${response.status}: ${response.statusText}`)
       }
 
       const data = await response.json()

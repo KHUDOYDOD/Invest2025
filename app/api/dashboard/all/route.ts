@@ -109,6 +109,24 @@ export async function GET(request: NextRequest) {
 
   } catch (error) {
     console.error('Dashboard all API error:', error)
-    return NextResponse.json({ error: 'Ошибка сервера' }, { status: 500 })
+    
+    // Более детальная обработка ошибок базы данных
+    if (error instanceof Error) {
+      if (error.message.includes('does not exist')) {
+        return NextResponse.json({ 
+          error: 'Ошибка базы данных: отсутствуют необходимые таблицы',
+          details: 'Обратитесь к администратору для создания таблиц'
+        }, { status: 500 })
+      }
+      
+      if (error.message.includes('authentication')) {
+        return NextResponse.json({ error: 'Ошибка аутентификации' }, { status: 401 })
+      }
+    }
+    
+    return NextResponse.json({ 
+      error: 'Ошибка сервера при загрузке данных',
+      timestamp: new Date().toISOString()
+    }, { status: 500 })
   }
 }
