@@ -9,6 +9,8 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Alert, AlertDescription } from "@/components/ui/alert"
+import { Header } from "@/components/header"
+import { Footer } from "@/components/footer"
 import { Eye, EyeOff, Loader2, AlertCircle, CheckCircle, LogIn, Shield } from "lucide-react"
 
 export default function LoginPage() {
@@ -97,26 +99,26 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 p-4 relative overflow-hidden">
-      {/* Animated background elements */}
-      <div className="absolute inset-0 overflow-hidden">
-        <div className="absolute -inset-[10px] opacity-30">
-          <div className="absolute top-1/4 left-1/4 w-72 h-72 bg-blue-400/30 rounded-full blur-3xl animate-pulse"></div>
-          <div className="absolute top-3/4 right-1/4 w-96 h-96 bg-purple-400/20 rounded-full blur-3xl animate-pulse delay-1000"></div>
-          <div className="absolute top-1/2 left-1/2 w-80 h-80 bg-indigo-400/25 rounded-full blur-3xl animate-pulse delay-500"></div>
-        </div>
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-indigo-900 flex flex-col relative overflow-hidden">
+      {/* Animated Background */}
+      <div className="absolute inset-0">
+        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-blue-500/10 rounded-full blur-3xl animate-pulse"></div>
+        <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-purple-500/10 rounded-full blur-3xl animate-pulse delay-1000"></div>
       </div>
 
-      <Card className="w-full max-w-lg relative z-10 bg-white/95 backdrop-blur-xl border-0 shadow-2xl shadow-blue-500/10">
+      <Header />
+
+      <main className="flex-grow flex items-center justify-center py-12 px-4 relative z-10">
+        <Card className="w-full max-w-lg relative z-10 bg-white/10 backdrop-blur-xl border border-white/20 shadow-2xl rounded-3xl"
         <CardHeader className="space-y-6 text-center pb-8 pt-8">
-          <div className="mx-auto w-20 h-20 bg-gradient-to-r from-blue-600 via-blue-700 to-purple-700 rounded-3xl flex items-center justify-center shadow-xl shadow-blue-500/30">
+          <div className="mx-auto w-20 h-20 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center shadow-2xl">
             <Shield className="w-10 h-10 text-white" />
           </div>
           <div className="space-y-3">
-            <CardTitle className="text-4xl font-bold bg-gradient-to-r from-slate-900 via-blue-800 to-purple-800 bg-clip-text text-transparent">
+            <CardTitle className="text-3xl font-bold text-white">
               Добро пожаловать
             </CardTitle>
-            <CardDescription className="text-slate-600 text-lg font-medium">
+            <CardDescription className="text-white/70 text-lg font-medium">
               Войдите в свой личный кабинет
             </CardDescription>
           </div>
@@ -124,22 +126,22 @@ export default function LoginPage() {
 
         <CardContent className="space-y-8 px-8">
           {error && (
-            <Alert variant="destructive" className="border-red-200/60 bg-red-50/80 backdrop-blur-sm">
-              <AlertCircle className="h-5 w-5" />
-              <AlertDescription className="text-red-700 font-medium">{error}</AlertDescription>
+            <Alert variant="destructive" className="border-red-400/50 bg-red-500/20 backdrop-blur-sm">
+              <AlertCircle className="h-5 w-5 text-red-400" />
+              <AlertDescription className="text-red-300 font-medium">{error}</AlertDescription>
             </Alert>
           )}
 
           {success && (
-            <Alert className="border-green-200/60 bg-green-50/80 backdrop-blur-sm">
-              <CheckCircle className="h-5 w-5 text-green-600" />
-              <AlertDescription className="text-green-700 font-medium">{success}</AlertDescription>
+            <Alert className="border-green-400/50 bg-green-500/20 backdrop-blur-sm">
+              <CheckCircle className="h-5 w-5 text-green-400" />
+              <AlertDescription className="text-green-300 font-medium">{success}</AlertDescription>
             </Alert>
           )}
 
           <form onSubmit={handleSubmit} className="space-y-8">
             <div className="space-y-3">
-              <Label htmlFor="email" className="text-slate-700 font-semibold text-sm tracking-wide">
+              <Label htmlFor="email" className="text-white font-medium">
                 Email адрес
               </Label>
               <Input
@@ -151,13 +153,13 @@ export default function LoginPage() {
                 onChange={handleInputChange}
                 required
                 disabled={isLoading}
-                className="h-14 text-base border-slate-200/80 focus:border-blue-400 focus:ring-blue-400/30 transition-all duration-300 rounded-xl bg-white/80 backdrop-blur-sm"
+                className="h-12 text-base bg-white/10 border-white/20 text-white placeholder:text-white/50 rounded-xl transition-all duration-300 focus:border-blue-400"
                 autoComplete="email"
               />
             </div>
 
             <div className="space-y-3">
-              <Label htmlFor="password" className="text-slate-700 font-semibold text-sm tracking-wide">
+              <Label htmlFor="password" className="text-white font-medium">
                 Пароль
               </Label>
               <div className="relative">
@@ -170,25 +172,23 @@ export default function LoginPage() {
                   onChange={handleInputChange}
                   required
                   disabled={isLoading}
-                  className="h-14 text-base pr-14 border-slate-200/80 focus:border-blue-400 focus:ring-blue-400/30 transition-all duration-300 rounded-xl bg-white/80 backdrop-blur-sm"
+                  className="h-12 text-base pr-12 bg-white/10 border-white/20 text-white placeholder:text-white/50 rounded-xl transition-all duration-300 focus:border-blue-400"
                   autoComplete="current-password"
                 />
-                <Button
+                <button
                   type="button"
-                  variant="ghost"
-                  size="sm"
-                  className="absolute right-0 top-0 h-14 px-4 hover:bg-transparent text-slate-400 hover:text-slate-600 transition-colors duration-200"
+                  className="absolute right-3 top-3 text-white/50 hover:text-white transition-colors"
                   onClick={() => setShowPassword(!showPassword)}
                   disabled={isLoading}
                 >
                   {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
-                </Button>
+                </button>
               </div>
             </div>
 
             <Button 
               type="submit" 
-              className="w-full h-14 text-base font-semibold bg-gradient-to-r from-blue-600 via-blue-700 to-purple-700 hover:from-blue-700 hover:via-blue-800 hover:to-purple-800 shadow-xl shadow-blue-500/30 hover:shadow-2xl hover:shadow-blue-500/40 transform hover:scale-[1.02] transition-all duration-300 rounded-xl" 
+              className="w-full h-12 text-base font-semibold bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white border-none rounded-xl shadow-lg hover:shadow-xl transform hover:scale-[1.02] transition-all duration-300" 
               disabled={isLoading || !formData.email.trim() || !formData.password}
             >
               {isLoading ? (
@@ -208,7 +208,7 @@ export default function LoginPage() {
           <div className="text-center pt-4">
             <Link 
               href="/register" 
-              className="text-blue-600 hover:text-blue-700 font-semibold hover:underline transition-all duration-200 text-sm"
+              className="text-blue-400 hover:text-blue-300 font-semibold hover:underline transition-all duration-200 text-sm"
             >
               Забыли пароль? Восстановить доступ
             </Link>
@@ -217,25 +217,19 @@ export default function LoginPage() {
 
         <CardFooter className="flex flex-col space-y-6 pt-6 pb-8 px-8">
           <div className="text-center">
-            <span className="text-slate-600 text-sm">Нет аккаунта? </span>
+            <span className="text-white/70 text-sm">Нет аккаунта? </span>
             <Link 
               href="/register" 
-              className="text-blue-600 hover:text-blue-700 font-semibold hover:underline transition-colors duration-200 text-sm"
+              className="text-blue-400 hover:text-blue-300 font-semibold hover:underline transition-colors duration-200 text-sm"
             >
               Создать бесплатный аккаунт
             </Link>
           </div>
-          
-          <div className="text-center border-t border-slate-100 pt-6">
-            <Link 
-              href="/" 
-              className="text-slate-500 hover:text-slate-700 text-sm transition-colors duration-200 inline-flex items-center font-medium"
-            >
-              ← Вернуться на главную страницу
-            </Link>
-          </div>
         </CardFooter>
       </Card>
+      </main>
+
+      <Footer />
     </div>
   )
 }
