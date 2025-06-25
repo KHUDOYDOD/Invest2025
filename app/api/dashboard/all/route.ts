@@ -3,33 +3,14 @@ import { query } from '@/lib/database'
 
 export async function GET(request: NextRequest) {
   try {
-    // Проверяем авторизацию
-    const authHeader = request.headers.get('authorization')
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      return NextResponse.json({ error: 'Токен авторизации не найден' }, { status: 401 })
+    const { searchParams } = new URL(request.url)
+    const userId = searchParams.get('userId')
+
+    if (!userId) {
+      return NextResponse.json({ error: 'userId is required' }, { status: 400 })
     }
 
-    const token = authHeader.split(' ')[1]
-    if (!token) {
-      return NextResponse.json({ error: 'Токен не действителен' }, { status: 401 })
-    }
-
-    // Получаем ID пользователя из токена (базовая проверка)
-    let userId: string
-    try {
-      const jwt = require('jsonwebtoken')
-      const decoded = jwt.verify(token, process.env.NEXTAUTH_SECRET || 'fallback-secret') as any
-      userId = decoded.userId
-
-      if (!userId) {
-        return NextResponse.json({ error: 'Недействительный токен' }, { status: 401 })
-      }
-    } catch (error) {
-      console.error('Token verification failed:', error)
-      return NextResponse.json({ error: 'Недействительный токен' }, { status: 401 })
-    }
-
-    console.log('Loading dashboard data for user:', userId)
+    console.log('Fetching dashboard data for user:', userId)
 
     // Получаем данные пользователя
     const userResult = await query(
@@ -37,68 +18,66 @@ export async function GET(request: NextRequest) {
         id, 
         email, 
         full_name, 
-        balance::decimal as balance,
-        total_invested::decimal as total_invested,
-        total_earned::decimal as total_earned,
+        COALESCE(balance, 0) as balance,
+        COALESCE(total_invested, 0) as total_invested,
+        COALESCE(total_earned, 0) as total_earned,
         created_at,
-        role_id
+        is_active
       FROM users 
       WHERE id = $1 AND is_active = true`,
       [userId]
     )
 
     if (userResult.rows.length === 0) {
-      return NextResponse.json({ error: 'Пользователь не найден' }, { status: 404 })
+      return NextResponse.json({ error: 'User not found' }, { status: 404 })
     }
 
     const user = userResult.rows[0]
 
-    // Получаем инвестиции пользователя
+    // Получаем активные инвестиции
     const investmentsResult = await query(
       `SELECT 
         i.id,
-        i.amount::decimal as amount,
-        i.total_profit::decimal as profit,
-        i.status,
+        i.amount,
         i.created_at,
-        i.end_date as expires_at,
+        i.status,
         ip.name as plan_name,
-        ip.daily_percent::decimal as daily_return_rate,
-        ip.duration as duration_days
+        ip.daily_return_rate,
+        ip.duration_days,
+        COALESCE(i.total_earned, 0) as total_earned
       FROM investments i
       LEFT JOIN investment_plans ip ON i.plan_id = ip.id
       WHERE i.user_id = $1
-      ORDER BY i.created_at DESC`,
+      ORDER BY i.created_at DESC
+      LIMIT 10`,
       [userId]
     )
 
-    // Получаем транзакции пользователя
+    // Получаем последние транзакции
     const transactionsResult = await query(
       `SELECT 
         id,
         type,
-        amount::decimal as amount,
-        fee::decimal as fee,
+        amount,
         status,
-        method,
         created_at,
-        processed_at
+        description
       FROM transactions
       WHERE user_id = $1
       ORDER BY created_at DESC
-      LIMIT 20`,
+      LIMIT 10`,
       [userId]
     )
 
-    // Получаем активные планы инвестиций
+    // Получаем планы инвестирования
     const plansResult = await query(
       `SELECT 
         id,
         name,
-        min_amount::decimal as min_amount,
-        max_amount::decimal as max_amount,
-        daily_percent::decimal as daily_return_rate,
-        duration as duration_days,
+        COALESCE(min_amount, 0) as min_amount,
+        COALESCE(max_amount, 0) as max_amount,
+        COALESCE(daily_return_rate, 0) as daily_return_rate,
+        duration_days,
         description,
         features,
         is_active
@@ -107,21 +86,7 @@ export async function GET(request: NextRequest) {
       ORDER BY min_amount ASC`
     )
 
-    // Получаем заявки на пополнение
-    const depositRequestsResult = await query(`
-      SELECT 
-        dr.id,
-        dr.amount::decimal as amount,
-        dr.method,
-        dr.status,
-        dr.created_at
-      FROM deposit_requests dr
-      WHERE dr.user_id = $1
-      ORDER BY dr.created_at DESC
-      LIMIT 10
-    `, [userId]);
-
-    console.log('Dashboard data loaded successfully for user:', userId)
+    console.log(`Dashboard data loaded: User ${user.email}, ${investmentsResult.rows.length} investments, ${transactionsResult.rows.length} transactions`)
 
     return NextResponse.json({
       success: true,
@@ -129,39 +94,35 @@ export async function GET(request: NextRequest) {
         id: user.id,
         email: user.email,
         full_name: user.full_name,
-        balance: parseFloat(user.balance || '0'),
-        total_invested: parseFloat(user.total_invested || '0'),
-        total_earned: parseFloat(user.total_earned || '0'),
-        member_since: user.created_at,
-        role: user.role_id === 1 ? 'admin' : 'user'
+        balance: parseFloat(user.balance),
+        total_invested: parseFloat(user.total_invested),
+        total_earned: parseFloat(user.total_earned),
+        created_at: user.created_at
       },
       investments: investmentsResult.rows.map(inv => ({
         id: inv.id,
-        amount: parseFloat(inv.amount || '0'),
-        profit: parseFloat(inv.profit || '0'),
-        status: inv.status,
+        amount: parseFloat(inv.amount),
         plan_name: inv.plan_name,
-        daily_return: parseFloat(inv.daily_return_rate || '0'),
-        duration: inv.duration_days,
-        created_at: inv.created_at,
-        expires_at: inv.expires_at
+        daily_return_rate: parseFloat(inv.daily_return_rate || '0'),
+        duration_days: inv.duration_days,
+        total_earned: parseFloat(inv.total_earned),
+        status: inv.status,
+        created_at: inv.created_at
       })),
       transactions: transactionsResult.rows.map(tx => ({
         id: tx.id,
         type: tx.type,
-        amount: parseFloat(tx.amount || '0'),
-        fee: parseFloat(tx.fee || '0'),
+        amount: parseFloat(tx.amount),
         status: tx.status,
-        method: tx.method,
-        created_at: tx.created_at,
-        processed_at: tx.processed_at
+        description: tx.description,
+        created_at: tx.created_at
       })),
       investment_plans: plansResult.rows.map(plan => ({
         id: plan.id,
         name: plan.name,
-        min_amount: parseFloat(plan.min_amount || '0'),
-        max_amount: parseFloat(plan.max_amount || '0'),
-        daily_return: parseFloat(plan.daily_return_rate || '0'),
+        min_amount: parseFloat(plan.min_amount),
+        max_amount: parseFloat(plan.max_amount),
+        daily_return: parseFloat(plan.daily_return_rate),
         duration: plan.duration_days,
         description: plan.description,
         features: plan.features,
@@ -177,18 +138,14 @@ export async function GET(request: NextRequest) {
       if (error.message.includes('does not exist')) {
         return NextResponse.json({ 
           error: 'Ошибка базы данных: отсутствуют необходимые таблицы',
-          details: error.message
+          details: 'Требуется настройка базы данных'
         }, { status: 500 })
-      }
-
-      if (error.message.includes('authentication')) {
-        return NextResponse.json({ error: 'Ошибка аутентификации' }, { status: 401 })
       }
     }
 
     return NextResponse.json({ 
-      error: 'Ошибка сервера при загрузке данных',
-      timestamp: new Date().toISOString()
+      error: 'Ошибка загрузки данных',
+      details: error instanceof Error ? error.message : 'Неизвестная ошибка'
     }, { status: 500 })
   }
 }
