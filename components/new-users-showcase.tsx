@@ -2,9 +2,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Avatar, AvatarFallback } from "@/components/ui/avatar"
-import { Users, Clock, Globe } from "lucide-react"
+import { Users, Clock, Globe, MapPin, Zap } from "lucide-react"
 
 interface NewUser {
   id: string
@@ -34,7 +32,50 @@ const countryFlags: Record<string, string> = {
   'PL': '🇵🇱',
   'NL': '🇳🇱',
   'SE': '🇸🇪',
-  'NO': '🇳🇴'
+  'NO': '🇳🇴',
+  'TR': '🇹🇷',
+  'AR': '🇦🇷',
+  'CL': '🇨🇱',
+  'CO': '🇨🇴',
+  'VE': '🇻🇪',
+  'PT': '🇵🇹',
+  'GR': '🇬🇷',
+  'FI': '🇫🇮',
+  'DK': '🇩🇰',
+  'AT': '🇦🇹'
+}
+
+const countryNames: Record<string, string> = {
+  'RU': 'Россия',
+  'US': 'США',
+  'GB': 'Великобритания',
+  'DE': 'Германия',
+  'FR': 'Франция',
+  'IT': 'Италия',
+  'ES': 'Испания',
+  'CA': 'Канада',
+  'AU': 'Австралия',
+  'JP': 'Япония',
+  'KR': 'Южная Корея',
+  'CN': 'Китай',
+  'IN': 'Индия',
+  'BR': 'Бразилия',
+  'MX': 'Мексика',
+  'UA': 'Украина',
+  'PL': 'Польша',
+  'NL': 'Нидерланды',
+  'SE': 'Швеция',
+  'NO': 'Норвегия',
+  'TR': 'Турция',
+  'AR': 'Аргентина',
+  'CL': 'Чили',
+  'CO': 'Колумбия',
+  'VE': 'Венесуэла',
+  'PT': 'Португалия',
+  'GR': 'Греция',
+  'FI': 'Финляндия',
+  'DK': 'Дания',
+  'AT': 'Австрия'
 }
 
 const getRandomCountry = () => {
@@ -84,20 +125,19 @@ export function NewUsersShowcase() {
   const formatTimeAgo = (dateString: string) => {
     const date = new Date(dateString)
     const now = new Date()
-    const diffInMinutes = Math.floor((now.getTime() - date.getTime()) / (1000 * 60))
+    const diffInSeconds = Math.floor((now.getTime() - date.getTime()) / 1000)
     
-    if (diffInMinutes < 1) {
+    if (diffInSeconds < 60) {
       return "только что"
-    } else if (diffInMinutes < 60) {
-      return `${diffInMinutes} мин назад`
+    } else if (diffInSeconds < 3600) {
+      const minutes = Math.floor(diffInSeconds / 60)
+      return `${minutes} ${minutes === 1 ? "минуту" : minutes < 5 ? "минуты" : "минут"} назад`
+    } else if (diffInSeconds < 86400) {
+      const hours = Math.floor(diffInSeconds / 3600)
+      return `${hours} ${hours === 1 ? "час" : hours < 5 ? "часа" : "часов"} назад`
     } else {
-      const diffInHours = Math.floor(diffInMinutes / 60)
-      if (diffInHours < 24) {
-        return `${diffInHours} ${diffInHours === 1 ? "час" : diffInHours < 5 ? "часа" : "часов"} назад`
-      } else {
-        const diffInDays = Math.floor(diffInHours / 24)
-        return `${diffInDays} ${diffInDays === 1 ? "день" : diffInDays < 5 ? "дня" : "дней"} назад`
-      }
+      const days = Math.floor(diffInSeconds / 86400)
+      return `${days} ${days === 1 ? "день" : days < 5 ? "дня" : "дней"} назад`
     }
   }
 
@@ -127,16 +167,17 @@ export function NewUsersShowcase() {
 
   if (loading) {
     return (
-      <section className="py-16 px-4 bg-gradient-to-br from-slate-950 via-gray-900 to-slate-950">
-        <div className="container mx-auto max-w-4xl">
-          <Card className="bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-xl border border-white/20">
-            <CardContent className="p-8">
-              <div className="flex justify-center items-center">
-                <div className="w-8 h-8 border-2 border-t-purple-500 border-r-transparent border-b-pink-500 border-l-transparent rounded-full animate-spin"></div>
-                <span className="ml-3 text-slate-300">Загрузка новых участников...</span>
-              </div>
-            </CardContent>
-          </Card>
+      <section className="py-20 px-4 bg-gradient-to-br from-slate-950 via-gray-900 to-slate-950 relative overflow-hidden">
+        <div className="absolute inset-0">
+          <div className="absolute top-1/3 left-1/3 w-72 h-72 bg-gradient-to-r from-emerald-600/10 to-teal-600/10 rounded-full blur-3xl animate-pulse"></div>
+          <div className="absolute bottom-1/3 right-1/3 w-72 h-72 bg-gradient-to-r from-blue-600/10 to-indigo-600/10 rounded-full blur-3xl animate-pulse delay-1000"></div>
+        </div>
+
+        <div className="container mx-auto max-w-7xl relative z-10">
+          <div className="text-center">
+            <div className="w-12 h-12 border-4 border-t-emerald-500 border-r-transparent border-b-blue-500 border-l-transparent rounded-full mx-auto mb-4 animate-spin"></div>
+            <p className="text-slate-300 text-lg">Загрузка новых участников...</p>
+          </div>
         </div>
       </section>
     )
@@ -147,91 +188,122 @@ export function NewUsersShowcase() {
   }
 
   return (
-    <section className="py-16 px-4 bg-gradient-to-br from-slate-950 via-gray-900 to-slate-950 relative overflow-hidden">
+    <section className="py-20 px-4 bg-gradient-to-br from-slate-950 via-gray-900 to-slate-950 relative overflow-hidden">
       {/* Анимированный фон */}
       <div className="absolute inset-0">
-        <div className="absolute top-1/4 right-1/4 w-96 h-96 bg-gradient-to-r from-purple-600/10 to-pink-600/10 rounded-full blur-3xl animate-pulse"></div>
-        <div className="absolute bottom-1/4 left-1/4 w-96 h-96 bg-gradient-to-r from-cyan-600/10 to-blue-600/10 rounded-full blur-3xl animate-pulse delay-1000"></div>
+        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-gradient-to-r from-emerald-600/10 to-teal-600/10 rounded-full blur-3xl animate-pulse"></div>
+        <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-gradient-to-r from-blue-600/10 to-indigo-600/10 rounded-full blur-3xl animate-pulse delay-1000"></div>
+        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-gradient-to-r from-purple-600/5 to-pink-600/5 rounded-full blur-3xl animate-spin-slow"></div>
       </div>
 
-      <div className="container mx-auto max-w-4xl relative z-10">
-        <Card className="bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-xl border border-white/20 hover:border-purple-500/30 transition-all duration-500">
-          <CardHeader className="pb-4">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <Users className="h-6 w-6 text-purple-400" />
-                <div>
-                  <CardTitle className="text-xl text-white">Новые участники</CardTitle>
-                  <CardDescription className="text-slate-400">
-                    Последние зарегистрированные пользователи
-                  </CardDescription>
-                </div>
-              </div>
-              <div className="flex items-center gap-2">
-                <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
-                <span className="text-green-400 text-sm font-medium">Онлайн</span>
-              </div>
-            </div>
-          </CardHeader>
+      <div className="container mx-auto max-w-7xl relative z-10">
+        <div className="text-center mb-16 animate-fade-in">
+          <div className="inline-flex items-center gap-3 mb-6">
+            <div className="w-3 h-3 bg-emerald-400 rounded-full animate-pulse"></div>
+            <h2 className="text-5xl font-bold bg-gradient-to-r from-white via-emerald-100 to-blue-200 bg-clip-text text-transparent">
+              Новые участники
+            </h2>
+            <div className="w-3 h-3 bg-blue-400 rounded-full animate-pulse delay-1000"></div>
+          </div>
+          <p className="text-xl text-slate-300 max-w-3xl mx-auto leading-relaxed">
+            Последние зарегистрированные пользователи со всего мира
+          </p>
+        </div>
 
-          <CardContent className="pt-0">
-            <div className="space-y-4">
-              {newUsers.map((user, index) => {
-                const nickname = generateNickname(user.name, user.email)
-                const countryFlag = user.country ? countryFlags[user.country] || '🌍' : '🌍'
-                
-                return (
-                  <div
-                    key={user.id}
-                    className="flex items-center justify-between p-4 rounded-lg bg-white/5 hover:bg-white/10 transition-all duration-300 border border-white/10 hover:border-purple-500/30 group animate-slide-up"
-                    style={{ animationDelay: `${index * 100}ms` }}
-                  >
-                    <div className="flex items-center gap-4">
-                      <Avatar className="w-10 h-10 ring-2 ring-purple-500/30 group-hover:ring-purple-500/60 transition-all duration-300">
-                        <AvatarFallback className="bg-gradient-to-r from-purple-500 to-pink-500 text-white font-semibold text-sm">
-                          {getInitials(user.name)}
-                        </AvatarFallback>
-                      </Avatar>
-                      
-                      <div className="flex items-center gap-3">
-                        <span className="text-white font-medium group-hover:text-purple-300 transition-colors">
-                          {nickname}
-                        </span>
-                        <span className="text-2xl" title={user.country || 'Unknown'}>
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8">
+          {newUsers.map((user, index) => {
+            const nickname = generateNickname(user.name, user.email)
+            const countryFlag = user.country ? countryFlags[user.country] || '🌍' : '🌍'
+            const countryName = user.country ? countryNames[user.country] || 'Неизвестно' : 'Неизвестно'
+            
+            return (
+              <div
+                key={user.id}
+                className="p-6 rounded-2xl border border-emerald-500/30 bg-gradient-to-br from-emerald-500/20 to-blue-600/20 backdrop-blur-xl shadow-xl shadow-emerald-500/25 hover:shadow-2xl transition-all duration-500 relative overflow-hidden group animate-slide-up"
+                style={{ animationDelay: `${index * 100}ms` }}
+              >
+                <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+
+                <div className="flex items-start relative z-10">
+                  <div className="p-3 rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-600 text-white shadow-lg mr-4 group-hover:scale-110 transition-transform duration-300">
+                    <Users className="h-5 w-5" />
+                  </div>
+
+                  <div className="flex-1">
+                    <div className="flex items-center gap-3 mb-2">
+                      <span className="text-white text-lg font-semibold bg-gradient-to-r from-white to-emerald-200 bg-clip-text text-transparent">
+                        {nickname}
+                      </span>
+                      <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 backdrop-blur-sm border border-white/20">
+                        <span className="text-2xl" title={countryName}>
                           {countryFlag}
                         </span>
-                      </div>
-                    </div>
-
-                    <div className="flex items-center gap-3 text-slate-400">
-                      <div className="flex items-center gap-2">
-                        <Clock className="h-4 w-4" />
-                        <span className="text-sm">
-                          {formatTimeAgo(user.joinedDate)}
+                        <span className="text-slate-300 text-sm font-medium">
+                          {countryName}
                         </span>
                       </div>
-                      <div className="w-2 h-2 bg-blue-400 rounded-full animate-pulse"></div>
+                    </div>
+                    
+                    <p className="text-slate-300 text-sm mb-3 flex items-center gap-2">
+                      <MapPin className="h-4 w-4 text-emerald-400" />
+                      Зарегистрировался на платформе
+                    </p>
+
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <Clock className="h-4 w-4 text-slate-400" />
+                        <p className="text-slate-400 text-sm font-medium">
+                          {formatTimeAgo(user.joinedDate)}
+                        </p>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <div className="w-2 h-2 bg-emerald-400 rounded-full animate-pulse"></div>
+                        <span className="text-emerald-400 text-xs font-medium">НОВЫЙ</span>
+                      </div>
                     </div>
                   </div>
-                )
-              })}
-            </div>
-
-            {/* Подвал с информацией */}
-            <div className="mt-6 pt-4 border-t border-white/10">
-              <div className="flex items-center justify-between text-sm text-slate-400">
-                <div className="flex items-center gap-2">
-                  <Globe className="h-4 w-4" />
-                  <span>Показано {newUsers.length} новых участников</span>
                 </div>
-                <div className="flex items-center gap-2">
-                  <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
-                  <span>Обновляется автоматически</span>
+
+                {/* Дополнительная информация */}
+                <div className="mt-4 pt-4 border-t border-white/10 relative z-10">
+                  <div className="flex items-center justify-between text-sm">
+                    <div className="flex items-center gap-2 text-slate-400">
+                      <Globe className="h-4 w-4" />
+                      <span>ID: {user.id.slice(0, 8)}</span>
+                    </div>
+                    <div className="flex items-center gap-2 text-slate-400">
+                      <Zap className="h-4 w-4 text-blue-400" />
+                      <span className="text-blue-400">Активен</span>
+                    </div>
+                  </div>
                 </div>
               </div>
+            )
+          })}
+        </div>
+
+        {/* Статистика и индикатор */}
+        <div className="mt-16 grid grid-cols-1 md:grid-cols-3 gap-8 animate-fade-in-delayed">
+          <div className="text-center p-6 bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl">
+            <div className="text-3xl font-bold text-emerald-400 mb-2">{newUsers.length}</div>
+            <div className="text-slate-300 text-sm">Новых участников</div>
+          </div>
+          
+          <div className="text-center p-6 bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl">
+            <div className="text-3xl font-bold text-blue-400 mb-2">
+              {new Set(newUsers.map(u => u.country)).size}
             </div>
-          </CardContent>
-        </Card>
+            <div className="text-slate-300 text-sm">Стран представлено</div>
+          </div>
+          
+          <div className="text-center p-6 bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl">
+            <div className="flex items-center justify-center gap-2 mb-2">
+              <div className="w-2 h-2 bg-emerald-400 rounded-full animate-pulse"></div>
+              <span className="text-emerald-400 text-sm font-medium">ОНЛАЙН</span>
+            </div>
+            <div className="text-slate-300 text-sm">Обновляется каждые 30 сек</div>
+          </div>
+        </div>
       </div>
     </section>
   )
