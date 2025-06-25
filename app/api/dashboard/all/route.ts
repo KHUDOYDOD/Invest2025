@@ -1,114 +1,183 @@
 
 import { NextRequest, NextResponse } from 'next/server'
 import { query } from '@/lib/database'
-import jwt from 'jsonwebtoken'
 
 export async function GET(request: NextRequest) {
   try {
-    // Получаем токен из заголовков
+    // Проверяем авторизацию
     const authHeader = request.headers.get('authorization')
-    let token: string | null = null
-    
-    if (authHeader && authHeader.startsWith('Bearer ')) {
-      token = authHeader.substring(7)
-    }
-    
-    if (!token) {
-      return NextResponse.json({ error: 'Токен не предоставлен' }, { status: 401 })
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      return NextResponse.json({ error: 'Токен авторизации не найден' }, { status: 401 })
     }
 
-    // Верифицируем токен
-    let decoded: any
+    const token = authHeader.split(' ')[1]
+    if (!token) {
+      return NextResponse.json({ error: 'Токен не действителен' }, { status: 401 })
+    }
+
+    // Получаем ID пользователя из токена (базовая проверка)
+    let userId: string
     try {
-      decoded = jwt.verify(token, process.env.NEXTAUTH_SECRET || 'fallback-secret')
+      const jwt = require('jsonwebtoken')
+      const decoded = jwt.verify(token, process.env.NEXTAUTH_SECRET || 'fallback-secret') as any
+      userId = decoded.userId
+      
+      if (!userId) {
+        return NextResponse.json({ error: 'Недействительный токен' }, { status: 401 })
+      }
     } catch (error) {
+      console.error('Token verification failed:', error)
       return NextResponse.json({ error: 'Недействительный токен' }, { status: 401 })
     }
 
-    const userId = decoded.userId
+    console.log('Loading dashboard data for user:', userId)
 
-    // Получаем все данные одним большим запросом
-    const dashboardQuery = `
-      WITH user_data AS (
-        SELECT 
-          u.id, 
-          u.email, 
-          u.full_name, 
-          COALESCE(u.balance, 0) as balance, 
-          COALESCE(u.total_invested, 0) as total_invested, 
-          COALESCE(u.total_earned, 0) as total_earned, 
-          u.role_id,
-          u.created_at
-        FROM users u
-        WHERE u.id = $1 AND u.is_active = true
-      ),
-      investments_data AS (
-        SELECT 
-          i.*,
-          ip.name as plan_name,
-          ip.daily_percent,
-          ip.duration_days
-        FROM investments i
-        LEFT JOIN investment_plans ip ON i.plan_id = ip.id
-        WHERE i.user_id = $1 AND i.status = 'active'
-        ORDER BY i.created_at DESC
-        LIMIT 10
-      ),
-      transactions_data AS (
-        SELECT 
-          t.*,
-          ip.name as plan_name
-        FROM transactions t
-        LEFT JOIN investments i ON t.investment_id = i.id
-        LEFT JOIN investment_plans ip ON i.plan_id = ip.id
-        WHERE t.user_id = $1
-        ORDER BY t.created_at DESC
-        LIMIT 10
-      )
-      SELECT 
-        json_build_object(
-          'user', (SELECT row_to_json(user_data) FROM user_data),
-          'investments', COALESCE((SELECT json_agg(investments_data) FROM investments_data), '[]'::json),
-          'transactions', COALESCE((SELECT json_agg(transactions_data) FROM transactions_data), '[]'::json)
-        ) as dashboard_data
-    `
+    // Получаем данные пользователя
+    const userResult = await query(
+      `SELECT 
+        id, 
+        email, 
+        full_name, 
+        balance::decimal as balance,
+        total_invested::decimal as total_invested,
+        total_earned::decimal as total_earned,
+        created_at,
+        role_id
+      FROM users 
+      WHERE id = $1 AND is_active = true`,
+      [userId]
+    )
 
-    const result = await query(dashboardQuery, [userId])
-
-    if (result.rows.length === 0 || !result.rows[0].dashboard_data.user) {
+    if (userResult.rows.length === 0) {
       return NextResponse.json({ error: 'Пользователь не найден' }, { status: 404 })
     }
 
-    const data = result.rows[0].dashboard_data
-    const user = data.user
+    const user = userResult.rows[0]
 
-    const response = NextResponse.json({
+    // Получаем инвестиции пользователя
+    const investmentsResult = await query(
+      `SELECT 
+        i.id,
+        i.amount::decimal as amount,
+        i.profit::decimal as profit,
+        i.status,
+        i.created_at,
+        i.expires_at,
+        ip.name as plan_name,
+        ip.daily_return_rate::decimal as daily_return_rate,
+        ip.duration_days
+      FROM investments i
+      LEFT JOIN investment_plans ip ON i.plan_id = ip.id
+      WHERE i.user_id = $1
+      ORDER BY i.created_at DESC`,
+      [userId]
+    )
+
+    // Получаем транзакции пользователя
+    const transactionsResult = await query(
+      `SELECT 
+        id,
+        type,
+        amount::decimal as amount,
+        fee::decimal as fee,
+        status,
+        method,
+        payment_details,
+        created_at,
+        processed_at
+      FROM transactions
+      WHERE user_id = $1
+      ORDER BY created_at DESC
+      LIMIT 20`,
+      [userId]
+    )
+
+    // Получаем активные планы инвестиций
+    const plansResult = await query(
+      `SELECT 
+        id,
+        name,
+        min_amount::decimal as min_amount,
+        max_amount::decimal as max_amount,
+        daily_return_rate::decimal as daily_return_rate,
+        duration_days,
+        description,
+        features,
+        is_active
+      FROM investment_plans
+      WHERE is_active = true
+      ORDER BY min_amount ASC`
+    )
+
+    console.log('Dashboard data loaded successfully for user:', userId)
+
+    return NextResponse.json({
       success: true,
       user: {
         id: user.id,
         email: user.email,
-        name: user.full_name,
         full_name: user.full_name,
-        balance: parseFloat(user.balance),
-        totalInvested: parseFloat(user.total_invested),
-        total_invested: parseFloat(user.total_invested),
-        totalProfit: parseFloat(user.total_earned),
-        total_earned: parseFloat(user.total_earned),
-        role: user.role_id === 1 ? 'admin' : 'user',
-        isAdmin: user.role_id === 1,
-        created_at: user.created_at
+        balance: parseFloat(user.balance || '0'),
+        total_invested: parseFloat(user.total_invested || '0'),
+        total_earned: parseFloat(user.total_earned || '0'),
+        member_since: user.created_at,
+        role: user.role_id === 1 ? 'admin' : 'user'
       },
-      investments: data.investments || [],
-      transactions: data.transactions || []
+      investments: investmentsResult.rows.map(inv => ({
+        id: inv.id,
+        amount: parseFloat(inv.amount || '0'),
+        profit: parseFloat(inv.profit || '0'),
+        status: inv.status,
+        plan_name: inv.plan_name,
+        daily_return: parseFloat(inv.daily_return_rate || '0'),
+        duration: inv.duration_days,
+        created_at: inv.created_at,
+        expires_at: inv.expires_at
+      })),
+      transactions: transactionsResult.rows.map(tx => ({
+        id: tx.id,
+        type: tx.type,
+        amount: parseFloat(tx.amount || '0'),
+        fee: parseFloat(tx.fee || '0'),
+        status: tx.status,
+        method: tx.method,
+        payment_details: tx.payment_details,
+        created_at: tx.created_at,
+        processed_at: tx.processed_at
+      })),
+      investment_plans: plansResult.rows.map(plan => ({
+        id: plan.id,
+        name: plan.name,
+        min_amount: parseFloat(plan.min_amount || '0'),
+        max_amount: parseFloat(plan.max_amount || '0'),
+        daily_return: parseFloat(plan.daily_return_rate || '0'),
+        duration: plan.duration_days,
+        description: plan.description,
+        features: plan.features,
+        is_active: plan.is_active
+      }))
     })
-
-    // Добавляем заголовки кэширования для браузера
-    response.headers.set('Cache-Control', 'public, max-age=30, stale-while-revalidate=60')
-    
-    return response
 
   } catch (error) {
     console.error('Dashboard all API error:', error)
-    return NextResponse.json({ error: 'Ошибка сервера' }, { status: 500 })
+    
+    // Детальная обработка ошибок
+    if (error instanceof Error) {
+      if (error.message.includes('does not exist')) {
+        return NextResponse.json({ 
+          error: 'Ошибка базы данных: отсутствуют необходимые таблицы',
+          details: error.message
+        }, { status: 500 })
+      }
+      
+      if (error.message.includes('authentication')) {
+        return NextResponse.json({ error: 'Ошибка аутентификации' }, { status: 401 })
+      }
+    }
+    
+    return NextResponse.json({ 
+      error: 'Ошибка сервера при загрузке данных',
+      timestamp: new Date().toISOString()
+    }, { status: 500 })
   }
 }

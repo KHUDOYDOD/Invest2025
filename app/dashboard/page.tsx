@@ -110,11 +110,19 @@ function DashboardContent() {
 
       if (!response.ok) {
         if (response.status === 401) {
+          console.log("❌ Токен недействителен, перенаправляем на логин")
           localStorage.clear()
           window.location.href = "/login"
           return
         }
-        throw new Error(`Ошибка ${response.status}`)
+        
+        if (response.status === 500) {
+          const errorData = await response.json().catch(() => ({}))
+          console.error("❌ Ошибка сервера:", errorData)
+          throw new Error(errorData.error || `Ошибка сервера ${response.status}`)
+        }
+        
+        throw new Error(`Ошибка ${response.status}: ${response.statusText}`)
       }
 
       const data = await response.json()
