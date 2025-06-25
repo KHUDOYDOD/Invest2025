@@ -80,125 +80,78 @@ export default function RegisterPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    
-    console.log("🚀 Form submit triggered", { formData, isLoading })
+    setErrors({})
 
-    // Предотвращаем повторную отправку
-    if (isLoading) {
-      console.log("⚠️ Already loading, skipping submission")
-      return
+    // Валидация
+    const newErrors: Record<string, string> = {}
+
+    if (!formData.name.trim()) {
+      newErrors.name = "Имя обязательно"
     }
 
-    // Валидация формы
-    if (!validateForm()) {
-      toast.error("Пожалуйста, исправьте ошибки в форме")
+    if (!formData.email.trim()) {
+      newErrors.email = "Email обязателен"
+    } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
+      newErrors.email = "Неверный формат email"
+    }
+
+    if (!formData.password) {
+      newErrors.password = "Пароль обязателен"
+    } else if (formData.password.length < 3) {
+      newErrors.password = "Пароль должен содержать минимум 3 символа"
+    }
+
+    if (formData.password !== formData.confirmPassword) {
+      newErrors.confirmPassword = "Пароли не совпадают"
+    }
+
+    if (!formData.agreeTerms) {
+      newErrors.agreeTerms = "Необходимо согласиться с условиями"
+    }
+
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors)
       return
     }
 
     setIsLoading(true)
-    console.log("🔄 Starting registration process...")
 
     try {
-      const requestData = {
-        email: formData.email.trim(),
-        password: formData.password,
-        name: formData.name.trim(),
-      }
-      
-      console.log("📤 Sending registration request with data:", { 
-        email: requestData.email, 
-        name: requestData.name,
-        passwordLength: requestData.password.length 
-      })
-
       const response = await fetch("/api/auth/register", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(requestData),
+        body: JSON.stringify({
+          full_name: formData.name,
+          email: formData.email,
+          password: formData.password,
+        }),
       })
-
-      console.log("📡 Response received - Status:", response.status)
 
       const data = await response.json()
-      console.log("📦 Response data:", data)
 
-      if (!response.ok) {
-        let errorMessage = "Ошибка регистрации"
+      if (response.ok) {
+        toast.success("Регистрация прошла успешно!")
 
-        // Детальная обработка ошибок
-        switch (response.status) {
-          case 400:
-            if (data.error?.includes("email")) {
-              errorMessage = "Пользователь с таким email уже существует"
-              setErrors({ email: "Email уже зарегистрирован" })
-            } else if (data.error?.includes("пароль")) {
-              errorMessage = "Слабый пароль"
-              setErrors({ password: "Пароль слишком простой" })
-            } else {
-              errorMessage = data.error || "Некорректные данные"
-            }
-            break
-          case 409:
-            errorMessage = "Пользователь уже существует"
-            setErrors({ email: "Email уже зарегистрирован" })
-            break
-          case 500:
-            errorMessage = "Ошибка сервера. Попробуйте позже"
-            break
-          default:
-            errorMessage = data.error || `Ошибка: ${response.status}`
+        // Сохраняем токен в localStorage и cookies
+        if (data.token) {
+          localStorage.setItem("auth-token", data.token)
+          document.cookie = `auth-token=${data.token}; path=/; max-age=${7 * 24 * 60 * 60}`
         }
 
-        throw new Error(errorMessage)
+        // Перенаправляем в дашборд
+        setTimeout(() => {
+          router.push("/dashboard")
+        }, 1000)
+      } else {
+        setErrors({ form: data.error || "Ошибка регистрации" })
+        toast.error(data.error || "Ошибка регистрации")
       }
-
-      console.log("✅ Registration successful:", data)
-
-      // Сохраняем данные пользователя и токен
-      localStorage.setItem("userEmail", data.user.email)
-      localStorage.setItem("userName", data.user.full_name)
-      localStorage.setItem("userId", data.user.id)
-      localStorage.setItem("userRole", data.user.role || "user")
-      localStorage.setItem("userBalance", data.user.balance || "0.00")
-      localStorage.setItem("isAuthenticated", "true")
-      
-      if (data.token) {
-        localStorage.setItem("authToken", data.token)
-      }
-
-      if (data.user.isAdmin) {
-        localStorage.setItem("adminAuth", "true")
-      }
-
-      toast.success("Регистрация успешна!", {
-        description: `Добро пожаловать, ${data.user.full_name}!`,
-        duration: 3000,
-      })
-
-      // Перенаправляем в соответствующую панель
-      setTimeout(() => {
-        console.log("Redirecting user to:", data.user.isAdmin ? "/admin/dashboard" : "/dashboard")
-        if (data.user.isAdmin) {
-          window.location.href = "/admin/dashboard"
-        } else {
-          window.location.href = "/dashboard"
-        }
-      }, 1500)
     } catch (error) {
-      console.error("❌ Registration error:", error)
-
-      let errorMessage = "Ошибка регистрации"
-
-      if (error instanceof Error) {
-        errorMessage = error.message
-      }
-
-      toast.error("❌ " + errorMessage, {
-        description: "Проверьте данные и попробуйте снова",
-        duration: 5000,
-      })
+      console.error("Registration error:", error)
+      setErrors({ form: "Ошибка сервера" })
+      toast.error("Ошибка сервера")
     } finally {
       setIsLoading(false)
     }

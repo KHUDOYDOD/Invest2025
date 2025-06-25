@@ -7,7 +7,7 @@ export async function POST(request: NextRequest) {
     const { email, password, name, full_name } = await request.json()
     
     // Используем name или full_name
-    const userName = name || full_name
+    const userName = full_name || name
 
     if (!email || !password || !userName) {
       return NextResponse.json({ error: "Email, пароль и имя обязательны" }, { status: 400 })
@@ -36,9 +36,9 @@ export async function POST(request: NextRequest) {
 
     // Создаем нового пользователя (role_id: 2 = user, 1 = admin)
     const result = await query(
-      `INSERT INTO users (email, full_name, password_hash, referral_code, role_id)
-       VALUES ($1, $2, $3, $4, 2)
-       RETURNING id, email, full_name, balance, created_at`,
+      `INSERT INTO users (email, full_name, password_hash, referral_code, role_id, status)
+       VALUES ($1, $2, $3, $4, 2, 'active')
+       RETURNING id, email, full_name, COALESCE(balance, 0) as balance, created_at`,
       [email, userName, passwordHash, referralCode]
     )
 

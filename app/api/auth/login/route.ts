@@ -21,12 +21,12 @@ export async function POST(request: NextRequest) {
         full_name, 
         password_hash, 
         role_id, 
-        is_active,
+        status,
         COALESCE(balance, 0) as balance,
         COALESCE(total_invested, 0) as total_invested,
         COALESCE(total_earned, 0) as total_earned
       FROM users 
-      WHERE (email = $1 OR full_name = $1) AND is_active = true`,
+      WHERE (email = $1 OR full_name = $1) AND status = 'active'`,
       [loginField]
     )
 
