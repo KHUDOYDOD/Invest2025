@@ -206,37 +206,39 @@ export default function WithdrawPage() {
     setIsProcessing(true)
 
     try {
-      // Имитация запроса к API
-      await new Promise((resolve) => setTimeout(resolve, 2000))
-
-      // Генерация ID транзакции
-      const generatedId = `WD-${Math.floor(Math.random() * 1000000)}`
-      setTransactionId(generatedId)
-
-      // Создание записи о транзакции
-      const transactionData = {
-        id: generatedId,
-        type: "withdrawal",
-        method: selectedMethod,
-        amount: Number.parseFloat(amount),
-        commission: commission,
-        total: totalAmount,
-        status: "pending",
-        createdAt: new Date().toISOString(),
-        details: {
-          cardNumber: selectedMethod === "card" ? `**** **** **** ${cardNumber.slice(-4)}` : null,
-          cardName: selectedMethod === "card" ? cardName : null,
-          phoneNumber: selectedMethod === "sbp" ? phoneNumber : null,
-          sbpName: selectedMethod === "sbp" ? sbpName : null,
-          cryptoNetwork: selectedMethod === "crypto" ? cryptoNetwork : null,
-          cryptoAddress: selectedMethod === "crypto" ? cryptoAddress : null,
-        },
+      // Получаем токен из localStorage
+      const token = localStorage.getItem('authToken')
+      if (!token) {
+        toast.error('Необходима авторизация')
+        window.location.href = '/login'
+        return
       }
 
-      // Здесь можно отправить данные на сервер
-      console.log("Withdrawal transaction data:", transactionData)
+      // Отправляем запрос на создание вывода
+      const response = await fetch('/api/withdraw', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          amount: Number.parseFloat(amount),
+          payment_method: selectedMethod,
+          wallet_address: selectedMethod === 'crypto' ? cryptoAddress : null,
+          card_number: selectedMethod === 'card' ? cardNumber : null
+        })
+      })
 
-      setIsSuccess(true)
+      const data = await response.json()
+
+      if (data.success) {
+        setTransactionId(data.transaction.id)
+        setIsSuccess(true)
+        toast.success('Заявка на вывод создана!')
+      } else {
+        toast.error(data.error || 'Ошибка создания заявки')
+      }
+
     } catch (error) {
       console.error("Withdrawal error:", error)
       toast.error("Произошла ошибка при обработке заявки на вывод")

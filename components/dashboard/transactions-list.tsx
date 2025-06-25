@@ -3,329 +3,240 @@
 import { useState, useEffect } from "react"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { createClient } from "@/lib/supabase/client"
-import { ArrowUpRight, ArrowDownRight, TrendingUp, Users, AlertCircle, RefreshCw, Clock } from "lucide-react"
-import { toast } from "sonner"
+import { ArrowUpRight, ArrowDownLeft, Clock, CheckCircle2, XCircle, Plus, RefreshCw } from "lucide-react"
+import { motion } from "framer-motion"
 
 interface Transaction {
   id: string
   type: string
-  amount: number | string
+  amount: number
   status: string
-  description: string
-  method?: string
-  fee?: number
-  final_amount?: number
   created_at: string
+  description?: string
+  payment_method?: string
+  plan_name?: string
 }
 
 interface TransactionsListProps {
-  userId?: string
+  userId: string
   limit?: number
 }
 
-export function TransactionsList({ userId, limit = 10 }: TransactionsListProps) {
+export function TransactionsList({ userId, limit = 5 }: TransactionsListProps) {
   const [transactions, setTransactions] = useState<Transaction[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const [currentUserId, setCurrentUserId] = useState<string | null>(null)
+
+  useEffect(() => {
+    if (userId) {
+      fetchTransactions()
+    }
+  }, [userId, limit])
 
   const fetchTransactions = async () => {
     try {
       setLoading(true)
       setError(null)
-
-      console.log("📊 Loading transactions from API...")
-
-      const userId = localStorage.getItem("userId")
-      if (!userId) {
-        throw new Error("Пользователь не авторизован")
-      }
-
-      const response = await fetch(`/api/transactions?userId=${userId}&limit=10`)
-
-      if (!response.ok) {
-        throw new Error("Ошибка загрузки транзакций")
-      }
-
+      
+      console.log('Fetching transactions for userId:', userId)
+      
+      const response = await fetch(`/api/transactions?userId=${userId}&limit=${limit}`)
       const data = await response.json()
-      console.log("✅ Transactions loaded:", data.length)
 
-      setTransactions(data || [])
-    } catch (err) {
-      console.error("❌ Transaction fetch error:", err)
-      setError(err instanceof Error ? err.message : "Ошибка загрузки транзакций")
+      console.log('Transactions API response:', data)
+
+      if (data.success) {
+        setTransactions(data.transactions || [])
+      } else {
+        console.error('Transactions API error:', data.error)
+        setError(data.error || 'Ошибка загрузки транзакций')
+      }
+    } catch (error) {
+      console.error('Error fetching transactions:', error)
+      setError('Ошибка соединения с сервером')
     } finally {
       setLoading(false)
     }
   }
 
-  // Функция для создания тестовой транзакции
-  const createTestTransaction = async () => {
-    try {
-      const supabase = createClient()
-      const {
-        data: { session },
-      } = await supabase.auth.getSession()
-
-      if (!session?.user?.id) {
-        toast.error("Необходима авторизация")
-        return
-      }
-
-      const { data, error } = await supabase.from("transactions").insert([
-        {
-          user_id: session.user.id,
-          type: "deposit",
-          amount: Math.floor(Math.random() * 1000) + 100,
-          status: "completed",
-          description: "Тестовая транзакция",
-          method: "Test",
-        },
-      ])
-
-      if (error) {
-        console.error("❌ Error creating test transaction:", error)
-        toast.error("Ошибка создания тестовой транзакции")
-      } else {
-        toast.success("Тестовая транзакция создана!")
-        fetchTransactions()
-      }
-    } catch (error) {
-      console.error("❌ Test transaction error:", error)
-      toast.error("Ошибка создания тестовой транзакции")
-    }
-  }
-
-  useEffect(() => {
-    fetchTransactions()
-  }, [userId, limit])
-
-  const formatDate = (dateString: string) => {
-    try {
-      return new Date(dateString).toLocaleDateString("ru-RU", {
-        year: "numeric",
-        month: "short",
-        day: "numeric",
-        hour: "2-digit",
-        minute: "2-digit",
-      })
-    } catch {
-      return "Неизвестно"
-    }
-  }
-
-  const getTypeIcon = (type: string) => {
+  const getTransactionIcon = (type: string) => {
     switch (type) {
       case "deposit":
-        return <ArrowUpRight className="h-5 w-5 text-green-400" />
+        return <ArrowDownLeft className="h-4 w-4" />
       case "withdrawal":
-        return <ArrowDownRight className="h-5 w-5 text-red-400" />
+        return <ArrowUpRight className="h-4 w-4" />
       case "investment":
-        return <TrendingUp className="h-5 w-5 text-blue-400" />
-      case "referral":
-        return <Users className="h-5 w-5 text-yellow-400" />
-      case "profit":
-        return <TrendingUp className="h-5 w-5 text-purple-400" />
+        return <Plus className="h-4 w-4" />
       default:
-        return <TrendingUp className="h-5 w-5 text-gray-400" />
+        return <Clock className="h-4 w-4" />
     }
   }
 
-  const getTypeColor = (type: string) => {
+  const getTransactionColor = (type: string) => {
     switch (type) {
       case "deposit":
-        return "text-green-400"
+        return "text-green-400 bg-green-500/20"
       case "withdrawal":
-        return "text-red-400"
+        return "text-red-400 bg-red-500/20"
       case "investment":
-        return "text-blue-400"
-      case "referral":
-        return "text-yellow-400"
-      case "profit":
-        return "text-purple-400"
+        return "text-blue-400 bg-blue-500/20"
       default:
-        return "text-gray-400"
+        return "text-gray-400 bg-gray-500/20"
     }
   }
 
-  const getStatusBadge = (status: string) => {
+  const getTransactionTitle = (transaction: Transaction) => {
+    switch (transaction.type) {
+      case "deposit":
+        return "Пополнение баланса"
+      case "withdrawal":
+        return "Вывод средств"
+      case "investment":
+        return transaction.plan_name ? `Инвестиция в "${transaction.plan_name}"` : "Инвестиция"
+      default:
+        return transaction.description || "Транзакция"
+    }
+  }
+
+  const getStatusIcon = (status: string) => {
     switch (status.toLowerCase()) {
       case "completed":
-        return <Badge className="bg-green-500/20 text-green-400 border-green-500/30">Завершено</Badge>
+        return <CheckCircle2 className="h-3 w-3" />
       case "pending":
-        return <Badge className="bg-yellow-500/20 text-yellow-400 border-yellow-500/30">В обработке</Badge>
+        return <Clock className="h-3 w-3" />
       case "failed":
-        return <Badge className="bg-red-500/20 text-red-400 border-red-500/30">Отклонено</Badge>
-      case "active":
-        return <Badge className="bg-blue-500/20 text-blue-400 border-blue-500/30">Активно</Badge>
+        return <XCircle className="h-3 w-3" />
       default:
-        return <Badge className="bg-gray-500/20 text-gray-400 border-gray-500/30">{status}</Badge>
+        return <Clock className="h-3 w-3" />
     }
   }
 
-  const formatAmount = (amount: number, type: string) => {
-    const prefix = type === "deposit" || type === "referral" || type === "profit" ? "+" : "-"
-    return `${prefix}$${Number(amount).toLocaleString()}`
-  }
-
-  const getTypeName = (type: string) => {
-    switch (type) {
-      case "deposit":
-        return "Пополнение"
-      case "withdrawal":
-        return "Вывод"
-      case "investment":
-        return "Инвестиция"
-      case "referral":
-        return "Реферал"
-      case "profit":
-        return "Прибыль"
+  const getStatusVariant = (status: string) => {
+    switch (status.toLowerCase()) {
+      case "completed":
+        return "default"
+      case "pending":
+        return "secondary"
+      case "failed":
+        return "destructive"
       default:
-        return type
+        return "outline"
     }
   }
 
-  const handleRefresh = () => {
-    toast.info("Обновление списка транзакций...")
-    fetchTransactions()
+  const getStatusText = (status: string) => {
+    switch (status.toLowerCase()) {
+      case "completed":
+        return "Завершена"
+      case "pending":
+        return "В обработке"
+      case "failed":
+        return "Отклонена"
+      default:
+        return status
+    }
   }
 
   if (loading) {
     return (
-      <div className="w-full py-8">
-        <div className="flex flex-col items-center justify-center space-y-4">
-          <div className="w-10 h-10 border-4 border-t-blue-600 border-r-transparent border-b-blue-600 border-l-transparent rounded-full animate-spin"></div>
-          <p className="text-gray-400">Загрузка транзакций...</p>
-        </div>
+      <div className="space-y-3">
+        {[...Array(3)].map((_, i) => (
+          <div key={i} className="flex items-center justify-between p-4 bg-white/5 rounded-lg animate-pulse">
+            <div className="flex items-center space-x-3">
+              <div className="w-8 h-8 bg-white/10 rounded-full" />
+              <div className="space-y-2">
+                <div className="w-32 h-4 bg-white/10 rounded" />
+                <div className="w-20 h-3 bg-white/5 rounded" />
+              </div>
+            </div>
+            <div className="w-16 h-4 bg-white/10 rounded" />
+          </div>
+        ))}
       </div>
     )
   }
 
   if (error) {
     return (
-      <div className="w-full py-8">
-        <div className="flex flex-col items-center justify-center space-y-4 text-center">
-          <div className="p-3 rounded-full bg-red-500/20">
-            <AlertCircle className="h-6 w-6 text-red-400" />
-          </div>
-          <p className="text-red-400">{error}</p>
-          <div className="flex gap-2">
-            <Button
-              onClick={handleRefresh}
-              variant="outline"
-              className="border-gray-800 text-gray-400 hover:bg-gray-800/50"
-            >
-              <RefreshCw className="h-4 w-4 mr-2" />
-              Попробовать снова
-            </Button>
-            {currentUserId && (
-              <Button
-                onClick={createTestTransaction}
-                variant="outline"
-                className="border-blue-800 text-blue-400 hover:bg-blue-800/50"
-              >
-                Создать тест
-              </Button>
-            )}
-          </div>
-        </div>
+      <div className="text-center py-8">
+        <p className="text-red-400 mb-4">{error}</p>
+        <Button onClick={fetchTransactions} variant="outline" size="sm">
+          <RefreshCw className="h-4 w-4 mr-2" />
+          Повторить
+        </Button>
+      </div>
+    )
+  }
+
+  if (transactions.length === 0) {
+    return (
+      <div className="text-center py-8">
+        <Clock className="h-12 w-12 text-gray-500 mx-auto mb-4" />
+        <p className="text-gray-400 mb-2">У вас пока нет транзакций</p>
+        <p className="text-gray-500 text-sm">
+          Пополните баланс или сделайте инвестицию, чтобы увидеть историю операций
+        </p>
       </div>
     )
   }
 
   return (
-    <div className="space-y-4">
-      {transactions.length === 0 ? (
-        <div className="w-full py-8">
-          <div className="flex flex-col items-center justify-center space-y-4 text-center">
-            <Clock className="h-12 w-12 text-gray-500" />
-            <p className="text-gray-400">У вас пока нет транзакций.</p>
-            <p className="text-gray-500 text-sm">
-              Пополните баланс или сделайте инвестицию, чтобы увидеть историю операций.
-            </p>
-            <div className="flex gap-2">
-              <Button
-                onClick={handleRefresh}
-                variant="outline"
-                className="border-gray-800 text-gray-400 hover:bg-gray-800/50"
-              >
-                <RefreshCw className="h-4 w-4 mr-2" />
-                Обновить
-              </Button>
-              {currentUserId && (
-                <Button
-                  onClick={createTestTransaction}
-                  variant="outline"
-                  className="border-blue-800 text-blue-400 hover:bg-blue-800/50"
-                >
-                  Создать тест
-                </Button>
-              )}
+    <div className="space-y-3">
+      {transactions.map((transaction, index) => (
+        <motion.div
+          key={transaction.id}
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: index * 0.1 }}
+          className="flex items-center justify-between p-4 hover:bg-white/5 rounded-lg transition-colors"
+        >
+          <div className="flex items-center space-x-3">
+            <div className={`p-2 rounded-full ${getTransactionColor(transaction.type)}`}>
+              {getTransactionIcon(transaction.type)}
             </div>
-          </div>
-        </div>
-      ) : (
-        <>
-          <div className="flex justify-between items-center">
-            <span className="text-white/70 text-sm">Показано {transactions.length} транзакций</span>
-            <div className="flex gap-2">
-              <Button onClick={handleRefresh} size="sm" variant="ghost" className="text-white/70 hover:bg-white/10">
-                <RefreshCw className="h-4 w-4 mr-2" />
-                Обновить
-              </Button>
-              {currentUserId && (
-                <Button
-                  onClick={createTestTransaction}
-                  size="sm"
-                  variant="ghost"
-                  className="text-blue-400 hover:bg-blue-800/20"
-                >
-                  Тест
-                </Button>
+            <div>
+              <p className="text-white font-medium">
+                {getTransactionTitle(transaction)}
+              </p>
+              <p className="text-white/60 text-sm">
+                {new Date(transaction.created_at).toLocaleDateString("ru-RU", {
+                  day: "2-digit",
+                  month: "short",
+                  hour: "2-digit",
+                  minute: "2-digit",
+                })}
+              </p>
+              {transaction.payment_method && (
+                <p className="text-white/40 text-xs">
+                  {transaction.payment_method === 'balance' ? 'С баланса' : 
+                   transaction.payment_method === 'bank_transfer' ? 'Банковский перевод' :
+                   transaction.payment_method === 'card' ? 'Банковская карта' : 
+                   transaction.payment_method}
+                </p>
               )}
             </div>
           </div>
 
-          <div className="space-y-3">
-            {Array.isArray(transactions) && transactions.map((transaction, index) => (
-              <div
-                key={transaction.id}
-                className="bg-gray-900/50 border border-gray-800 rounded-xl p-4 hover:bg-gray-900/70 transition-colors animate-fade-in"
-                style={{ animationDelay: `${index * 50}ms` }}
-              >
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-4">
-                    <div className="p-3 rounded-full bg-gray-800">{getTypeIcon(transaction.type)}</div>
-                    <div>
-                      <h4 className="text-white font-medium">{getTypeName(transaction.type)}</h4>
-                      <p className="text-gray-400 text-sm">{formatDate(transaction.created_at)}</p>
-                      {transaction.method && <p className="text-gray-500 text-xs">{transaction.method}</p>}
-                      {transaction.description && (
-                        <p className="text-gray-500 text-xs mt-1">{transaction.description}</p>
-                      )}
-                    </div>
-                  </div>
-                  <div className="text-right space-y-1">
-                    <div className={`text-lg font-semibold ${getTypeColor(transaction.type)}`}>
-                      {formatAmount(transaction.amount, transaction.type)}
-                    </div>
-                    {getStatusBadge(transaction.status)}
-                    {transaction.fee && Number(transaction.fee) > 0 && (
-                      <p className="text-gray-500 text-xs">Комиссия: ${Number(transaction.fee)}</p>
-                    )}
-                  </div>
-                </div>
+          <div className="flex items-center space-x-3">
+            <div className="text-right">
+              <p className={`font-semibold ${
+                transaction.type === 'deposit' || transaction.type === 'profit' ? 'text-green-400' :
+                transaction.type === 'withdrawal' || transaction.type === 'investment' ? 'text-red-400' :
+                'text-white'
+              }`}>
+                {transaction.type === 'deposit' || transaction.type === 'profit' ? '+' : '-'}
+                ${Number(transaction.amount).toFixed(2)}
+              </p>
+              <div className="flex items-center space-x-1">
+                {getStatusIcon(transaction.status)}
+                <Badge variant={getStatusVariant(transaction.status)} className="text-xs">
+                  {getStatusText(transaction.status)}
+                </Badge>
               </div>
-            ))}
-            {(!Array.isArray(transactions) || transactions.length === 0) && (
-              <div className="text-center py-8">
-                <p className="text-gray-400">Транзакции не найдены</p>
-              </div>
-            )}
+            </div>
           </div>
-        </>
-      )}
+        </motion.div>
+      ))}
     </div>
   )
 }
