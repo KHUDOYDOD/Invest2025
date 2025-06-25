@@ -38,9 +38,8 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Хэшируем пароль
-    const saltRounds = 12;
-    const passwordHash = await bcrypt.hash(password, saltRounds);
+    // Сохраняем пароль без хеширования (только для разработки!)
+    const passwordHash = password;
 
     // Генерируем уникальный реферальный код
     let referralCode;

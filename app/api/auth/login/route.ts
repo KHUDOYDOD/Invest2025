@@ -46,8 +46,8 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Проверяем пароль
-    const isPasswordValid = await bcrypt.compare(password, user.password_hash);
+    // Проверяем пароль напрямую (без хеширования)
+    const isPasswordValid = password === user.password_hash;
 
     if (!isPasswordValid) {
       return NextResponse.json(
