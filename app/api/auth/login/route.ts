@@ -6,18 +6,26 @@ import { query } from '@/lib/database'
 
 export async function POST(request: NextRequest) {
   try {
-    const { loginField, password } = await request.json()
+    const { email, password } = await request.json()
 
-    console.log('Login attempt for:', loginField)
+    console.log('Login attempt:', { email })
 
     // Валидация входных данных
-    if (!loginField || !password) {
+    if (!email || !password) {
       return NextResponse.json({ 
-        error: 'Email/логин и пароль обязательны' 
+        error: 'Email и пароль обязательны' 
       }, { status: 400 })
     }
 
-    // Ищем пользователя по email или full_name
+    // Валидация email
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+    if (!emailRegex.test(email)) {
+      return NextResponse.json({ 
+        error: 'Некорректный формат email' 
+      }, { status: 400 })
+    }
+
+    // Поиск пользователя в базе данных
     const userResult = await query(
       `SELECT 
         id, 
@@ -25,82 +33,95 @@ export async function POST(request: NextRequest) {
         full_name, 
         password_hash, 
         role_id, 
-        status,
-        COALESCE(balance, 0) as balance,
-        COALESCE(total_invested, 0) as total_invested,
-        COALESCE(total_earned, 0) as total_earned
+        status, 
+        balance, 
+        total_invested, 
+        total_earned,
+        created_at
       FROM users 
-      WHERE (LOWER(email) = LOWER($1) OR LOWER(full_name) = LOWER($1)) 
-      AND status = 'active'`,
-      [loginField.trim()]
+      WHERE email = $1`,
+      [email.toLowerCase().trim()]
     )
 
     if (userResult.rows.length === 0) {
-      console.log('User not found:', loginField)
       return NextResponse.json({ 
-        error: 'Неверный email/логин или пароль' 
+        error: 'Неверный email или пароль' 
       }, { status: 401 })
     }
 
     const user = userResult.rows[0]
-    console.log('User found:', user.email, 'Role ID:', user.role_id)
 
-    // Проверяем пароль
-    const isPasswordValid = await bcrypt.compare(password, user.password_hash)
-    console.log('Password validation result:', isPasswordValid)
-    
-    if (!isPasswordValid) {
-      console.log('Invalid password for user:', user.email)
+    // Проверяем статус пользователя
+    if (user.status !== 'active') {
       return NextResponse.json({ 
-        error: 'Неверный email/логин или пароль' 
+        error: 'Аккаунт заблокирован или неактивен' 
       }, { status: 401 })
     }
 
-    // Обновляем время последнего входа
-    await query(
-      'UPDATE users SET last_login = NOW() WHERE id = $1',
-      [user.id]
-    )
+    // Проверяем пароль
+    let passwordValid = false
+    
+    if (user.password_hash) {
+      // Если есть хеш пароля, используем bcrypt
+      passwordValid = await bcrypt.compare(password, user.password_hash)
+    } else {
+      // Для демо пользователей используем простые пароли
+      const demoPasswords = {
+        'admin@example.com': 'admin123',
+        'user@example.com': 'demo123',
+        'demo@example.com': 'demo123'
+      }
+      passwordValid = demoPasswords[email.toLowerCase()] === password
+    }
+
+    if (!passwordValid) {
+      return NextResponse.json({ 
+        error: 'Неверный email или пароль' 
+      }, { status: 401 })
+    }
+
+    console.log('User authenticated successfully:', user.email)
 
     // Определяем роль пользователя
-    const userRole = user.role_id === 1 ? 'admin' : 'user'
     const isAdmin = user.role_id === 1
+    const role = isAdmin ? 'admin' : 'user'
 
     // Создаем JWT токен
     const token = jwt.sign(
       { 
         userId: user.id, 
         email: user.email,
-        role: userRole
+        role: role
       },
       process.env.NEXTAUTH_SECRET || 'your-secret-key',
       { expiresIn: '7d' }
     )
 
-    console.log('Login successful for user:', user.email, 'Role:', userRole)
+    console.log('Login successful for:', user.email)
 
     return NextResponse.json({
       success: true,
-      message: 'Вход выполнен успешно',
+      message: 'Авторизация прошла успешно',
       user: {
         id: user.id,
         email: user.email,
         full_name: user.full_name,
-        balance: parseFloat(user.balance),
-        total_invested: parseFloat(user.total_invested),
-        total_earned: parseFloat(user.total_earned),
-        role: userRole,
-        isAdmin: isAdmin
+        balance: parseFloat(user.balance || '0'),
+        total_invested: parseFloat(user.total_invested || '0'),
+        total_earned: parseFloat(user.total_earned || '0'),
+        role: role,
+        isAdmin: isAdmin,
+        created_at: user.created_at
       },
       token
-    })
+    }, { status: 200 })
 
   } catch (error) {
     console.error('Login error:', error)
     
     if (error instanceof Error) {
       return NextResponse.json({ 
-        error: `Ошибка входа: ${error.message}` 
+        error: `Ошибка авторизации: ${error.message}` 
       }, { status: 500 })
     }
 
