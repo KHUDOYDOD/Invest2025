@@ -107,7 +107,7 @@ export function ProfitCalculator() {
             <CardContent className="p-6 space-y-6">
               {/* Amount Slider */}
               <div className="space-y-4">
-                <Label className="text-slate-700 font-medium">Сумма инвестиции: ${amount[0].toLocaleString()}</Label>
+                <Label className="text-slate-700 font-medium">Сумма инвестиции: ${amount[0].toLocaleString('en-US')}</Label>
                 <Slider value={amount} onValueChange={setAmount} max={100000} min={50} step={50} className="w-full" />
                 <div className="flex justify-between text-xs text-slate-500">
                   <span>$50</span>
@@ -156,7 +156,7 @@ export function ProfitCalculator() {
                       onClick={() => setAmount([quickAmount])}
                       className="text-xs"
                     >
-                      ${quickAmount.toLocaleString()}
+                      ${quickAmount.toLocaleString('en-US')}
                     </Button>
                   ))}
                 </div>

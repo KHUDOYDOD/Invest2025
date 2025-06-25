@@ -152,11 +152,11 @@ export function InvestmentPlans() {
                 <div className="space-y-2">
                   <div className="flex justify-between text-sm">
                     <span className="text-slate-600">Минимум:</span>
-                    <span className="font-semibold">${plan.minAmount.toLocaleString()}</span>
+                    <span className="font-semibold">${plan.minAmount.toLocaleString('en-US')}</span>
                   </div>
                   <div className="flex justify-between text-sm">
                     <span className="text-slate-600">Максимум:</span>
-                    <span className="font-semibold">${plan.maxAmount.toLocaleString()}</span>
+                    <span className="font-semibold">${plan.maxAmount.toLocaleString('en-US')}</span>
                   </div>
                   <div className="flex justify-between text-sm">
                     <span className="text-slate-600">Срок:</span>

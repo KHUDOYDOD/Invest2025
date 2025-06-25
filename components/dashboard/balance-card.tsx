@@ -52,7 +52,7 @@ export function BalanceCard() {
   }
 
   const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('ru-RU', {
+    return new Intl.NumberFormat('en-US', {
       style: 'currency',
       currency: 'USD',
       minimumFractionDigits: 2
@@ -60,7 +60,7 @@ export function BalanceCard() {
   }
 
   const formatDate = (dateString: string) => {
-    return new Intl.DateTimeFormat('ru-RU', {
+    return new Intl.DateTimeFormat('en-US', {
       year: 'numeric',
       month: 'long',
       day: 'numeric'
