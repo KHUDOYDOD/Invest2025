@@ -8,9 +8,11 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Checkbox } from "@/components/ui/checkbox"
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
+import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Header } from "@/components/header"
 import { Footer } from "@/components/footer"
-import { User, Mail, Lock, Loader2, Eye, EyeOff, CheckCircle, AlertCircle } from "lucide-react"
+import { User, Mail, Lock, Loader2, Eye, EyeOff, CheckCircle, AlertCircle, UserPlus, Shield } from "lucide-react"
 import { motion, AnimatePresence } from "framer-motion"
 import { toast } from "sonner"
 
@@ -166,228 +168,53 @@ export default function RegisterPage() {
       <Header />
 
       <main className="flex-grow flex items-center justify-center py-12 px-4 relative z-10">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6 }}
-          className="w-full max-w-md"
-        >
-          <div className="bg-white/10 backdrop-blur-xl border border-white/20 rounded-3xl overflow-hidden shadow-2xl">
-            <div className="p-8">
-              <div className="text-center mb-8">
-                <motion.div
-                  initial={{ scale: 0.8, rotate: -10 }}
-                  animate={{ scale: 1, rotate: 0 }}
-                  transition={{ duration: 0.5, delay: 0.2 }}
-                  className="mx-auto w-20 h-20 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center mb-4 shadow-2xl"
-                >
-                  <User className="h-10 w-10 text-white" />
-                </motion.div>
-                <h2 className="text-3xl font-bold text-white mb-2">Создание аккаунта</h2>
-                <p className="text-white/70">Присоединяйтесь к нашей инвестиционной платформе</p>
-              </div>
+        <Card className="w-full max-w-lg relative z-10 bg-white/10 backdrop-blur-xl border border-white/20 shadow-2xl rounded-3xl">
+          <CardHeader className="space-y-6 text-center pb-8 pt-8">
+            <div className="mx-auto w-20 h-20 bg-gradient-to-r from-emerald-500 to-blue-600 rounded-full flex items-center justify-center shadow-2xl">
+              <UserPlus className="w-10 h-10 text-white" />
+            </div>
+            <div className="space-y-3">
+              <CardTitle className="text-3xl font-bold text-white">
+                Создание аккаунта
+              </CardTitle>
+              <CardDescription className="text-white/70 text-lg font-medium">
+                Присоединяйтесь к нашей инвестиционной платформе
+              </CardDescription>
+            </div>
+          </CardHeader>
 
-              <form onSubmit={handleSubmit} className="space-y-6" noValidate>
-                <motion.div
-                  initial={{ opacity: 0, x: -20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: 0.3 }}
-                  className="space-y-2"
-                >
-                  <Label htmlFor="full_name" className="text-white font-medium">
-                    Полное имя
-                  </Label>
-                  <div className="relative">
-                    <User className="absolute left-3 top-3 h-5 w-5 text-white/50" />
-                    <Input
-                      id="full_name"
-                      name="full_name"
-                      placeholder="Иван Иванов"
-                      className={`pl-12 h-12 bg-white/10 border-white/20 text-white placeholder:text-white/50 rounded-xl transition-all duration-300 ${
-                        errors.full_name ? "border-red-400 focus:border-red-400" : "focus:border-blue-400"
-                      }`}
-                      value={formData.full_name}
-                      onChange={handleChange}
-                      required
-                    />
-                  </div>
-                  <AnimatePresence>
-                    {errors.full_name && (
-                      <motion.p
-                        initial={{ opacity: 0, y: -10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: -10 }}
-                        className="text-red-400 text-sm flex items-center gap-1"
-                      >
-                        <AlertCircle className="h-4 w-4" />
-                        {errors.full_name}
-                      </motion.p>
-                    )}
-                  </AnimatePresence>
-                </motion.div>
+          <CardContent className="space-y-8 px-8">
+            {Object.keys(errors).length > 0 && (
+              <Alert variant="destructive" className="border-red-400/50 bg-red-500/20 backdrop-blur-sm">
+                <AlertCircle className="h-5 w-5 text-red-400" />
+                <AlertDescription className="text-red-300 font-medium">
+                  Пожалуйста, исправьте ошибки в форме
+                </AlertDescription>
+              </Alert>
+            )}
 
-                <motion.div
-                  initial={{ opacity: 0, x: -20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: 0.4 }}
-                  className="space-y-2"
-                >
-                  <Label htmlFor="email" className="text-white font-medium">
-                    Email адрес
-                  </Label>
-                  <div className="relative">
-                    <Mail className="absolute left-3 top-3 h-5 w-5 text-white/50" />
-                    <Input
-                      id="email"
-                      name="email"
-                      type="email"
-                      placeholder="name@example.com"
-                      className={`pl-12 h-12 bg-white/10 border-white/20 text-white placeholder:text-white/50 rounded-xl transition-all duration-300 ${
-                        errors.email ? "border-red-400 focus:border-red-400" : "focus:border-blue-400"
-                      }`}
-                      value={formData.email}
-                      onChange={handleChange}
-                      required
-                    />
-                  </div>
-                  <AnimatePresence>
-                    {errors.email && (
-                      <motion.p
-                        initial={{ opacity: 0, y: -10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: -10 }}
-                        className="text-red-400 text-sm flex items-center gap-1"
-                      >
-                        <AlertCircle className="h-4 w-4" />
-                        {errors.email}
-                      </motion.p>
-                    )}
-                  </AnimatePresence>
-                </motion.div>
-
-                <motion.div
-                  initial={{ opacity: 0, x: -20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: 0.5 }}
-                  className="space-y-2"
-                >
-                  <Label htmlFor="password" className="text-white font-medium">
-                    Пароль
-                  </Label>
-                  <div className="relative">
-                    <Lock className="absolute left-3 top-3 h-5 w-5 text-white/50" />
-                    <Input
-                      id="password"
-                      name="password"
-                      type={showPassword ? "text" : "password"}
-                      placeholder="Минимум 3 символа"
-                      className={`pl-12 pr-12 h-12 bg-white/10 border-white/20 text-white placeholder:text-white/50 rounded-xl transition-all duration-300 ${
-                        errors.password ? "border-red-400 focus:border-red-400" : "focus:border-blue-400"
-                      }`}
-                      value={formData.password}
-                      onChange={handleChange}
-                      required
-                    />
-                    <button
-                      type="button"
-                      className="absolute right-3 top-3 text-white/50 hover:text-white transition-colors"
-                      onClick={() => setShowPassword(!showPassword)}
-                    >
-                      {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
-                    </button>
-                  </div>
-                  <AnimatePresence>
-                    {errors.password && (
-                      <motion.p
-                        initial={{ opacity: 0, y: -10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: -10 }}
-                        className="text-red-400 text-sm flex items-center gap-1"
-                      >
-                        <AlertCircle className="h-4 w-4" />
-                        {errors.password}
-                      </motion.p>
-                    )}
-                  </AnimatePresence>
-                </motion.div>
-
-                <motion.div
-                  initial={{ opacity: 0, x: -20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: 0.6 }}
-                  className="space-y-2"
-                >
-                  <Label htmlFor="confirmPassword" className="text-white font-medium">
-                    Подтверждение пароля
-                  </Label>
-                  <div className="relative">
-                    <Lock className="absolute left-3 top-3 h-5 w-5 text-white/50" />
-                    <Input
-                      id="confirmPassword"
-                      name="confirmPassword"
-                      type={showConfirmPassword ? "text" : "password"}
-                      placeholder="Повторите пароль"
-                      className={`pl-12 pr-12 h-12 bg-white/10 border-white/20 text-white placeholder:text-white/50 rounded-xl transition-all duration-300 ${
-                        errors.confirmPassword ? "border-red-400 focus:border-red-400" : "focus:border-blue-400"
-                      }`}
-                      value={formData.confirmPassword}
-                      onChange={handleChange}
-                      required
-                    />
-                    <button
-                      type="button"
-                      className="absolute right-3 top-3 text-white/50 hover:text-white transition-colors"
-                      onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                    >
-                      {showConfirmPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
-                    </button>
-                  </div>
-                  <AnimatePresence>
-                    {errors.confirmPassword && (
-                      <motion.p
-                        initial={{ opacity: 0, y: -10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: -10 }}
-                        className="text-red-400 text-sm flex items-center gap-1"
-                      >
-                        <AlertCircle className="h-4 w-4" />
-                        {errors.confirmPassword}
-                      </motion.p>
-                    )}
-                  </AnimatePresence>
-                </motion.div>
-
-                <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.7 }}
-                  className="flex items-start space-x-3"
-                >
-                  <Checkbox
-                    id="agreeTerms"
-                    name="agreeTerms"
-                    checked={formData.agreeTerms}
-                    onCheckedChange={(checked) => {
-                      setFormData((prev) => ({ ...prev, agreeTerms: checked as boolean }))
-                      if (errors.agreeTerms) {
-                        setErrors((prev) => ({ ...prev, agreeTerms: "" }))
-                      }
-                    }}
-                    className="border-white/50 data-[state=checked]:bg-blue-500 data-[state=checked]:border-blue-500 mt-1"
+            <form onSubmit={handleSubmit} className="space-y-8" noValidate>
+              <div className="space-y-3">
+                <Label htmlFor="full_name" className="text-white font-medium">
+                  Полное имя
+                </Label>
+                <div className="relative">
+                  <User className="absolute left-3 top-3 h-5 w-5 text-white/50" />
+                  <Input
+                    id="full_name"
+                    name="full_name"
+                    placeholder="Иван Иванов"
+                    className={`pl-12 h-12 text-base bg-white/10 border-white/20 text-white placeholder:text-white/50 rounded-xl transition-all duration-300 ${
+                      errors.full_name ? "border-red-400 focus:border-red-400" : "focus:border-blue-400"
+                    }`}
+                    value={formData.full_name}
+                    onChange={handleChange}
+                    required
+                    disabled={isLoading}
                   />
-                  <label htmlFor="agreeTerms" className="text-sm text-white/80 leading-relaxed">
-                    Я согласен с{" "}
-                    <Link href="/terms" className="text-blue-400 hover:text-blue-300 underline">
-                      условиями использования
-                    </Link>{" "}
-                    и{" "}
-                    <Link href="/privacy" className="text-blue-400 hover:text-blue-300 underline">
-                      политикой конфиденциальности
-                    </Link>
-                  </label>
-                </motion.div>
+                </div>
                 <AnimatePresence>
-                  {errors.agreeTerms && (
+                  {errors.full_name && (
                     <motion.p
                       initial={{ opacity: 0, y: -10 }}
                       animate={{ opacity: 1, y: 0 }}
@@ -395,48 +222,207 @@ export default function RegisterPage() {
                       className="text-red-400 text-sm flex items-center gap-1"
                     >
                       <AlertCircle className="h-4 w-4" />
-                      {errors.agreeTerms}
+                      {errors.full_name}
                     </motion.p>
                   )}
                 </AnimatePresence>
+              </div>
 
-                <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.8 }}>
-                  <Button
-                    type="submit"
-                    className="w-full h-12 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white border-none rounded-xl font-semibold text-lg shadow-lg hover:shadow-xl transform hover:scale-[1.02] transition-all duration-300"
+              <div className="space-y-3">
+                <Label htmlFor="email" className="text-white font-medium">
+                  Email адрес
+                </Label>
+                <div className="relative">
+                  <Mail className="absolute left-3 top-3 h-5 w-5 text-white/50" />
+                  <Input
+                    id="email"
+                    name="email"
+                    type="email"
+                    placeholder="name@example.com"
+                    className={`pl-12 h-12 text-base bg-white/10 border-white/20 text-white placeholder:text-white/50 rounded-xl transition-all duration-300 ${
+                      errors.email ? "border-red-400 focus:border-red-400" : "focus:border-blue-400"
+                    }`}
+                    value={formData.email}
+                    onChange={handleChange}
+                    required
+                    disabled={isLoading}
+                    autoComplete="email"
+                  />
+                </div>
+                <AnimatePresence>
+                  {errors.email && (
+                    <motion.p
+                      initial={{ opacity: 0, y: -10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -10 }}
+                      className="text-red-400 text-sm flex items-center gap-1"
+                    >
+                      <AlertCircle className="h-4 w-4" />
+                      {errors.email}
+                    </motion.p>
+                  )}
+                </AnimatePresence>
+              </div>
+
+              <div className="space-y-3">
+                <Label htmlFor="password" className="text-white font-medium">
+                  Пароль
+                </Label>
+                <div className="relative">
+                  <Lock className="absolute left-3 top-3 h-5 w-5 text-white/50" />
+                  <Input
+                    id="password"
+                    name="password"
+                    type={showPassword ? "text" : "password"}
+                    placeholder="Минимум 3 символа"
+                    className={`pl-12 pr-12 h-12 text-base bg-white/10 border-white/20 text-white placeholder:text-white/50 rounded-xl transition-all duration-300 ${
+                      errors.password ? "border-red-400 focus:border-red-400" : "focus:border-blue-400"
+                    }`}
+                    value={formData.password}
+                    onChange={handleChange}
+                    required
+                    disabled={isLoading}
+                    autoComplete="new-password"
+                  />
+                  <button
+                    type="button"
+                    className="absolute right-3 top-3 text-white/50 hover:text-white transition-colors"
+                    onClick={() => setShowPassword(!showPassword)}
                     disabled={isLoading}
                   >
-                    {isLoading ? (
-                      <>
-                        <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                        Создание аккаунта...
-                      </>
-                    ) : (
-                      <>
-                        <CheckCircle className="mr-2 h-5 w-5" />
-                        Зарегистрироваться
-                      </>
-                    )}
-                  </Button>
-                </motion.div>
-              </form>
+                    {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                  </button>
+                </div>
+                <AnimatePresence>
+                  {errors.password && (
+                    <motion.p
+                      initial={{ opacity: 0, y: -10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -10 }}
+                      className="text-red-400 text-sm flex items-center gap-1"
+                    >
+                      <AlertCircle className="h-4 w-4" />
+                      {errors.password}
+                    </motion.p>
+                  )}
+                </AnimatePresence>
+              </div>
 
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ delay: 0.9 }}
-                className="mt-8 text-center"
-              >
-                <p className="text-white/70 text-sm">
-                  Уже есть аккаунт?{" "}
-                  <Link href="/login" className="text-blue-400 hover:text-blue-300 underline font-medium">
-                    Войти
+              <div className="space-y-3">
+                <Label htmlFor="confirmPassword" className="text-white font-medium">
+                  Подтверждение пароля
+                </Label>
+                <div className="relative">
+                  <Shield className="absolute left-3 top-3 h-5 w-5 text-white/50" />
+                  <Input
+                    id="confirmPassword"
+                    name="confirmPassword"
+                    type={showConfirmPassword ? "text" : "password"}
+                    placeholder="Повторите пароль"
+                    className={`pl-12 pr-12 h-12 text-base bg-white/10 border-white/20 text-white placeholder:text-white/50 rounded-xl transition-all duration-300 ${
+                      errors.confirmPassword ? "border-red-400 focus:border-red-400" : "focus:border-blue-400"
+                    }`}
+                    value={formData.confirmPassword}
+                    onChange={handleChange}
+                    required
+                    disabled={isLoading}
+                    autoComplete="new-password"
+                  />
+                  <button
+                    type="button"
+                    className="absolute right-3 top-3 text-white/50 hover:text-white transition-colors"
+                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                    disabled={isLoading}
+                  >
+                    {showConfirmPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                  </button>
+                </div>
+                <AnimatePresence>
+                  {errors.confirmPassword && (
+                    <motion.p
+                      initial={{ opacity: 0, y: -10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -10 }}
+                      className="text-red-400 text-sm flex items-center gap-1"
+                    >
+                      <AlertCircle className="h-4 w-4" />
+                      {errors.confirmPassword}
+                    </motion.p>
+                  )}
+                </AnimatePresence>
+              </div>
+
+              <div className="flex items-start space-x-3">
+                <Checkbox
+                  id="agreeTerms"
+                  name="agreeTerms"
+                  checked={formData.agreeTerms}
+                  onCheckedChange={(checked) => {
+                    setFormData((prev) => ({ ...prev, agreeTerms: checked as boolean }))
+                    if (errors.agreeTerms) {
+                      setErrors((prev) => ({ ...prev, agreeTerms: "" }))
+                    }
+                  }}
+                  className="border-white/50 data-[state=checked]:bg-blue-500 data-[state=checked]:border-blue-500 mt-1"
+                  disabled={isLoading}
+                />
+                <label htmlFor="agreeTerms" className="text-sm text-white/80 leading-relaxed">
+                  Я согласен с{" "}
+                  <Link href="/terms" className="text-blue-400 hover:text-blue-300 underline">
+                    условиями использования
+                  </Link>{" "}
+                  и{" "}
+                  <Link href="/privacy" className="text-blue-400 hover:text-blue-300 underline">
+                    политикой конфиденциальности
                   </Link>
-                </p>
-              </motion.div>
+                </label>
+              </div>
+              <AnimatePresence>
+                {errors.agreeTerms && (
+                  <motion.p
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -10 }}
+                    className="text-red-400 text-sm flex items-center gap-1"
+                  >
+                    <AlertCircle className="h-4 w-4" />
+                    {errors.agreeTerms}
+                  </motion.p>
+                )}
+              </AnimatePresence>
+
+              <Button
+                type="submit"
+                className="w-full h-12 text-base font-semibold bg-gradient-to-r from-emerald-600 to-blue-600 hover:from-emerald-700 hover:to-blue-700 text-white border-none rounded-xl shadow-lg hover:shadow-xl transform hover:scale-[1.02] transition-all duration-300"
+                disabled={isLoading || !formData.email.trim() || !formData.password || !formData.full_name.trim() || !formData.confirmPassword || !formData.agreeTerms}
+              >
+                {isLoading ? (
+                  <>
+                    <Loader2 className="mr-3 h-5 w-5 animate-spin" />
+                    Создание аккаунта...
+                  </>
+                ) : (
+                  <>
+                    <CheckCircle className="mr-3 h-5 w-5" />
+                    Зарегистрироваться
+                  </>
+                )}
+              </Button>
+            </form>
+          </CardContent>
+
+          <CardFooter className="flex flex-col space-y-6 pt-6 pb-8 px-8">
+            <div className="text-center">
+              <span className="text-white/70 text-sm">Уже есть аккаунт? </span>
+              <Link 
+                href="/login" 
+                className="text-blue-400 hover:text-blue-300 font-semibold hover:underline transition-colors duration-200 text-sm"
+              >
+                Войти в систему
+              </Link>
             </div>
-          </div>
-        </motion.div>
+          </CardFooter>
+        </Card>
       </main>
 
       <Footer />

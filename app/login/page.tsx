@@ -109,7 +109,7 @@ export default function LoginPage() {
       <Header />
 
       <main className="flex-grow flex items-center justify-center py-12 px-4 relative z-10">
-        <Card className="w-full max-w-lg relative z-10 bg-white/10 backdrop-blur-xl border border-white/20 shadow-2xl rounded-3xl"
+        <Card className="w-full max-w-lg relative z-10 bg-white/10 backdrop-blur-xl border border-white/20 shadow-2xl rounded-3xl">
         <CardHeader className="space-y-6 text-center pb-8 pt-8">
           <div className="mx-auto w-20 h-20 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center shadow-2xl">
             <Shield className="w-10 h-10 text-white" />
