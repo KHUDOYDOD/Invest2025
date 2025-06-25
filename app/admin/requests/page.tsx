@@ -163,7 +163,7 @@ export default function RequestsPage() {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          status: "failed",
+          status: "rejected",
           admin_comment: reason,
         }),
       })
@@ -172,7 +172,7 @@ export default function RequestsPage() {
         setDepositRequests((prev) =>
           prev.map((req) =>
             req.id === requestId
-              ? { ...req, status: "failed", admin_comment: reason, processed_at: new Date().toISOString() }
+              ? { ...req, status: "rejected", admin_comment: reason, processed_at: new Date().toISOString() }
               : req,
           ),
         )
@@ -233,7 +233,7 @@ export default function RequestsPage() {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          status: "failed",
+          status: "rejected",
           admin_comment: reason,
         }),
       })
@@ -242,7 +242,7 @@ export default function RequestsPage() {
         setWithdrawalRequests((prev) =>
           prev.map((req) =>
             req.id === requestId
-              ? { ...req, status: "failed", admin_comment: reason, processed_at: new Date().toISOString() }
+              ? { ...req, status: "rejected", admin_comment: reason, processed_at: new Date().toISOString() }
               : req,
           ),
         )
