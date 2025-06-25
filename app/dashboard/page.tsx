@@ -87,7 +87,7 @@ function DashboardContent() {
       const cacheKey = `dashboard_${userId}`
       const cachedData = localStorage.getItem(cacheKey)
       const cacheTime = localStorage.getItem(`${cacheKey}_time`)
-      
+
       // Если кэш свежий (менее 60 секунд), используем его
       if (cachedData && cacheTime && Date.now() - parseInt(cacheTime) < 60000) {
         const data = JSON.parse(cachedData)
@@ -115,13 +115,13 @@ function DashboardContent() {
           window.location.href = "/login"
           return
         }
-        
+
         if (response.status === 500) {
           const errorData = await response.json().catch(() => ({}))
           console.error("❌ Ошибка сервера:", errorData)
           throw new Error(errorData.error || `Ошибка сервера ${response.status}`)
         }
-        
+
         throw new Error(`Ошибка ${response.status}: ${response.statusText}`)
       }
 

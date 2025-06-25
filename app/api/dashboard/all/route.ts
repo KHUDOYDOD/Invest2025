@@ -1,4 +1,3 @@
-
 import { NextRequest, NextResponse } from 'next/server'
 import { query } from '@/lib/database'
 
@@ -21,7 +20,7 @@ export async function GET(request: NextRequest) {
       const jwt = require('jsonwebtoken')
       const decoded = jwt.verify(token, process.env.NEXTAUTH_SECRET || 'fallback-secret') as any
       userId = decoded.userId
-      
+
       if (!userId) {
         return NextResponse.json({ error: 'Недействительный токен' }, { status: 401 })
       }
@@ -160,7 +159,7 @@ export async function GET(request: NextRequest) {
 
   } catch (error) {
     console.error('Dashboard all API error:', error)
-    
+
     // Детальная обработка ошибок
     if (error instanceof Error) {
       if (error.message.includes('does not exist')) {
@@ -169,12 +168,12 @@ export async function GET(request: NextRequest) {
           details: error.message
         }, { status: 500 })
       }
-      
+
       if (error.message.includes('authentication')) {
         return NextResponse.json({ error: 'Ошибка аутентификации' }, { status: 401 })
       }
     }
-    
+
     return NextResponse.json({ 
       error: 'Ошибка сервера при загрузке данных',
       timestamp: new Date().toISOString()
