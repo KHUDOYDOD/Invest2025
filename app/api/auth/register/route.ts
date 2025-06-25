@@ -1,135 +1,105 @@
+import { NextRequest, NextResponse } from 'next/server';
+import bcrypt from 'bcryptjs';
+import { query } from '@/lib/database';
 
-import { NextRequest, NextResponse } from 'next/server'
-import bcrypt from 'bcryptjs'
-import jwt from 'jsonwebtoken'
-import { query } from '@/lib/database'
+function generateReferralCode() {
+  return Math.random().toString(36).substring(2, 8).toUpperCase();
+}
 
 export async function POST(request: NextRequest) {
   try {
-    const { email, password, full_name } = await request.json()
+    const { email, password, fullName, phone, country } = await request.json();
 
-    console.log('Registration attempt:', { email, full_name })
-
-    // Валидация входных данных
-    if (!email || !password || !full_name) {
-      return NextResponse.json({ 
-        error: 'Email, пароль и полное имя обязательны' 
-      }, { status: 400 })
+    // Валидация данных
+    if (!email || !password || !fullName) {
+      return NextResponse.json(
+        { error: 'Email, пароль и полное имя обязательны' },
+        { status: 400 }
+      );
     }
 
-    // Проверка длины пароля
-    if (password.length < 3) {
-      return NextResponse.json({ 
-        error: 'Пароль должен содержать минимум 3 символа' 
-      }, { status: 400 })
+    if (password.length < 6) {
+      return NextResponse.json(
+        { error: 'Пароль должен содержать минимум 6 символов' },
+        { status: 400 }
+      );
     }
 
-    // Валидация email
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-    if (!emailRegex.test(email)) {
-      return NextResponse.json({ 
-        error: 'Некорректный формат email' 
-      }, { status: 400 })
+    // Проверяем, не существует ли уже пользователь с таким email
+    const existingUser = await query(`
+      SELECT id FROM users WHERE email = $1
+    `, [email]);
+
+    if (existingUser.rows.length > 0) {
+      return NextResponse.json(
+        { error: 'Пользователь с таким email уже существует' },
+        { status: 409 }
+      );
     }
 
-    // Проверяем, существует ли пользователь с таким email
-    const existingUserResult = await query(
-      'SELECT id FROM users WHERE email = $1',
-      [email.toLowerCase().trim()]
-    )
+    // Хэшируем пароль
+    const saltRounds = 12;
+    const passwordHash = await bcrypt.hash(password, saltRounds);
 
-    if (existingUserResult.rows.length > 0) {
-      return NextResponse.json({ 
-        error: 'Пользователь с таким email уже существует' 
-      }, { status: 400 })
+    // Генерируем уникальный реферальный код
+    let referralCode;
+    let isUnique = false;
+    let attempts = 0;
+
+    while (!isUnique && attempts < 10) {
+      referralCode = generateReferralCode();
+      const codeCheck = await query(`
+        SELECT id FROM users WHERE referral_code = $1
+      `, [referralCode]);
+
+      if (codeCheck.rows.length === 0) {
+        isUnique = true;
+      }
+      attempts++;
     }
 
-    // Хешируем пароль
-    const saltRounds = 12
-    const passwordHash = await bcrypt.hash(password, saltRounds)
-
-    // Генерируем реферальный код
-    const referralCode = Math.random().toString(36).substring(2, 8).toUpperCase()
-
-    console.log('Creating new user with:', { email, full_name, referralCode })
+    if (!isUnique) {
+      return NextResponse.json(
+        { error: 'Не удалось создать уникальный реферальный код' },
+        { status: 500 }
+      );
+    }
 
     // Создаем нового пользователя
-    const createUserResult = await query(
-      `INSERT INTO users (
+    const newUser = await query(`
+      INSERT INTO users (
         email, 
         full_name, 
         password_hash, 
-        referral_code, 
-        role_id, 
-        status, 
-        balance, 
-        total_invested, 
-        total_earned,
-        created_at
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, NOW())
-      RETURNING id, email, full_name, balance, created_at`,
-      [
-        email.toLowerCase().trim(), 
-        full_name.trim(), 
-        passwordHash, 
-        referralCode, 
-        2, // role_id: 2 = user
-        'active', 
-        0.00, 
-        0.00, 
-        0.00
-      ]
-    )
+        phone, 
+        country, 
+        referral_code,
+        role_id,
+        status,
+        is_active,
+        email_verified
+      ) VALUES ($1, $2, $3, $4, $5, $6, 2, 'active', true, true)
+      RETURNING id, email, full_name, referral_code
+    `, [email, fullName, passwordHash, phone || null, country || null, referralCode]);
 
-    if (createUserResult.rows.length === 0) {
-      throw new Error('Не удалось создать пользователя')
-    }
-
-    const newUser = createUserResult.rows[0]
-
-    console.log('User created successfully:', newUser.id)
-
-    // Создаем JWT токен
-    const token = jwt.sign(
-      { 
-        userId: newUser.id, 
-        email: newUser.email,
-        role: 'user'
-      },
-      process.env.NEXTAUTH_SECRET || 'your-secret-key',
-      { expiresIn: '7d' }
-    )
-
-    console.log('Registration successful for:', newUser.email)
+    const user = newUser.rows[0];
 
     return NextResponse.json({
       success: true,
-      message: 'Регистрация прошла успешно',
+      message: 'Регистрация успешно завершена',
       user: {
-        id: newUser.id,
-        email: newUser.email,
-        full_name: newUser.full_name,
-        balance: parseFloat(newUser.balance || '0'),
-        total_invested: 0,
-        total_earned: 0,
-        role: 'user',
-        isAdmin: false,
-        created_at: newUser.created_at
-      },
-      token
-    }, { status: 201 })
+        id: user.id,
+        email: user.email,
+        fullName: user.full_name,
+        referralCode: user.referral_code
+      }
+    });
 
   } catch (error) {
-    console.error('Registration error:', error)
-    
-    if (error instanceof Error) {
-      return NextResponse.json({ 
-        error: `Ошибка регистрации: ${error.message}` 
-      }, { status: 500 })
-    }
-
-    return NextResponse.json({ 
-      error: 'Внутренняя ошибка сервера' 
-    }, { status: 500 })
+    console.error('Registration error:', error);
+    return NextResponse.json(
+      { error: 'Ошибка сервера при регистрации' },
+      { status: 500 }
+    );
   }
 }
