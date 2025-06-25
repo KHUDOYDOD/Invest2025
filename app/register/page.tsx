@@ -1,28 +1,26 @@
+
 "use client"
 
-import type React from "react"
-import { useState } from "react"
+import React, { useState } from "react"
 import Link from "next/link"
+import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Header } from "@/components/header"
 import { Footer } from "@/components/footer"
-import { User, Mail, Lock, Loader2, Eye, EyeOff, CheckCircle, AlertCircle, X } from "lucide-react"
-import { useProjectStatus } from "@/hooks/use-project-status"
+import { User, Mail, Lock, Loader2, Eye, EyeOff, CheckCircle, AlertCircle } from "lucide-react"
 import { motion, AnimatePresence } from "framer-motion"
 import { toast } from "sonner"
-import { useRouter } from "next/navigation"
 
 export default function RegisterPage() {
   const router = useRouter()
   const [isLoading, setIsLoading] = useState(false)
-  const { isLaunched, timeLeft, loading: statusLoading } = useProjectStatus()
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const [formData, setFormData] = useState({
-    name: "",
+    full_name: "",
     email: "",
     password: "",
     confirmPassword: "",
@@ -46,15 +44,15 @@ export default function RegisterPage() {
   const validateForm = () => {
     const newErrors: Record<string, string> = {}
 
-    if (!formData.name.trim()) {
-      newErrors.name = "Имя обязательно"
-    } else if (formData.name.trim().length < 2) {
-      newErrors.name = "Имя должно содержать минимум 2 символа"
+    if (!formData.full_name.trim()) {
+      newErrors.full_name = "Полное имя обязательно"
+    } else if (formData.full_name.trim().length < 2) {
+      newErrors.full_name = "Имя должно содержать минимум 2 символа"
     }
 
     if (!formData.email.trim()) {
       newErrors.email = "Email обязателен"
-    } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
       newErrors.email = "Некорректный email"
     }
 
@@ -80,92 +78,78 @@ export default function RegisterPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    setErrors({})
 
-    // Валидация
-    const newErrors: Record<string, string> = {}
-
-    if (!formData.name.trim()) {
-      newErrors.name = "Имя обязательно"
-    }
-
-    if (!formData.email.trim()) {
-      newErrors.email = "Email обязателен"
-    } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
-      newErrors.email = "Неверный формат email"
-    }
-
-    if (!formData.password) {
-      newErrors.password = "Пароль обязателен"
-    } else if (formData.password.length < 3) {
-      newErrors.password = "Пароль должен содержать минимум 3 символа"
-    }
-
-    if (formData.password !== formData.confirmPassword) {
-      newErrors.confirmPassword = "Пароли не совпадают"
-    }
-
-    if (!formData.agreeTerms) {
-      newErrors.agreeTerms = "Необходимо согласиться с условиями"
-    }
-
-    if (Object.keys(newErrors).length > 0) {
-      setErrors(newErrors)
+    if (!validateForm()) {
+      toast.error("Пожалуйста, исправьте ошибки в форме")
       return
     }
 
     setIsLoading(true)
 
     try {
+      console.log("🚀 Отправка данных регистрации...")
+
       const response = await fetch("/api/auth/register", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          full_name: formData.name,
-          email: formData.email,
+          email: formData.email.trim(),
           password: formData.password,
+          full_name: formData.full_name.trim(),
         }),
       })
 
       const data = await response.json()
+      console.log("📦 Ответ сервера:", data)
 
-      if (response.ok) {
-        toast.success("Регистрация прошла успешно!")
-
-        // Сохраняем токен в localStorage и cookies
-        if (data.token) {
-          localStorage.setItem("auth-token", data.token)
-          document.cookie = `auth-token=${data.token}; path=/; max-age=${7 * 24 * 60 * 60}`
-        }
-
-        // Перенаправляем в дашборд
-        setTimeout(() => {
-          router.push("/dashboard")
-        }, 1000)
-      } else {
-        setErrors({ form: data.error || "Ошибка регистрации" })
-        toast.error(data.error || "Ошибка регистрации")
+      if (!response.ok) {
+        throw new Error(data.error || 'Ошибка регистрации')
       }
+
+      console.log("✅ Регистрация успешна:", data)
+
+      // Сохраняем данные пользователя
+      if (data.user) {
+        localStorage.setItem("userEmail", data.user.email)
+        localStorage.setItem("userName", data.user.full_name)
+        localStorage.setItem("userId", data.user.id)
+        localStorage.setItem("userRole", data.user.role || "user")
+        localStorage.setItem("userBalance", data.user.balance?.toString() || "0.00")
+        localStorage.setItem("isAuthenticated", "true")
+      }
+      
+      if (data.token) {
+        localStorage.setItem("authToken", data.token)
+      }
+
+      toast.success("🎉 Регистрация успешна!", {
+        description: `Добро пожаловать, ${data.user.full_name}!`,
+        duration: 3000,
+      })
+
+      // Перенаправляем в дашборд
+      setTimeout(() => {
+        router.push("/dashboard")
+      }, 1500)
+
     } catch (error) {
-      console.error("Registration error:", error)
-      setErrors({ form: "Ошибка сервера" })
-      toast.error("Ошибка сервера")
+      console.error("❌ Ошибка регистрации:", error)
+      
+      let errorMessage = "Ошибка регистрации"
+      if (error instanceof Error) {
+        errorMessage = error.message
+      }
+
+      toast.error("❌ " + errorMessage, {
+        description: "Проверьте данные и попробуйте снова",
+        duration: 5000,
+      })
+
     } finally {
       setIsLoading(false)
     }
-  }
-
-  if (statusLoading) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-indigo-900 flex items-center justify-center">
-        <motion.div initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }} className="text-center">
-          <Loader2 className="h-12 w-12 animate-spin mx-auto mb-4 text-blue-400" />
-          <p className="text-white text-lg">Проверка статуса платформы...</p>
-        </motion.div>
-      </div>
-    )
   }
 
   return (
@@ -200,36 +184,32 @@ export default function RegisterPage() {
                 <p className="text-white/70">Присоединяйтесь к нашей инвестиционной платформе</p>
               </div>
 
-              <form 
-              onSubmit={handleSubmit} 
-              className="space-y-6"
-              noValidate>
+              <form onSubmit={handleSubmit} className="space-y-6" noValidate>
                 <motion.div
                   initial={{ opacity: 0, x: -20 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: 0.3 }}
                   className="space-y-2"
                 >
-                  <Label htmlFor="name" className="text-white font-medium">
+                  <Label htmlFor="full_name" className="text-white font-medium">
                     Полное имя
                   </Label>
                   <div className="relative">
                     <User className="absolute left-3 top-3 h-5 w-5 text-white/50" />
                     <Input
-                      id="name"
-                      name="name"
+                      id="full_name"
+                      name="full_name"
                       placeholder="Иван Иванов"
                       className={`pl-12 h-12 bg-white/10 border-white/20 text-white placeholder:text-white/50 rounded-xl transition-all duration-300 ${
-                        errors.name ? "border-red-400 focus:border-red-400" : "focus:border-blue-400"
+                        errors.full_name ? "border-red-400 focus:border-red-400" : "focus:border-blue-400"
                       }`}
-                      value={formData.name}
+                      value={formData.full_name}
                       onChange={handleChange}
                       required
                     />
-                    {errors.name && <X className="absolute right-3 top-3 h-5 w-5 text-red-400" />}
                   </div>
                   <AnimatePresence>
-                    {errors.name && (
+                    {errors.full_name && (
                       <motion.p
                         initial={{ opacity: 0, y: -10 }}
                         animate={{ opacity: 1, y: 0 }}
@@ -237,7 +217,7 @@ export default function RegisterPage() {
                         className="text-red-400 text-sm flex items-center gap-1"
                       >
                         <AlertCircle className="h-4 w-4" />
-                        {errors.name}
+                        {errors.full_name}
                       </motion.p>
                     )}
                   </AnimatePresence>
@@ -266,7 +246,6 @@ export default function RegisterPage() {
                       onChange={handleChange}
                       required
                     />
-                    {errors.email && <X className="absolute right-3 top-3 h-5 w-5 text-red-400" />}
                   </div>
                   <AnimatePresence>
                     {errors.email && (

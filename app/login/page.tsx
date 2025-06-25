@@ -1,18 +1,17 @@
+
 "use client"
 
-import type React from "react"
-import { useState } from "react"
+import React, { useState } from "react"
 import Link from "next/link"
+import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Header } from "@/components/header"
 import { Footer } from "@/components/footer"
-import { Mail, Lock, Loader2, Eye, EyeOff, Shield, LogIn, AlertCircle, X } from "lucide-react"
-import { useProjectStatus } from "@/hooks/use-project-status"
+import { Mail, Lock, Loader2, Eye, EyeOff, Shield, LogIn, AlertCircle } from "lucide-react"
 import { motion, AnimatePresence } from "framer-motion"
 import { toast } from "sonner"
-import { useRouter } from "next/navigation"
 
 export default function LoginPage() {
   const router = useRouter()
@@ -21,7 +20,6 @@ export default function LoginPage() {
   const [password, setPassword] = useState("")
   const [showPassword, setShowPassword] = useState(false)
   const [errors, setErrors] = useState<Record<string, string>>({})
-  const { isLaunched, timeLeft, loading: statusLoading } = useProjectStatus()
 
   const validateForm = () => {
     const newErrors: Record<string, string> = {}
@@ -49,7 +47,7 @@ export default function LoginPage() {
     setIsLoading(true)
 
     try {
-      console.log("🚀 Sending login request...")
+      console.log("🚀 Отправка запроса на вход...")
 
       const response = await fetch("/api/auth/login", {
         method: "POST",
@@ -62,18 +60,21 @@ export default function LoginPage() {
         }),
       })
 
-      console.log("📡 Response status:", response.status)
+      console.log("📡 Статус ответа:", response.status)
 
       const data = await response.json()
-      console.log("📦 Response data:", data)
+      console.log("📦 Данные ответа:", data)
 
       if (!response.ok) {
         let errorMessage = "Ошибка авторизации"
 
-        // Детальная обработка ошибок
         switch (response.status) {
           case 401:
             errorMessage = data.error || "Неверный email/пароль"
+            setErrors({
+              loginField: "Проверьте email или имя",
+              password: "Неверный пароль",
+            })
             break
           case 404:
             errorMessage = "Пользователь не найден"
@@ -88,28 +89,22 @@ export default function LoginPage() {
             errorMessage = data.error || `Ошибка: ${response.status}`
         }
 
-        // Показываем ошибку в поле формы
-        if (response.status === 401) {
-          setErrors({
-            loginField: "Проверьте email или имя",
-            password: "Неверный пароль",
-          })
-        }
-
         throw new Error(errorMessage)
       }
 
-      console.log("✅ Login successful:", data)
+      console.log("✅ Вход успешен:", data)
 
       // Сохраняем данные пользователя
-      localStorage.setItem("userEmail", data.user.email)
-      localStorage.setItem("userName", data.user.full_name)
-      localStorage.setItem("userId", data.user.id)
-      localStorage.setItem("userRole", data.user.role || "user")
-      localStorage.setItem("userBalance", data.user.balance || "0.00")
-      localStorage.setItem("userTotalInvested", data.user.total_invested || "0.00")
-      localStorage.setItem("userTotalEarned", data.user.total_earned || "0.00")
-      localStorage.setItem("isAuthenticated", "true")
+      if (data.user) {
+        localStorage.setItem("userEmail", data.user.email)
+        localStorage.setItem("userName", data.user.full_name)
+        localStorage.setItem("userId", data.user.id)
+        localStorage.setItem("userRole", data.user.role || "user")
+        localStorage.setItem("userBalance", data.user.balance?.toString() || "0.00")
+        localStorage.setItem("userTotalInvested", data.user.total_invested?.toString() || "0.00")
+        localStorage.setItem("userTotalEarned", data.user.total_earned?.toString() || "0.00")
+        localStorage.setItem("isAuthenticated", "true")
+      }
       
       if (data.token) {
         localStorage.setItem("authToken", data.token)
@@ -119,7 +114,7 @@ export default function LoginPage() {
         localStorage.setItem("adminAuth", "true")
       }
 
-      toast.success("Вход выполнен успешно!", {
+      toast.success("🎉 Вход выполнен успешно!", {
         description: `Добро пожаловать, ${data.user.full_name}!`,
         duration: 3000,
       })
@@ -131,12 +126,12 @@ export default function LoginPage() {
         } else {
           router.push("/dashboard")
         }
-      }, 1000)
+      }, 1500)
+
     } catch (error) {
-      console.error("❌ Login error:", error)
+      console.error("❌ Ошибка входа:", error)
 
       let errorMessage = "Ошибка авторизации"
-
       if (error instanceof Error) {
         errorMessage = error.message
       }
@@ -145,24 +140,10 @@ export default function LoginPage() {
         description: "Проверьте данные и попробуйте снова",
         duration: 5000,
       })
+
     } finally {
       setIsLoading(false)
     }
-  }
-
-  if (statusLoading) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900 flex items-center justify-center">
-        <motion.div
-          initial={{ opacity: 0, scale: 0.8 }}
-          animate={{ opacity: 1, scale: 1 }}
-          className="text-center text-white"
-        >
-          <Loader2 className="h-12 w-12 animate-spin mx-auto mb-4" />
-          <p className="text-lg">Проверка статуса платформы...</p>
-        </motion.div>
-      </div>
-    )
   }
 
   return (
@@ -225,7 +206,6 @@ export default function LoginPage() {
                       }}
                       required
                     />
-                    {errors.loginField && <X className="absolute right-3 top-3 h-5 w-5 text-red-400" />}
                   </div>
                   <AnimatePresence>
                     {errors.loginField && (
@@ -264,7 +244,8 @@ export default function LoginPage() {
                     <Input
                       id="password"
                       type={showPassword ? "text" : "password"}
-                      className={`pl-12 pr-12 h-12 bg-white/10 border-white/20 text-white rounded-xl transition-all duration-300 ${
+                      placeholder="Введите пароль"
+                      className={`pl-12 pr-12 h-12 bg-white/10 border-white/20 text-white placeholder:text-white/50 rounded-xl transition-all duration-300 ${
                         errors.password ? "border-red-400 focus:border-red-400" : "focus:border-blue-400"
                       }`}
                       value={password}
