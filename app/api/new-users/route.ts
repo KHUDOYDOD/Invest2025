@@ -12,7 +12,8 @@ export async function GET() {
         u.id,
         u.full_name as name,
         u.email,
-        u.created_at as joined_date
+        u.created_at as joined_date,
+        u.country
       FROM users u
       WHERE u.role_id = 2
       ORDER BY u.created_at DESC

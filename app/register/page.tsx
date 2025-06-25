@@ -8,11 +8,12 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Checkbox } from "@/components/ui/checkbox"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Header } from "@/components/header"
 import { Footer } from "@/components/footer"
-import { User, Mail, Lock, Loader2, Eye, EyeOff, CheckCircle, AlertCircle, UserPlus, Shield } from "lucide-react"
+import { User, Mail, Lock, Loader2, Eye, EyeOff, CheckCircle, AlertCircle, UserPlus, Shield, Globe } from "lucide-react"
 import { motion, AnimatePresence } from "framer-motion"
 import { toast } from "sonner"
 
@@ -26,6 +27,7 @@ export default function RegisterPage() {
     email: "",
     password: "",
     confirmPassword: "",
+    country: "",
     agreeTerms: false,
   })
   const [errors, setErrors] = useState<Record<string, string>>({})
@@ -70,6 +72,10 @@ export default function RegisterPage() {
       newErrors.confirmPassword = "Пароли не совпадают"
     }
 
+    if (!formData.country) {
+      newErrors.country = "Выберите страну"
+    }
+
     if (!formData.agreeTerms) {
       newErrors.agreeTerms = "Необходимо согласие с условиями"
     }
@@ -98,6 +104,7 @@ export default function RegisterPage() {
           email: formData.email,
           password: formData.password,
           fullName: formData.full_name,
+          country: formData.country,
         }),
       })
 
@@ -313,6 +320,76 @@ export default function RegisterPage() {
                 </AnimatePresence>
               </div>
 
+              <div className="space-y-3">
+                <Label htmlFor="country" className="text-white font-medium">
+                  Страна
+                </Label>
+                <div className="relative">
+                  <Globe className="absolute left-3 top-3 h-5 w-5 text-white/50 z-10" />
+                  <Select
+                    value={formData.country}
+                    onValueChange={(value) => {
+                      setFormData((prev) => ({ ...prev, country: value }))
+                      if (errors.country) {
+                        setErrors((prev) => ({ ...prev, country: "" }))
+                      }
+                    }}
+                    disabled={isLoading}
+                  >
+                    <SelectTrigger className={`pl-12 h-12 text-base bg-white/10 border-white/20 text-white rounded-xl transition-all duration-300 ${
+                      errors.country ? "border-red-400 focus:border-red-400" : "focus:border-blue-400"
+                    }`}>
+                      <SelectValue placeholder="Выберите страну" className="text-white/50" />
+                    </SelectTrigger>
+                    <SelectContent className="bg-slate-800 border-slate-600">
+                      <SelectItem value="RU" className="text-white hover:bg-slate-700">🇷🇺 Россия</SelectItem>
+                      <SelectItem value="US" className="text-white hover:bg-slate-700">🇺🇸 США</SelectItem>
+                      <SelectItem value="GB" className="text-white hover:bg-slate-700">🇬🇧 Великобритания</SelectItem>
+                      <SelectItem value="DE" className="text-white hover:bg-slate-700">🇩🇪 Германия</SelectItem>
+                      <SelectItem value="FR" className="text-white hover:bg-slate-700">🇫🇷 Франция</SelectItem>
+                      <SelectItem value="IT" className="text-white hover:bg-slate-700">🇮🇹 Италия</SelectItem>
+                      <SelectItem value="ES" className="text-white hover:bg-slate-700">🇪🇸 Испания</SelectItem>
+                      <SelectItem value="CA" className="text-white hover:bg-slate-700">🇨🇦 Канада</SelectItem>
+                      <SelectItem value="AU" className="text-white hover:bg-slate-700">🇦🇺 Австралия</SelectItem>
+                      <SelectItem value="JP" className="text-white hover:bg-slate-700">🇯🇵 Япония</SelectItem>
+                      <SelectItem value="KR" className="text-white hover:bg-slate-700">🇰🇷 Южная Корея</SelectItem>
+                      <SelectItem value="CN" className="text-white hover:bg-slate-700">🇨🇳 Китай</SelectItem>
+                      <SelectItem value="IN" className="text-white hover:bg-slate-700">🇮🇳 Индия</SelectItem>
+                      <SelectItem value="BR" className="text-white hover:bg-slate-700">🇧🇷 Бразилия</SelectItem>
+                      <SelectItem value="MX" className="text-white hover:bg-slate-700">🇲🇽 Мексика</SelectItem>
+                      <SelectItem value="UA" className="text-white hover:bg-slate-700">🇺🇦 Украина</SelectItem>
+                      <SelectItem value="PL" className="text-white hover:bg-slate-700">🇵🇱 Польша</SelectItem>
+                      <SelectItem value="NL" className="text-white hover:bg-slate-700">🇳🇱 Нидерланды</SelectItem>
+                      <SelectItem value="SE" className="text-white hover:bg-slate-700">🇸🇪 Швеция</SelectItem>
+                      <SelectItem value="NO" className="text-white hover:bg-slate-700">🇳🇴 Норвегия</SelectItem>
+                      <SelectItem value="TR" className="text-white hover:bg-slate-700">🇹🇷 Турция</SelectItem>
+                      <SelectItem value="AR" className="text-white hover:bg-slate-700">🇦🇷 Аргентина</SelectItem>
+                      <SelectItem value="CL" className="text-white hover:bg-slate-700">🇨🇱 Чили</SelectItem>
+                      <SelectItem value="CO" className="text-white hover:bg-slate-700">🇨🇴 Колумбия</SelectItem>
+                      <SelectItem value="VE" className="text-white hover:bg-slate-700">🇻🇪 Венесуэла</SelectItem>
+                      <SelectItem value="PT" className="text-white hover:bg-slate-700">🇵🇹 Португалия</SelectItem>
+                      <SelectItem value="GR" className="text-white hover:bg-slate-700">🇬🇷 Греция</SelectItem>
+                      <SelectItem value="FI" className="text-white hover:bg-slate-700">🇫🇮 Финляндия</SelectItem>
+                      <SelectItem value="DK" className="text-white hover:bg-slate-700">🇩🇰 Дания</SelectItem>
+                      <SelectItem value="AT" className="text-white hover:bg-slate-700">🇦🇹 Австрия</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <AnimatePresence>
+                  {errors.country && (
+                    <motion.p
+                      initial={{ opacity: 0, y: -10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -10 }}
+                      className="text-red-400 text-sm flex items-center gap-1"
+                    >
+                      <AlertCircle className="h-4 w-4" />
+                      {errors.country}
+                    </motion.p>
+                  )}
+                </AnimatePresence>
+              </div>
+
               <div className="flex items-start space-x-3">
                 <Checkbox
                   id="agreeTerms"
@@ -355,7 +432,7 @@ export default function RegisterPage() {
               <Button
                 type="submit"
                 className="w-full h-12 text-base font-semibold bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white border-none rounded-xl shadow-lg hover:shadow-xl transform hover:scale-[1.02] transition-all duration-300"
-                disabled={isLoading || !formData.email.trim() || !formData.password || !formData.full_name.trim() || !formData.confirmPassword || !formData.agreeTerms}
+                disabled={isLoading || !formData.email.trim() || !formData.password || !formData.full_name.trim() || !formData.confirmPassword || !formData.country || !formData.agreeTerms}
               >
                 {isLoading ? (
                   <>

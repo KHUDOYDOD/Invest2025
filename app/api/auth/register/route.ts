@@ -79,7 +79,7 @@ export async function POST(request: NextRequest) {
         is_active,
         email_verified
       ) VALUES ($1, $2, $3, $4, $5, $6, 2, 'active', true, true)
-      RETURNING id, email, full_name, referral_code
+      RETURNING id, email, full_name, referral_code, country
     `, [email, fullName, passwordHash, phone || null, country || null, referralCode]);
 
     const user = newUser.rows[0];

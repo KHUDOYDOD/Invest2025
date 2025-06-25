@@ -11,7 +11,7 @@ interface NewUser {
   name: string
   email: string
   joinedDate: string
-  country?: string
+  country: string
 }
 
 const countryFlags: Record<string, string> = {
@@ -80,10 +80,7 @@ const countryNames: Record<string, string> = {
   'AT': 'Австрия'
 }
 
-const getRandomCountry = () => {
-  const countries = Object.keys(countryFlags)
-  return countries[Math.floor(Math.random() * countries.length)]
-}
+
 
 export function NewUsersShowcase() {
   const [newUsers, setNewUsers] = useState<NewUser[]>([])
@@ -100,10 +97,10 @@ export function NewUsersShowcase() {
         if (response.ok) {
           const data = await response.json()
           if (data.success && Array.isArray(data.data)) {
-            // Добавляем случайные страны для демонстрации
+            // Используем реальные данные стран из базы данных
             const usersWithCountries = data.data.map((user: any) => ({
               ...user,
-              country: getRandomCountry()
+              country: user.country || 'RU' // Россия по умолчанию, если страна не указана
             }))
             setNewUsers(usersWithCountries)
           } else {
