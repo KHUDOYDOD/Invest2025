@@ -16,7 +16,6 @@ import { MobileApp } from "@/components/mobile-app"
 import { TrustIndicators } from "@/components/trust-indicators"
 import { LiveActivityFeed } from "@/components/live-activity-feed"
 import { UserActivityRows } from "@/components/user-activity-rows"
-import { PublicStats } from "@/components/public-stats"
 import { PlatformStatistics } from "@/components/platform-statistics"
 import { ProjectLaunches } from "@/components/project-launches"
 import { AdminAccessButton } from "@/components/admin-access-button"
@@ -38,11 +37,6 @@ export default function HomePage() {
       {/* Trust Indicators */}
       <div className="relative z-10">
         <TrustIndicators />
-      </div>
-
-      {/* Public Statistics */}
-      <div className="relative z-10">
-        <PublicStats />
       </div>
 
       {/* Platform Statistics */}
