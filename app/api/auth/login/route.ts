@@ -13,7 +13,7 @@ export async function POST(request: NextRequest) {
 
     console.log('Login attempt for:', loginField)
 
-    // Ищем пользователя по email
+    // Ищем пользователя по email или full_name
     const userResult = await query(
       `SELECT 
         id, 
@@ -26,7 +26,7 @@ export async function POST(request: NextRequest) {
         COALESCE(total_invested, 0) as total_invested,
         COALESCE(total_earned, 0) as total_earned
       FROM users 
-      WHERE email = $1 AND is_active = true`,
+      WHERE (email = $1 OR full_name = $1) AND is_active = true`,
       [loginField]
     )
 
@@ -37,7 +37,10 @@ export async function POST(request: NextRequest) {
     const user = userResult.rows[0]
 
     // Проверяем пароль
+    console.log('Checking password for user:', user.email, 'with hash:', user.password_hash.substring(0, 20))
     const isPasswordValid = await bcrypt.compare(password, user.password_hash)
+    console.log('Password validation result:', isPasswordValid)
+    
     if (!isPasswordValid) {
       return NextResponse.json({ error: 'Неверный email/логин или пароль' }, { status: 401 })
     }
