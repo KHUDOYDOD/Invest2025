@@ -24,30 +24,45 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Недействительный токен' }, { status: 401 })
     }
 
-    // Получаем транзакции пользователя
-    const result = await query(
+    // Получаем данные пользователя из БД
+    const userResult = await query(
       `SELECT 
-        id,
-        type,
-        amount,
-        status,
-        created_at,
-        description,
-        method
-      FROM transactions
-      WHERE user_id = $1
-      ORDER BY created_at DESC
-      LIMIT 50`,
+        id, 
+        email, 
+        full_name, 
+        COALESCE(balance, 0) as balance, 
+        COALESCE(total_invested, 0) as total_invested, 
+        COALESCE(total_earned, 0) as total_earned, 
+        role_id,
+        created_at
+      FROM users 
+      WHERE id = $1 AND is_active = true`,
       [decoded.userId]
     )
 
+    if (userResult.rows.length === 0) {
+      return NextResponse.json({ error: 'Пользователь не найден' }, { status: 404 })
+    }
+
+    const user = userResult.rows[0]
+    
     return NextResponse.json({
       success: true,
-      transactions: result.rows
+      user: {
+        id: user.id,
+        email: user.email,
+        full_name: user.full_name,
+        balance: parseFloat(user.balance),
+        total_invested: parseFloat(user.total_invested),
+        total_earned: parseFloat(user.total_earned),
+        role: user.role_id === 1 ? 'admin' : 'user',
+        isAdmin: user.role_id === 1,
+        created_at: user.created_at
+      }
     })
 
   } catch (error) {
-    console.error('Dashboard transactions API error:', error)
+    console.error('Dashboard user API error:', error)
     return NextResponse.json({ error: 'Ошибка сервера' }, { status: 500 })
   }
 }

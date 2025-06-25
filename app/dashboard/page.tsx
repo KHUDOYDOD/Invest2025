@@ -63,50 +63,66 @@ function DashboardContent() {
       setLoading(true)
       setError(null)
 
+      const token = localStorage.getItem("authToken")
       const userId = localStorage.getItem("userId")
-      const userEmail = localStorage.getItem("userEmail")
 
-      if (!userId || !userEmail) {
+      if (!token || !userId) {
         throw new Error("Пользователь не авторизован")
       }
 
-      console.log("🔄 Fetching dashboard data for user:", userEmail)
+      console.log("Dashboard: Fetching user data with token...")
 
-      const response = await fetch("/api/user/dashboard", {
-        method: "POST",
+      // Получаем данные пользователя
+      const userResponse = await fetch("/api/dashboard/user", {
         headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ userId }),
+          "Authorization": `Bearer ${token}`,
+          "Content-Type": "application/json"
+        }
       })
 
-      if (!response.ok) {
-        const errorData = await response.json()
-        throw new Error(errorData.error || "Ошибка загрузки данных")
-      }
-
-      const data = await response.json()
-      console.log("✅ Dashboard data loaded:", data)
-
-      if (data.success) {
-        console.log("Setting dashboard data:", data)
-        setUserData(data.user)
-        setInvestments(data.investments || [])
-        setTransactions(data.transactions || [])
-
-        // Обновляем localStorage с актуальными данными
-        if (data.user) {
-          localStorage.setItem("userName", data.user.name || "")
-          localStorage.setItem("userRole", data.user.isAdmin ? "admin" : "user")
-          localStorage.setItem("userBalance", (data.user.balance || 0).toString())
-          localStorage.setItem("userTotalInvested", (data.user.totalInvested || 0).toString())
-          localStorage.setItem("userTotalEarned", (data.user.totalEarned || 0).toString())
+      if (!userResponse.ok) {
+        if (userResponse.status === 401) {
+          localStorage.clear()
+          window.location.href = "/login"
+          return
         }
-      } else {
-        throw new Error(data.error || "Ошибка загрузки данных")
+        throw new Error(`Ошибка ${userResponse.status}`)
       }
+
+      const userData = await userResponse.json()
+      console.log("Dashboard: User data loaded:", userData)
+      setUserData(userData.user)
+
+      // Получаем инвестиции
+      const investmentsResponse = await fetch("/api/dashboard/investments", {
+        headers: {
+          "Authorization": `Bearer ${token}`,
+          "Content-Type": "application/json"
+        }
+      })
+
+      if (investmentsResponse.ok) {
+        const investmentsData = await investmentsResponse.json()
+        setInvestments(investmentsData.investments || [])
+      }
+
+      // Получаем транзакции
+      const transactionsResponse = await fetch("/api/dashboard/transactions", {
+        headers: {
+          "Authorization": `Bearer ${token}`,
+          "Content-Type": "application/json"
+        }
+      })
+
+      if (transactionsResponse.ok) {
+        const transactionsData = await transactionsResponse.json()
+        setTransactions(transactionsData.transactions || [])
+      }
+
+      console.log("Dashboard: All data loaded successfully")
+
     } catch (err) {
-      console.error("❌ Dashboard: Error fetching data:", err)
+      console.error("Dashboard: Error fetching data:", err)
       setError(err instanceof Error ? err.message : "Ошибка загрузки данных")
     } finally {
       setLoading(false)

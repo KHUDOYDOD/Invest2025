@@ -179,12 +179,13 @@ export default function RegisterPage() {
 
       // Перенаправляем в соответствующую панель
       setTimeout(() => {
+        console.log("Redirecting user to:", data.user.isAdmin ? "/admin/dashboard" : "/dashboard")
         if (data.user.isAdmin) {
-          router.push("/admin/dashboard")
+          window.location.href = "/admin/dashboard"
         } else {
-          router.push("/dashboard")
+          window.location.href = "/dashboard"
         }
-      }, 1000)
+      }, 1500)
     } catch (error) {
       console.error("❌ Registration error:", error)
 
