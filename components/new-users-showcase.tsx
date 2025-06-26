@@ -1,3 +1,4 @@
+
 "use client"
 
 import { useState, useEffect } from "react"
@@ -68,17 +69,6 @@ const countryNames: Record<string, string> = {
   'DK': 'Дания',
   'AT': 'Австрия'
 }
-
-interface User {
-  id: string
-  name: string
-  email: string
-  joinedDate: string
-  country: string
-  countryFlag: string
-  countryName: string
-}
-
 
 export function NewUsersShowcase() {
   const [newUsers, setNewUsers] = useState<NewUser[]>([])
