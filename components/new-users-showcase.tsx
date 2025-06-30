@@ -382,14 +382,14 @@ export function NewUsersShowcase({ limit, showButton = true }: NewUsersShowcaseP
 
               {showButton && !showAll && (
           <div className="mt-8 text-center animate-fade-in-delayed">
-            <Link href="/all-users">
+            <a href="/all-users">
               <button className="group relative px-10 py-4 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-bold text-lg rounded-2xl transition-all duration-300 hover:scale-105 hover:shadow-2xl border-2 border-emerald-400/30">
                 <span className="relative z-10 flex items-center gap-3">
                   👥 Показать всех участников ({filteredUsers.length})
                 </span>
                 <div className="absolute inset-0 bg-gradient-to-r from-emerald-400 to-teal-400 rounded-2xl opacity-0 group-hover:opacity-30 transition-opacity duration-300"></div>
               </button>
-            </Link>
+            </a>
           </div>
         )}
 

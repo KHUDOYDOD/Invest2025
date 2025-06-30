@@ -38,7 +38,6 @@ export default function AllUsersPage() {
   const [loading, setLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState("")
   const [filterCountry, setFilterCountry] = useState("all")
-  const [sortBy, setSortBy] = useState("latest")
 
   useEffect(() => {
     const fetchUsers = async () => {
@@ -342,37 +341,6 @@ export default function AllUsersPage() {
             <p className="text-slate-400 text-xl">Участники не найдены</p>
             <p className="text-slate-500 mt-2">Попробуйте изменить параметры поиска</p>
           </motion.div>
-        )}
-
-        {/* Pagination */}
-        {filteredUsers.length > 0 && (
-          <motion.div 
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.4 }}
-            className="flex justify-center"
-          >
-            <div className="flex items-center gap-2">
-              <Button variant="outline" className="bg-white/10 border-white/20 text-white hover:bg-white/20">
-                Предыдущая
-              </Button>
-              <div className="flex items-center gap-1">
-                {[1, 2, 3].map((page) => (
-                  <Button
-                    key={page}
-                    variant={page === 1 ? "default" : "outline"}
-                    size="sm"
-                    className={page === 1 ? "bg-emerald-600 text-white" : "bg-white/10 border-white/20 text-white hover:bg-white/20"}
-                  >
-                    {page}
-                  </Button>
-                ))}
-              </div>
-              <Button variant="outline" className="bg-white/10 border-white/20 text-white hover:bg-white/20">
-                Следующая
-              </Button>
-            </div>
-          </div>
         )}
       </div>
     </div>
