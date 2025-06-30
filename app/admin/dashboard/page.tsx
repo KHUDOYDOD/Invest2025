@@ -1,3 +1,4 @@
+
 "use client"
 
 import { useState, useEffect } from "react"
@@ -5,6 +6,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Progress } from "@/components/ui/progress"
+import { AdminStats } from "@/components/admin/admin-stats"
+import { RecentTransactions } from "@/components/admin/recent-transactions"
+import { NewUsersShowcase } from "@/components/new-users-showcase"
+import { UserActivityRows } from "@/components/user-activity-rows"
 import {
   Users,
   DollarSign,
@@ -21,6 +26,12 @@ import {
   PieChart,
   LineChart,
   Sparkles,
+  Eye,
+  UserPlus,
+  CreditCard,
+  AlertTriangle,
+  CheckCircle,
+  ExternalLink,
 } from "lucide-react"
 
 export default function AdminDashboard() {
@@ -34,10 +45,17 @@ export default function AdminDashboard() {
   })
 
   const [recentActivity, setRecentActivity] = useState([
-    { id: 1, action: "Новый пользователь зарегистрирован", user: "user@example.com", time: "2 мин назад" },
-    { id: 2, action: "Депозит обработан", amount: "$500", time: "5 мин назад" },
-    { id: 3, action: "Вывод средств одобрен", amount: "$1,200", time: "10 мин назад" },
-    { id: 4, action: "Новая инвестиция создана", plan: "Premium Plan", time: "15 мин назад" },
+    { id: 1, action: "Новый пользователь зарегистрирован", user: "user@example.com", time: "2 мин назад", type: "user" },
+    { id: 2, action: "Депозит обработан", amount: "$500", time: "5 мин назад", type: "deposit" },
+    { id: 3, action: "Вывод средств одобрен", amount: "$1,200", time: "10 мин назад", type: "withdrawal" },
+    { id: 4, action: "Новая инвестиция создана", plan: "Premium Plan", time: "15 мин назад", type: "investment" },
+    { id: 5, action: "Система обновлена", details: "Безопасность", time: "1 час назад", type: "system" },
+  ])
+
+  const [systemAlerts, setSystemAlerts] = useState([
+    { id: 1, type: "warning", message: "Высокая нагрузка на сервер", time: "5 мин назад" },
+    { id: 2, type: "info", message: "Резервное копирование завершено", time: "1 час назад" },
+    { id: 3, type: "success", message: "Все системы работают нормально", time: "2 часа назад" },
   ])
 
   // Simulate real-time updates
@@ -46,250 +64,232 @@ export default function AdminDashboard() {
       setStats((prev) => ({
         ...prev,
         systemLoad: Math.max(20, Math.min(80, prev.systemLoad + (Math.random() - 0.5) * 10)),
-        activeUsers: prev.activeUsers + Math.floor(Math.random() * 3 - 1),
+        activeUsers: prev.activeUsers + Math.floor((Math.random() - 0.5) * 5),
       }))
     }, 5000)
 
     return () => clearInterval(interval)
   }, [])
 
-  const quickActions = [
-    { name: "Добавить пользователя", icon: <Users className="w-4 h-4" />, color: "blue" },
-    { name: "Создать план", icon: <TrendingUp className="w-4 h-4" />, color: "green" },
-    { name: "Отправить уведомление", icon: <Bell className="w-4 h-4" />, color: "purple" },
-    { name: "Генерировать отчет", icon: <BarChart3 className="w-4 h-4" />, color: "orange" },
-  ]
+  const getActivityIcon = (type: string) => {
+    switch (type) {
+      case "user": return <UserPlus className="h-4 w-4 text-blue-500" />
+      case "deposit": return <ArrowUpRight className="h-4 w-4 text-green-500" />
+      case "withdrawal": return <CreditCard className="h-4 w-4 text-orange-500" />
+      case "investment": return <TrendingUp className="h-4 w-4 text-purple-500" />
+      case "system": return <Shield className="h-4 w-4 text-gray-500" />
+      default: return <Activity className="h-4 w-4" />
+    }
+  }
+
+  const getAlertIcon = (type: string) => {
+    switch (type) {
+      case "warning": return <AlertTriangle className="h-4 w-4 text-yellow-500" />
+      case "success": return <CheckCircle className="h-4 w-4 text-green-500" />
+      case "info": return <Bell className="h-4 w-4 text-blue-500" />
+      default: return <Bell className="h-4 w-4" />
+    }
+  }
 
   return (
-    <div className="space-y-8">
-      {/* Welcome Section */}
-      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 p-8 text-white">
-        <div className="absolute inset-0 bg-black/20"></div>
-        <div className="relative z-10">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-3xl font-bold mb-2">Добро пожаловать в админ панель! 🚀</h1>
-              <p className="text-blue-100 text-lg">Управляйте своей платформой с помощью современных инструментов</p>
-            </div>
-            <div className="hidden md:block">
-              <Sparkles className="w-16 h-16 text-white/50 animate-pulse" />
-            </div>
-          </div>
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex justify-between items-center">
+        <div>
+          <h1 className="text-3xl font-bold text-white mb-2">
+            Панель управления
+          </h1>
+          <p className="text-slate-400">
+            Добро пожаловать в административную панель InvestPro
+          </p>
+        </div>
+        <div className="flex space-x-3">
+          <Button className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700">
+            <Sparkles className="mr-2 h-4 w-4" />
+            Обновить данные
+          </Button>
         </div>
       </div>
 
-      {/* Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <Card className="bg-gradient-to-br from-blue-50 to-blue-100 border-blue-200 hover:shadow-lg transition-all duration-300">
-          <CardContent className="p-6">
+      {/* Quick Stats */}
+      <AdminStats />
+
+      {/* System Status Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <Card className="bg-slate-800/50 border-slate-700">
+          <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-blue-600 text-sm font-medium">Всего пользователей</p>
-                <p className="text-3xl font-bold text-blue-900">{stats.totalUsers.toLocaleString()}</p>
-                <div className="flex items-center mt-2">
-                  <ArrowUpRight className="w-4 h-4 text-green-500 mr-1" />
-                  <span className="text-green-600 text-sm font-medium">+8.2%</span>
-                </div>
+                <p className="text-sm text-slate-400">Нагрузка системы</p>
+                <p className="text-2xl font-bold text-white">{stats.systemLoad}%</p>
               </div>
-              <div className="p-3 bg-blue-500 rounded-xl">
-                <Users className="w-6 h-6 text-white" />
+              <div className="bg-orange-500/20 p-2 rounded-full">
+                <BarChart3 className="h-5 w-5 text-orange-400" />
               </div>
+            </div>
+            <Progress value={stats.systemLoad} className="mt-2" />
+          </CardContent>
+        </Card>
+
+        <Card className="bg-slate-800/50 border-slate-700">
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-slate-400">Время работы</p>
+                <p className="text-2xl font-bold text-white">{stats.uptime}%</p>
+              </div>
+              <div className="bg-green-500/20 p-2 rounded-full">
+                <Shield className="h-5 w-5 text-green-400" />
+              </div>
+            </div>
+            <div className="mt-2 text-xs text-green-400">
+              ✓ Все системы в норме
             </div>
           </CardContent>
         </Card>
 
-        <Card className="bg-gradient-to-br from-green-50 to-green-100 border-green-200 hover:shadow-lg transition-all duration-300">
-          <CardContent className="p-6">
+        <Card className="bg-slate-800/50 border-slate-700">
+          <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-green-600 text-sm font-medium">Активные пользователи</p>
-                <p className="text-3xl font-bold text-green-900">{stats.activeUsers.toLocaleString()}</p>
-                <div className="flex items-center mt-2">
-                  <ArrowUpRight className="w-4 h-4 text-green-500 mr-1" />
-                  <span className="text-green-600 text-sm font-medium">+12.5%</span>
-                </div>
+                <p className="text-sm text-slate-400">Активные пользователи</p>
+                <p className="text-2xl font-bold text-white">{stats.activeUsers}</p>
               </div>
-              <div className="p-3 bg-green-500 rounded-xl">
-                <Activity className="w-6 h-6 text-white" />
+              <div className="bg-blue-500/20 p-2 rounded-full">
+                <Users className="h-5 w-5 text-blue-400" />
               </div>
             </div>
-          </CardContent>
-        </Card>
-
-        <Card className="bg-gradient-to-br from-purple-50 to-purple-100 border-purple-200 hover:shadow-lg transition-all duration-300">
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-purple-600 text-sm font-medium">Общий доход</p>
-                <p className="text-3xl font-bold text-purple-900">${stats.totalRevenue.toLocaleString()}</p>
-                <div className="flex items-center mt-2">
-                  <ArrowUpRight className="w-4 h-4 text-green-500 mr-1" />
-                  <span className="text-green-600 text-sm font-medium">+15.3%</span>
-                </div>
-              </div>
-              <div className="p-3 bg-purple-500 rounded-xl">
-                <DollarSign className="w-6 h-6 text-white" />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="bg-gradient-to-br from-orange-50 to-orange-100 border-orange-200 hover:shadow-lg transition-all duration-300">
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-orange-600 text-sm font-medium">Рост за месяц</p>
-                <p className="text-3xl font-bold text-orange-900">{stats.monthlyGrowth}%</p>
-                <div className="flex items-center mt-2">
-                  <ArrowUpRight className="w-4 h-4 text-green-500 mr-1" />
-                  <span className="text-green-600 text-sm font-medium">+2.1%</span>
-                </div>
-              </div>
-              <div className="p-3 bg-orange-500 rounded-xl">
-                <TrendingUp className="w-6 h-6 text-white" />
-              </div>
+            <div className="mt-2 text-xs text-blue-400">
+              Онлайн сейчас
             </div>
           </CardContent>
         </Card>
       </div>
 
-      {/* System Status & Quick Actions */}
+      {/* Main Content Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <Card className="bg-gradient-to-br from-slate-50 to-slate-100">
+        {/* Recent Activity */}
+        <Card className="bg-slate-800/50 border-slate-700">
           <CardHeader>
-            <CardTitle className="flex items-center space-x-2">
-              <Shield className="w-5 h-5 text-green-500" />
-              <span>Статус системы</span>
-              <Badge className="bg-green-100 text-green-700">Стабильно</Badge>
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="space-y-3">
-              <div className="flex justify-between items-center">
-                <span className="text-sm font-medium">Загрузка CPU</span>
-                <span className="text-sm text-gray-600">{stats.systemLoad}%</span>
-              </div>
-              <Progress value={stats.systemLoad} className="h-2" />
-            </div>
-
-            <div className="space-y-3">
-              <div className="flex justify-between items-center">
-                <span className="text-sm font-medium">Время работы</span>
-                <span className="text-sm text-gray-600">{stats.uptime}%</span>
-              </div>
-              <Progress value={stats.uptime} className="h-2" />
-            </div>
-
-            <div className="grid grid-cols-2 gap-4 mt-4">
-              <div className="flex items-center space-x-2">
-                <Database className="w-4 h-4 text-blue-500" />
-                <span className="text-sm">БД: Активна</span>
-              </div>
-              <div className="flex items-center space-x-2">
-                <Globe className="w-4 h-4 text-green-500" />
-                <span className="text-sm">API: Работает</span>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="bg-gradient-to-br from-indigo-50 to-indigo-100">
-          <CardHeader>
-            <CardTitle className="flex items-center space-x-2">
-              <Zap className="w-5 h-5 text-indigo-500" />
-              <span>Быстрые действия</span>
+            <CardTitle className="text-white flex items-center">
+              <Activity className="mr-2 h-5 w-5" />
+              Последние операции
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-2 gap-3">
-              {quickActions.map((action, index) => (
-                <Button
-                  key={index}
-                  variant="outline"
-                  className="h-16 flex flex-col items-center justify-center space-y-2 hover:shadow-md transition-all duration-300"
-                >
-                  <div className={`p-2 rounded-lg bg-${action.color}-100 text-${action.color}-600`}>{action.icon}</div>
-                  <span className="text-xs text-center">{action.name}</span>
-                </Button>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Recent Activity & Analytics */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center space-x-2">
-              <Clock className="w-5 h-5 text-blue-500" />
-              <span>Последняя активность</span>
-            </CardTitle>
-            <CardDescription>Недавние действия в системе</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
+            <div className="space-y-3">
               {recentActivity.slice(0, 5).map((activity) => (
-                <div key={activity.id} className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg">
-                  <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
-                  <div className="flex-1">
-                    <p className="text-sm font-medium">{activity.action}</p>
-                    <p className="text-xs text-gray-500">{activity.time}</p>
+                <div key={activity.id} className="flex items-center space-x-3 p-3 bg-slate-700/30 rounded-lg">
+                  {getActivityIcon(activity.type)}
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm text-white truncate">
+                      {activity.action}
+                    </p>
+                    <p className="text-xs text-slate-400">
+                      {activity.user || activity.amount || activity.plan || activity.details} • {activity.time}
+                    </p>
                   </div>
-                  {activity.amount && (
-                    <Badge variant="outline" className="text-green-600">
-                      {activity.amount}
-                    </Badge>
-                  )}
                 </div>
               ))}
-              {recentActivity.length > 5 && (
-                <div className="pt-2">
-                  <Button variant="outline" className="w-full text-sm">
-                    Показать всех ({recentActivity.length})
-                  </Button>
-                </div>
-              )}
+            </div>
+            <div className="mt-4">
+              <Button variant="outline" className="w-full text-slate-300 border-slate-600">
+                <Eye className="mr-2 h-4 w-4" />
+                Показать всех
+              </Button>
             </div>
           </CardContent>
         </Card>
 
-        <Card>
+        {/* New Users */}
+        <Card className="bg-slate-800/50 border-slate-700">
           <CardHeader>
-            <CardTitle className="flex items-center space-x-2">
-              <BarChart3 className="w-5 h-5 text-purple-500" />
-              <span>Аналитика</span>
+            <CardTitle className="text-white flex items-center">
+              <UserPlus className="mr-2 h-5 w-5" />
+              Новые участники
             </CardTitle>
-            <CardDescription>Ключевые метрики за сегодня</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="space-y-4">
-              <div className="flex items-center justify-between p-3 bg-blue-50 rounded-lg">
-                <div className="flex items-center space-x-2">
-                  <PieChart className="w-4 h-4 text-blue-500" />
-                  <span className="text-sm font-medium">Новые регистрации</span>
-                </div>
-                <span className="text-lg font-bold text-blue-600">+24</span>
-              </div>
-
-              <div className="flex items-center justify-between p-3 bg-green-50 rounded-lg">
-                <div className="flex items-center space-x-2">
-                  <LineChart className="w-4 h-4 text-green-500" />
-                  <span className="text-sm font-medium">Активные инвестиции</span>
-                </div>
-                <span className="text-lg font-bold text-green-600">156</span>
-              </div>
-
-              <div className="flex items-center justify-between p-3 bg-purple-50 rounded-lg">
-                <div className="flex items-center space-x-2">
-                  <TrendingUp className="w-4 h-4 text-purple-500" />
-                  <span className="text-sm font-medium">Конверсия</span>
-                </div>
-                <span className="text-lg font-bold text-purple-600">8.5%</span>
-              </div>
+            <NewUsersShowcase limit={5} />
+            <div className="mt-4">
+              <Button variant="outline" className="w-full text-slate-300 border-slate-600">
+                <Eye className="mr-2 h-4 w-4" />
+                Показать всех
+              </Button>
             </div>
           </CardContent>
         </Card>
+      </div>
+
+      {/* System Alerts */}
+      <Card className="bg-slate-800/50 border-slate-700">
+        <CardHeader>
+          <CardTitle className="text-white flex items-center">
+            <Bell className="mr-2 h-5 w-5" />
+            Системные уведомления
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-3">
+            {systemAlerts.map((alert) => (
+              <div key={alert.id} className="flex items-center space-x-3 p-3 bg-slate-700/30 rounded-lg">
+                {getAlertIcon(alert.type)}
+                <div className="flex-1">
+                  <p className="text-sm text-white">{alert.message}</p>
+                  <p className="text-xs text-slate-400">{alert.time}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Recent Transactions */}
+      <Card className="bg-slate-800/50 border-slate-700">
+        <CardHeader>
+          <CardTitle className="text-white flex items-center">
+            <CreditCard className="mr-2 h-5 w-5" />
+            Последние транзакции
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <RecentTransactions />
+        </CardContent>
+      </Card>
+
+      {/* Quick Actions */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <Button 
+          className="h-20 bg-gradient-to-r from-blue-500 to-cyan-600 hover:from-blue-600 hover:to-cyan-700 flex-col"
+          onClick={() => window.location.href = '/admin/users'}
+        >
+          <Users className="h-6 w-6 mb-2" />
+          Управление пользователями
+        </Button>
+        
+        <Button 
+          className="h-20 bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 flex-col"
+          onClick={() => window.location.href = '/admin/transactions'}
+        >
+          <CreditCard className="h-6 w-6 mb-2" />
+          Транзакции
+        </Button>
+        
+        <Button 
+          className="h-20 bg-gradient-to-r from-purple-500 to-pink-600 hover:from-purple-600 hover:to-pink-700 flex-col"
+          onClick={() => window.location.href = '/admin/investments'}
+        >
+          <TrendingUp className="h-6 w-6 mb-2" />
+          Инвестиции
+        </Button>
+        
+        <Button 
+          className="h-20 bg-gradient-to-r from-orange-500 to-red-600 hover:from-orange-600 hover:to-red-700 flex-col"
+          onClick={() => window.location.href = '/admin/settings'}
+        >
+          <Shield className="h-6 w-6 mb-2" />
+          Настройки системы
+        </Button>
       </div>
     </div>
   )
