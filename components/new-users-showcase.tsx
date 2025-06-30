@@ -380,12 +380,16 @@ export function NewUsersShowcase({ limit, showButton = true }: NewUsersShowcaseP
         )}
 
               {showButton && filteredUsers.length > displayLimit && !showAll && (
-                <div className="mt-8 text-center animate-fade-in-delayed">
-                  <Button onClick={() => setShowAll(true)}>
-                    Показать всех ({filteredUsers.length})
-                  </Button>
-                </div>
-              )}
+          <div className="mt-8 text-center animate-fade-in-delayed">
+            <button 
+              onClick={() => setShowAll(true)}
+              className="group relative px-8 py-3 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-semibold rounded-xl transition-all duration-300 hover:scale-105 hover:shadow-lg"
+            >
+              <span className="relative z-10">Показать всех участников ({filteredUsers.length})</span>
+              <div className="absolute inset-0 bg-gradient-to-r from-emerald-500 to-teal-500 rounded-xl opacity-0 group-hover:opacity-20 transition-opacity duration-300"></div>
+            </button>
+          </div>
+        )}
 
         {/* Статистика в подвале */}
         <div className="mt-12 grid grid-cols-1 md:grid-cols-3 gap-8 animate-fade-in-delayed">

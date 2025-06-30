@@ -300,17 +300,18 @@ export function UserActivityRows() {
               </tbody>
             </table>
 
-            {/* Кнопка "Показать всех" для транзакций */}
-            {filteredTransactions.length > 5 && (
-              <div className="mt-8 text-center">
-                <button className="group relative px-8 py-3 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-semibold rounded-xl transition-all duration-300 hover:scale-105 hover:shadow-lg">
-                  <span className="relative z-10">Показать все операции ({filteredTransactions.length})</span>
-                  <div className="absolute inset-0 bg-gradient-to-r from-emerald-500 to-teal-500 rounded-xl opacity-0 group-hover:opacity-20 transition-opacity duration-300"></div>
-                </button>
-              </div>
-            )}
-          </div>
+            </div>
         </div>
+
+        {/* Кнопка "Показать всех" для транзакций */}
+        {filteredTransactions.length > 5 && (
+          <div className="mt-8 text-center animate-fade-in-delayed">
+            <button className="group relative px-8 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-semibold rounded-xl transition-all duration-300 hover:scale-105 hover:shadow-lg">
+              <span className="relative z-10">Показать все операции ({filteredTransactions.length})</span>
+              <div className="absolute inset-0 bg-gradient-to-r from-indigo-500 to-purple-500 rounded-xl opacity-0 group-hover:opacity-20 transition-opacity duration-300"></div>
+            </button>
+          </div>
+        )}
 
         {filteredTransactions.length === 0 && (
           <div className="text-center py-12 animate-fade-in">
