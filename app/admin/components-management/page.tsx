@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -29,13 +29,88 @@ export default function ComponentsManagementPage() {
   // Hero Section Settings
   const [heroSettings, setHeroSettings] = useState({
     enabled: true,
-    title: "Инвестируйте в будущее с InvestPro",
-    subtitle: "Профессиональная инвестиционная платформа с гарантированной доходностью",
-    backgroundAnimation: true,
+    title: "Инвестируйте с умом, получайте стабильный доход",
+    subtitle: "Профессиональная инвестиционная платформа с ежедневными выплатами, высокой доходностью и гарантированной безопасностью",
+    badgeText: "Платформа работает с 2025 года",
+    button1Text: "Начать инвестировать",
+    button1Link: "/register",
+    button2Text: "Войти в систему",
+    button2Link: "/login",
     showButtons: true,
-    buttonText1: "Начать инвестировать",
-    buttonText2: "Узнать больше",
+    backgroundAnimation: true,
+    showStats: true,
+    statsUsers: "15K+",
+    statsUsersLabel: "Активных инвесторов",
+    statsInvested: "$2.8M",
+    statsInvestedLabel: "Общие инвестиции",
+    statsReturn: "24.8%",
+    statsReturnLabel: "Средняя доходность",
+    statsReliability: "99.9%",
+    statsReliabilityLabel: "Надежность",
   })
+
+  const [loading, setLoading] = useState(false)
+
+  // Load hero settings
+  useEffect(() => {
+    const loadHeroSettings = async () => {
+      try {
+        const response = await fetch("/api/admin/hero-settings")
+        if (response.ok) {
+          const data = await response.json()
+          setHeroSettings({
+            enabled: data.enabled,
+            title: data.title,
+            subtitle: data.subtitle,
+            badgeText: data.badge_text,
+            button1Text: data.button1_text,
+            button1Link: data.button1_link,
+            button2Text: data.button2_text,
+            button2Link: data.button2_link,
+            showButtons: data.show_buttons,
+            backgroundAnimation: data.background_animation,
+            showStats: data.show_stats,
+            statsUsers: data.stats_users,
+            statsUsersLabel: data.stats_users_label,
+            statsInvested: data.stats_invested,
+            statsInvestedLabel: data.stats_invested_label,
+            statsReturn: data.stats_return,
+            statsReturnLabel: data.stats_return_label,
+            statsReliability: data.stats_reliability,
+            statsReliabilityLabel: data.stats_reliability_label,
+          })
+        }
+      } catch (error) {
+        console.error("Error loading hero settings:", error)
+      }
+    }
+
+    loadHeroSettings()
+  }, [])
+
+  // Save hero settings
+  const saveHeroSettings = async () => {
+    setLoading(true)
+    try {
+      const response = await fetch("/api/admin/hero-settings", {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(heroSettings),
+      })
+
+      if (response.ok) {
+        alert("Настройки Hero секции сохранены!")
+      } else {
+        alert("Ошибка при сохранении настроек")
+      }
+    } catch (error) {
+      console.error("Error saving hero settings:", error)
+      alert("Ошибка при сохранении настроек")
+    }
+    setLoading(false)
+  }
 
   // User Activity Settings
   const [activitySettings, setActivitySettings] = useState({
@@ -213,64 +288,194 @@ export default function ComponentsManagementPage() {
                 />
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="space-y-6">
+                <div className="space-y-2">
+                  <Label htmlFor="badgeText">Текст бейджа</Label>
+                  <Input
+                    id="badgeText"
+                    value={heroSettings.badgeText}
+                    onChange={(e) => setHeroSettings({ ...heroSettings, badgeText: e.target.value })}
+                  />
+                </div>
+
                 <div className="space-y-2">
                   <Label htmlFor="heroTitle">Главный заголовок</Label>
-                  <Input
+                  <Textarea
                     id="heroTitle"
+                    rows={3}
                     value={heroSettings.title}
                     onChange={(e) => setHeroSettings({ ...heroSettings, title: e.target.value })}
                   />
                 </div>
+
                 <div className="space-y-2">
                   <Label htmlFor="heroSubtitle">Подзаголовок</Label>
                   <Textarea
                     id="heroSubtitle"
+                    rows={4}
                     value={heroSettings.subtitle}
                     onChange={(e) => setHeroSettings({ ...heroSettings, subtitle: e.target.value })}
                   />
                 </div>
-              </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="space-y-2">
-                  <Label htmlFor="button1Text">Текст первой кнопки</Label>
-                  <Input
-                    id="button1Text"
-                    value={heroSettings.buttonText1}
-                    onChange={(e) => setHeroSettings({ ...heroSettings, buttonText1: e.target.value })}
-                  />
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="space-y-2">
+                    <Label htmlFor="button1Text">Текст первой кнопки</Label>
+                    <Input
+                      id="button1Text"
+                      value={heroSettings.button1Text}
+                      onChange={(e) => setHeroSettings({ ...heroSettings, button1Text: e.target.value })}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="button1Link">Ссылка первой кнопки</Label>
+                    <Input
+                      id="button1Link"
+                      value={heroSettings.button1Link}
+                      onChange={(e) => setHeroSettings({ ...heroSettings, button1Link: e.target.value })}
+                    />
+                  </div>
                 </div>
-                <div className="space-y-2">
-                  <Label htmlFor="button2Text">Текст второй кнопки</Label>
-                  <Input
-                    id="button2Text"
-                    value={heroSettings.buttonText2}
-                    onChange={(e) => setHeroSettings({ ...heroSettings, buttonText2: e.target.value })}
-                  />
-                </div>
-              </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="flex items-center justify-between p-4 border rounded-lg">
-                  <div>
-                    <Label>Анимация фона</Label>
-                    <p className="text-sm text-gray-500">Включить анимированный фон</p>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="space-y-2">
+                    <Label htmlFor="button2Text">Текст второй кнопки</Label>
+                    <Input
+                      id="button2Text"
+                      value={heroSettings.button2Text}
+                      onChange={(e) => setHeroSettings({ ...heroSettings, button2Text: e.target.value })}
+                    />
                   </div>
-                  <Switch
-                    checked={heroSettings.backgroundAnimation}
-                    onCheckedChange={(checked) => setHeroSettings({ ...heroSettings, backgroundAnimation: checked })}
-                  />
+                  <div className="space-y-2">
+                    <Label htmlFor="button2Link">Ссылка второй кнопки</Label>
+                    <Input
+                      id="button2Link"
+                      value={heroSettings.button2Link}
+                      onChange={(e) => setHeroSettings({ ...heroSettings, button2Link: e.target.value })}
+                    />
+                  </div>
                 </div>
-                <div className="flex items-center justify-between p-4 border rounded-lg">
-                  <div>
-                    <Label>Показывать кнопки</Label>
-                    <p className="text-sm text-gray-500">Отображать кнопки действий</p>
+
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  <div className="flex items-center justify-between p-4 border rounded-lg">
+                    <div>
+                      <Label>Показывать кнопки</Label>
+                      <p className="text-sm text-gray-500">Отображать кнопки действий</p>
+                    </div>
+                    <Switch
+                      checked={heroSettings.showButtons}
+                      onCheckedChange={(checked) => setHeroSettings({ ...heroSettings, showButtons: checked })}
+                    />
                   </div>
-                  <Switch
-                    checked={heroSettings.showButtons}
-                    onCheckedChange={(checked) => setHeroSettings({ ...heroSettings, showButtons: checked })}
-                  />
+                  <div className="flex items-center justify-between p-4 border rounded-lg">
+                    <div>
+                      <Label>Анимация фона</Label>
+                      <p className="text-sm text-gray-500">Включить анимированный фон</p>
+                    </div>
+                    <Switch
+                      checked={heroSettings.backgroundAnimation}
+                      onCheckedChange={(checked) => setHeroSettings({ ...heroSettings, backgroundAnimation: checked })}
+                    />
+                  </div>
+                  <div className="flex items-center justify-between p-4 border rounded-lg">
+                    <div>
+                      <Label>Показывать статистику</Label>
+                      <p className="text-sm text-gray-500">Отображать статистические карточки</p>
+                    </div>
+                    <Switch
+                      checked={heroSettings.showStats}
+                      onCheckedChange={(checked) => setHeroSettings({ ...heroSettings, showStats: checked })}
+                    />
+                  </div>
+                </div>
+
+                {heroSettings.showStats && (
+                  <div className="space-y-4 p-4 border rounded-lg bg-gray-50">
+                    <h4 className="font-semibold">Настройки статистики</h4>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div className="space-y-2">
+                        <Label htmlFor="statsUsers">Количество пользователей</Label>
+                        <Input
+                          id="statsUsers"
+                          value={heroSettings.statsUsers}
+                          onChange={(e) => setHeroSettings({ ...heroSettings, statsUsers: e.target.value })}
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="statsUsersLabel">Подпись пользователей</Label>
+                        <Input
+                          id="statsUsersLabel"
+                          value={heroSettings.statsUsersLabel}
+                          onChange={(e) => setHeroSettings({ ...heroSettings, statsUsersLabel: e.target.value })}
+                        />
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div className="space-y-2">
+                        <Label htmlFor="statsInvested">Сумма инвестиций</Label>
+                        <Input
+                          id="statsInvested"
+                          value={heroSettings.statsInvested}
+                          onChange={(e) => setHeroSettings({ ...heroSettings, statsInvested: e.target.value })}
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="statsInvestedLabel">Подпись инвестиций</Label>
+                        <Input
+                          id="statsInvestedLabel"
+                          value={heroSettings.statsInvestedLabel}
+                          onChange={(e) => setHeroSettings({ ...heroSettings, statsInvestedLabel: e.target.value })}
+                        />
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div className="space-y-2">
+                        <Label htmlFor="statsReturn">Доходность</Label>
+                        <Input
+                          id="statsReturn"
+                          value={heroSettings.statsReturn}
+                          onChange={(e) => setHeroSettings({ ...heroSettings, statsReturn: e.target.value })}
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="statsReturnLabel">Подпись доходности</Label>
+                        <Input
+                          id="statsReturnLabel"
+                          value={heroSettings.statsReturnLabel}
+                          onChange={(e) => setHeroSettings({ ...heroSettings, statsReturnLabel: e.target.value })}
+                        />
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div className="space-y-2">
+                        <Label htmlFor="statsReliability">Надежность</Label>
+                        <Input
+                          id="statsReliability"
+                          value={heroSettings.statsReliability}
+                          onChange={(e) => setHeroSettings({ ...heroSettings, statsReliability: e.target.value })}
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="statsReliabilityLabel">Подпись надежности</Label>
+                        <Input
+                          id="statsReliabilityLabel"
+                          value={heroSettings.statsReliabilityLabel}
+                          onChange={(e) => setHeroSettings({ ...heroSettings, statsReliabilityLabel: e.target.value })}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                <div className="flex justify-end">
+                  <Button 
+                    onClick={saveHeroSettings} 
+                    disabled={loading}
+                    className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
+                  >
+                    <Save className="h-4 w-4 mr-2" />
+                    {loading ? "Сохранение..." : "Сохранить настройки"}
+                  </Button>
                 </div>
               </div>
 

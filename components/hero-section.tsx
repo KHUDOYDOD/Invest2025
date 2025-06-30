@@ -10,10 +10,45 @@ import { TrendingUp, Shield, Users, DollarSign, ArrowRight, Play } from "lucide-
 export function HeroSection() {
   const { siteSettings, loading } = useSettings()
   const [mounted, setMounted] = useState(false)
-
+  const [heroSettings, setHeroSettings] = useState({
+    enabled: true,
+    title: "Инвестируйте с умом, получайте стабильный доход",
+    subtitle: "Профессиональная инвестиционная платформа с ежедневными выплатами, высокой доходностью и гарантированной безопасностью",
+    badge_text: "Платформа работает с 2025 года",
+    button1_text: "Начать инвестировать",
+    button1_link: "/register",
+    button2_text: "Войти в систему",
+    button2_link: "/login",
+    show_buttons: true,
+    background_animation: true,
+    show_stats: true,
+    stats_users: "15K+",
+    stats_users_label: "Активных инвесторов",
+    stats_invested: "$2.8M",
+    stats_invested_label: "Общие инвестиции",
+    stats_return: "24.8%",
+    stats_return_label: "Средняя доходность",
+    stats_reliability: "99.9%",
+    stats_reliability_label: "Надежность",
+  })
 
   useEffect(() => {
     setMounted(true)
+    
+    // Load hero settings from admin panel
+    const loadHeroSettings = async () => {
+      try {
+        const response = await fetch("/api/admin/hero-settings")
+        if (response.ok) {
+          const data = await response.json()
+          setHeroSettings(data)
+        }
+      } catch (error) {
+        console.error("Error loading hero settings:", error)
+      }
+    }
+
+    loadHeroSettings()
   }, [])
 
   if (!mounted || loading) {
@@ -28,6 +63,10 @@ export function HeroSection() {
         </div>
       </section>
     )
+  }
+
+  if (!heroSettings.enabled) {
+    return null
   }
 
   return (
@@ -108,77 +147,65 @@ export function HeroSection() {
           {/* Badge */}
           <div className="inline-flex items-center px-4 py-2 bg-gradient-to-r from-blue-600/20 to-purple-600/20 backdrop-blur-sm border border-blue-500/30 rounded-full text-blue-300 text-sm font-medium">
             <span className="w-2 h-2 bg-green-400 rounded-full mr-2 animate-pulse"></span>
-            Платформа работает с 2025 года
+            {heroSettings.badge_text}
           </div>
 
           {/* Main Heading */}
           <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold text-white leading-tight">
-            Инвестируйте с{" "}
-            <span className="bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">
-              умом
-            </span>
-            ,<br />
-            получайте{" "}
-            <span className="bg-gradient-to-r from-green-400 to-emerald-400 bg-clip-text text-transparent">
-              стабильный
-            </span>
-            <br />
-            доход
+            <span dangerouslySetInnerHTML={{ __html: heroSettings.title.replace(/умом/g, '<span class="bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">умом</span>').replace(/стабильный/g, '<span class="bg-gradient-to-r from-green-400 to-emerald-400 bg-clip-text text-transparent">стабильный</span>') }} />
           </h1>
 
           {/* Subtitle */}
           <p className="text-lg md:text-xl text-slate-300 max-w-3xl mx-auto leading-relaxed">
-            Профессиональная инвестиционная платформа с{" "}
-            <span className="text-blue-400 font-semibold">ежедневными выплатами</span>,{" "}
-            <span className="text-green-400 font-semibold">высокой доходностью</span> и{" "}
-            <span className="text-purple-400 font-semibold">гарантированной безопасностью</span>
+            <span dangerouslySetInnerHTML={{ __html: heroSettings.subtitle.replace(/ежедневными выплатами/g, '<span class="text-blue-400 font-semibold">ежедневными выплатами</span>').replace(/высокой доходностью/g, '<span class="text-green-400 font-semibold">высокой доходностью</span>').replace(/гарантированной безопасностью/g, '<span class="text-purple-400 font-semibold">гарантированной безопасностью</span>') }} />
           </p>
 
           {/* CTA Buttons */}
-          <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-            <>
-                <Link href="/register">
-                  <Button
-                    size="lg"
-                    className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white px-8 py-4 text-lg font-medium rounded-xl shadow-2xl hover:shadow-blue-500/25 transform hover:scale-105 transition-all duration-300 group"
-                  >
-                    Начать инвестировать
-                    <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
-                  </Button>
-                </Link>
-                <Link href="/login">
-                  <Button
-                    size="lg"
-                    variant="outline"
-                    className="border-2 border-slate-600 bg-slate-800/50 backdrop-blur-sm text-white hover:bg-slate-700 px-8 py-4 text-lg font-medium rounded-xl transform hover:scale-105 transition-all duration-300 group"
-                  >
-                    <Play className="mr-2 h-5 w-5" />
-                    Войти в систему
-                  </Button>
-                </Link>
-              </>
-
-          </div>
+          {heroSettings.show_buttons && (
+            <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
+              <Link href={heroSettings.button1_link}>
+                <Button
+                  size="lg"
+                  className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white px-8 py-4 text-lg font-medium rounded-xl shadow-2xl hover:shadow-blue-500/25 transform hover:scale-105 transition-all duration-300 group"
+                >
+                  {heroSettings.button1_text}
+                  <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
+                </Button>
+              </Link>
+              <Link href={heroSettings.button2_link}>
+                <Button
+                  size="lg"
+                  variant="outline"
+                  className="border-2 border-slate-600 bg-slate-800/50 backdrop-blur-sm text-white hover:bg-slate-700 px-8 py-4 text-lg font-medium rounded-xl transform hover:scale-105 transition-all duration-300 group"
+                >
+                  <Play className="mr-2 h-5 w-5" />
+                  {heroSettings.button2_text}
+                </Button>
+              </Link>
+            </div>
+          )}
 
           {/* Stats Preview */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mt-16">
-            <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl p-6 text-center">
-              <div className="text-2xl md:text-3xl font-bold text-green-400 mb-2">15K+</div>
-              <div className="text-slate-400 text-sm">Активных инвесторов</div>
+          {heroSettings.show_stats && (
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mt-16">
+              <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl p-6 text-center">
+                <div className="text-2xl md:text-3xl font-bold text-green-400 mb-2">{heroSettings.stats_users}</div>
+                <div className="text-slate-400 text-sm">{heroSettings.stats_users_label}</div>
+              </div>
+              <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl p-6 text-center">
+                <div className="text-2xl md:text-3xl font-bold text-blue-400 mb-2">{heroSettings.stats_invested}</div>
+                <div className="text-slate-400 text-sm">{heroSettings.stats_invested_label}</div>
+              </div>
+              <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl p-6 text-center">
+                <div className="text-2xl md:text-3xl font-bold text-purple-400 mb-2">{heroSettings.stats_return}</div>
+                <div className="text-slate-400 text-sm">{heroSettings.stats_return_label}</div>
+              </div>
+              <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl p-6 text-center">
+                <div className="text-2xl md:text-3xl font-bold text-yellow-400 mb-2">{heroSettings.stats_reliability}</div>
+                <div className="text-slate-400 text-sm">{heroSettings.stats_reliability_label}</div>
+              </div>
             </div>
-            <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl p-6 text-center">
-              <div className="text-2xl md:text-3xl font-bold text-blue-400 mb-2">$2.8M</div>
-              <div className="text-slate-400 text-sm">Общие инвестиции</div>
-            </div>
-            <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl p-6 text-center">
-              <div className="text-2xl md:text-3xl font-bold text-purple-400 mb-2">24.8%</div>
-              <div className="text-slate-400 text-sm">Средняя доходность</div>
-            </div>
-            <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl p-6 text-center">
-              <div className="text-2xl md:text-3xl font-bold text-yellow-400 mb-2">99.9%</div>
-              <div className="text-slate-400 text-sm">Надежность</div>
-            </div>
-          </div>
+          )}
         </div>
       </div>
     </section>
