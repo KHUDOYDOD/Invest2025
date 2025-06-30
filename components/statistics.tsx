@@ -203,7 +203,7 @@ export function Statistics() {
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-8 justify-center">
           {statsData.map((stat, index) => (
             <div
               key={stat.title}
@@ -212,14 +212,14 @@ export function Statistics() {
             >
               <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
 
-              <div className="flex items-start relative z-10">
+              <div className="flex flex-col items-center text-center relative z-10">
                 <div
-                  className={`p-3 rounded-2xl bg-gradient-to-r ${stat.gradient} text-white shadow-lg mr-4 group-hover:scale-110 transition-transform duration-300`}
+                  className={`p-3 rounded-2xl bg-gradient-to-r ${stat.gradient} text-white shadow-lg mb-4 group-hover:scale-110 transition-transform duration-300`}
                 >
                   <stat.icon className="h-8 w-8" />
                 </div>
 
-                <div className="flex-1">
+                <div className="flex-1 text-center">
                   <h3 className="text-4xl font-bold text-white mb-3">
                     {stat.value}
                   </h3>
