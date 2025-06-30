@@ -62,8 +62,8 @@ export default function RegisterPage() {
 
     if (!formData.password) {
       newErrors.password = "Пароль обязателен"
-    } else if (formData.password.length < 3) {
-      newErrors.password = "Минимум 3 символа"
+    } else if (formData.password.length < 6) {
+      newErrors.password = "Минимум 6 символов"
     }
 
     if (!formData.confirmPassword) {
@@ -242,7 +242,7 @@ export default function RegisterPage() {
                     id="password"
                     name="password"
                     type={showPassword ? "text" : "password"}
-                    placeholder="Минимум 3 символа"
+                    placeholder="Минимум 6 символов"
                     className={`pl-12 pr-12 h-12 text-base bg-white/10 border-white/20 text-white placeholder:text-white/50 rounded-xl transition-all duration-300 ${
                       errors.password ? "border-red-400 focus:border-red-400" : "focus:border-blue-400"
                     }`}
