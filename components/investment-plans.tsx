@@ -1,4 +1,3 @@
-
 "use client"
 
 import { useState, useEffect } from "react"
@@ -135,15 +134,15 @@ export function InvestmentPlans() {
             <Sparkles className="h-5 w-5 mr-3 text-blue-400" />
             <span className="text-blue-300 font-medium">Инвестиционные планы</span>
           </div>
-          
+
           <h2 className="text-5xl md:text-6xl font-bold bg-gradient-to-r from-white via-blue-100 to-purple-100 bg-clip-text text-transparent mb-8 leading-tight">
             Выберите ваш путь к успеху
           </h2>
-          
+
           <p className="text-xl text-gray-300 max-w-4xl mx-auto mb-12 leading-relaxed">
             Инновационные инвестиционные решения с гарантированной доходностью и полной прозрачностью процесса
           </p>
-          
+
           <div className="flex flex-wrap justify-center gap-8 text-sm">
             <div className="flex items-center bg-black/30 backdrop-blur-sm px-6 py-3 rounded-2xl border border-green-500/30">
               <Shield className="h-5 w-5 mr-3 text-green-400" />
@@ -181,7 +180,7 @@ export function InvestmentPlans() {
               >
                 {/* Animated Background Gradient */}
                 <div className={`absolute inset-0 bg-gradient-to-br ${plan.darkColor} opacity-0 group-hover:opacity-100 transition-all duration-700`} />
-                
+
                 {/* Popular Badge */}
                 {plan.popular && (
                   <div className="absolute -top-4 left-1/2 transform -translate-x-1/2 z-20">
@@ -215,11 +214,11 @@ export function InvestmentPlans() {
                       <div className="text-sm text-gray-400">в день</div>
                     </div>
                   </div>
-                  
+
                   <CardTitle className="text-2xl font-bold text-white mb-3 group-hover:text-transparent group-hover:bg-gradient-to-r group-hover:bg-clip-text group-hover:from-white group-hover:to-gray-300 transition-all duration-300">
                     {plan.name}
                   </CardTitle>
-                  
+
                   <CardDescription className="text-gray-400 text-base leading-relaxed">
                     {plan.description}
                   </CardDescription>
@@ -243,12 +242,12 @@ export function InvestmentPlans() {
                         <div className="text-xs text-gray-400">дней</div>
                       </div>
                     </div>
-                    
+
                     <div className="border-t border-gray-700/50 pt-4">
                       <div className="flex justify-between items-center">
                         <span className="text-gray-400 text-sm">Сумма инвестиций:</span>
                         <span className="text-white font-semibold">
-                          ${plan.minAmount.toLocaleString()} - ${plan.maxAmount.toLocaleString()}
+                          ${plan.minAmount.toLocaleString('en-US')} - ${plan.maxAmount.toLocaleString('en-US')}
                         </span>
                       </div>
                     </div>
@@ -292,7 +291,7 @@ export function InvestmentPlans() {
                         <div className="flex justify-between items-center">
                           <span className="text-gray-300">Инвестиция:</span>
                           <span className="text-white font-bold text-lg">
-                            ${plan.minAmount.toLocaleString()}
+                            ${plan.minAmount.toLocaleString('en-US')}
                           </span>
                         </div>
                         <div className="flex justify-between items-center">
@@ -351,7 +350,7 @@ export function InvestmentPlans() {
                   Ваши инвестиции защищены современными технологиями шифрования и страхованием
                 </p>
               </div>
-              
+
               <div className="text-center group">
                 <div className="p-6 bg-gradient-to-br from-blue-500/20 to-cyan-500/20 rounded-3xl border border-blue-500/30 mb-6 group-hover:scale-110 transition-transform duration-300">
                   <TrendingUp className="h-12 w-12 mx-auto text-blue-400" />
@@ -361,7 +360,7 @@ export function InvestmentPlans() {
                   Ежедневные выплаты без задержек с возможностью реинвестирования
                 </p>
               </div>
-              
+
               <div className="text-center group">
                 <div className="p-6 bg-gradient-to-br from-purple-500/20 to-pink-500/20 rounded-3xl border border-purple-500/30 mb-6 group-hover:scale-110 transition-transform duration-300">
                   <Zap className="h-12 w-12 mx-auto text-purple-400" />

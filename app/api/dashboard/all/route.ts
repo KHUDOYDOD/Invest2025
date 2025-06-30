@@ -57,7 +57,7 @@ export async function GET(request: NextRequest) {
         i.created_at,
         i.status,
         ip.name as plan_name,
-        ip.daily_return_rate,
+        COALESCE(ip.daily_return_rate, ip.daily_percent, 0) as daily_return_rate,
         ip.duration_days,
         COALESCE(i.total_earned, 0) as total_earned
       FROM investments i
