@@ -229,7 +229,7 @@ export default function AdminDashboard() {
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {recentActivity.map((activity) => (
+              {recentActivity.slice(0, 5).map((activity) => (
                 <div key={activity.id} className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg">
                   <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
                   <div className="flex-1">
@@ -243,6 +243,13 @@ export default function AdminDashboard() {
                   )}
                 </div>
               ))}
+              {recentActivity.length > 5 && (
+                <div className="pt-2">
+                  <Button variant="outline" className="w-full text-sm">
+                    Показать всех ({recentActivity.length})
+                  </Button>
+                </div>
+              )}
             </div>
           </CardContent>
         </Card>

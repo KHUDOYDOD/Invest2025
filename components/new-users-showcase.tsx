@@ -1,4 +1,3 @@
-
 "use client"
 
 import { useState, useEffect } from "react"
@@ -75,6 +74,7 @@ export function NewUsersShowcase() {
   const [loading, setLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState("")
   const [filterCountry, setFilterCountry] = useState("all")
+  const [showAll, setShowAll] = useState(false);
 
   useEffect(() => {
     const fetchNewUsers = async () => {
@@ -164,6 +164,8 @@ export function NewUsersShowcase() {
   })
 
   const uniqueCountries = Array.from(new Set(newUsers.map(u => u.country).filter(Boolean)))
+
+  const displayUsers = showAll ? filteredUsers : filteredUsers.slice(0, 5);
 
   if (loading) {
     return (
@@ -268,7 +270,7 @@ export function NewUsersShowcase() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-white/5">
-                {filteredUsers.map((user, index) => {
+                {displayUsers.map((user, index) => {
                   const nickname = generateNickname(user.name, user.email)
                   const countryFlag = user.country ? countryFlags[user.country] || '🌍' : '🌍'
                   const countryName = user.country ? countryNames[user.country] || 'Неизвестно' : 'Неизвестно'
@@ -330,6 +332,14 @@ export function NewUsersShowcase() {
             <p className="text-slate-400 text-lg">Пользователи не найдены</p>
           </div>
         )}
+
+              {filteredUsers.length > 5 && !showAll && (
+                <div className="mt-8 text-center animate-fade-in-delayed">
+                  <Button onClick={() => setShowAll(true)}>
+                    Показать всех ({filteredUsers.length})
+                  </Button>
+                </div>
+              )}
 
         {/* Статистика в подвале */}
         <div className="mt-12 grid grid-cols-1 md:grid-cols-3 gap-8 animate-fade-in-delayed">

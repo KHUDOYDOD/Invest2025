@@ -1,4 +1,3 @@
-
 "use client"
 
 import { useState, useEffect } from "react"
@@ -210,54 +209,88 @@ export function UserActivityRows() {
             <table className="w-full">
               <thead>
                 <tr className="border-b border-white/10">
-                  <th className="px-8 py-6 text-left text-sm font-semibold text-slate-300 uppercase tracking-wider">
-                    Пользователь
-                  </th>
-                  <th className="px-8 py-6 text-left text-sm font-semibold text-slate-300 uppercase tracking-wider">
-                    Тип операции
-                  </th>
-                  <th className="px-8 py-6 text-left text-sm font-semibold text-slate-300 uppercase tracking-wider">
-                    Сумма
-                  </th>
-                  <th className="px-8 py-6 text-left text-sm font-semibold text-slate-300 uppercase tracking-wider">
-                    Дата и время
-                  </th>
+                  <th className="text-left py-4 px-6 text-slate-300 font-medium">Пользователь</th>
+                  <th className="text-left py-4 px-6 text-slate-300 font-medium">Операция</th>
+                  <th className="text-left py-4 px-6 text-slate-300 font-medium">Сумма</th>
+                  <th className="text-left py-4 px-6 text-slate-300 font-medium">Время</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-white/5">
-                {filteredTransactions.map((tx, index) => {
-                  const config = getTypeConfig(tx.type)
+              <tbody>
+                {filteredTransactions.slice(0, 5).map((tx, index) => {
+                  const getTypeIcon = () => {
+                    switch (tx.type) {
+                      case "deposit":
+                        return "💰"
+                      case "withdrawal":
+                        return "💸"
+                      case "investment":
+                        return "📈"
+                      case "profit":
+                        return "💎"
+                      default:
+                        return "💳"
+                    }
+                  }
+
+                  const getTypeText = () => {
+                    switch (tx.type) {
+                      case "deposit":
+                        return "Пополнение"
+                      case "withdrawal":
+                        return "Вывод средств"
+                      case "investment":
+                        return `Инвестиция: ${tx.plan_name || "План"}`
+                      case "profit":
+                        return "Получение прибыли"
+                      default:
+                        return "Операция"
+                    }
+                  }
+
+                  const getAmountColor = () => {
+                    switch (tx.type) {
+                      case "deposit":
+                      case "profit":
+                        return "text-green-400"
+                      case "withdrawal":
+                      case "investment":
+                        return "text-blue-400"
+                      default:
+                        return "text-slate-300"
+                    }
+                  }
 
                   return (
                     <tr
-                      key={tx.id}
-                      className="hover:bg-white/5 transition-colors duration-300 group animate-fade-in"
-                      style={{ animationDelay: `${index * 50}ms` }}
+                      key={`${tx.id}-${index}`}
+                      className="border-b border-white/5 hover:bg-white/5 transition-colors animate-fade-in"
+                      style={{ animationDelay: `${index * 100}ms` }}
                     >
-                      <td className="px-8 py-6 whitespace-nowrap">
-                        <div className="flex items-center">
-                          <div className="w-10 h-10 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-full flex items-center justify-center text-white font-semibold text-sm mr-4">
-                            {tx.user_name?.charAt(0).toUpperCase()}
+                      <td className="py-4 px-6">
+                        <div className="flex items-center space-x-3">
+                          <div className="w-10 h-10 bg-gradient-to-br from-indigo-500 to-purple-500 rounded-xl flex items-center justify-center text-white font-semibold text-sm">
+                            {tx.user_name
+                              ?.split(" ")
+                              .map((n) => n[0])
+                              .join("")
+                              .toUpperCase() || "UN"}
                           </div>
-                          <div className="text-lg font-medium text-white group-hover:text-indigo-300 transition-colors">
-                            {tx.user_name}
-                          </div>
+                          <span className="text-white font-medium">{tx.user_name || "Пользователь"}</span>
                         </div>
                       </td>
-                      <td className="px-8 py-6 whitespace-nowrap">
-                        <div className="flex items-center">
-                          <span className={`p-2 rounded-xl ${config.bgColor} border ${config.borderColor} mr-3`}>
-                            {getTypeIcon(tx.type)}
-                          </span>
-                          <span className={`text-lg font-medium ${config.color}`}>{config.label}</span>
+                      <td className="py-4 px-6">
+                        <div className="flex items-center space-x-2">
+                          <span className="text-lg">{getTypeIcon()}</span>
+                          <span className="text-slate-300">{getTypeText()}</span>
                         </div>
                       </td>
-                      <td className="px-8 py-6 whitespace-nowrap">
-                        <div className={`text-lg font-bold ${config.color}`}>{formatAmount(tx.amount, tx.type)}</div>
+                      <td className="py-4 px-6">
+                        <span className={`font-bold text-lg ${getAmountColor()}`}>
+                          {tx.type === "deposit" || tx.type === "profit" ? "+" : "-"}${tx.amount}
+                        </span>
                       </td>
-                      <td className="px-8 py-6 whitespace-nowrap">
-                        <div className="flex items-center text-slate-400">
-                          <Clock className="h-4 w-4 mr-2" />
+                      <td className="py-4 px-6">
+                        <div className="text-slate-400">
                           <span className="text-sm font-medium">{formatDate(tx.created_at)}</span>
                         </div>
                       </td>
@@ -266,6 +299,16 @@ export function UserActivityRows() {
                 })}
               </tbody>
             </table>
+
+            {/* Кнопка "Показать всех" для транзакций */}
+            {filteredTransactions.length > 5 && (
+              <div className="mt-8 text-center">
+                <button className="group relative px-8 py-3 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-semibold rounded-xl transition-all duration-300 hover:scale-105 hover:shadow-lg">
+                  <span className="relative z-10">Показать все операции ({filteredTransactions.length})</span>
+                  <div className="absolute inset-0 bg-gradient-to-r from-emerald-500 to-teal-500 rounded-xl opacity-0 group-hover:opacity-20 transition-opacity duration-300"></div>
+                </button>
+              </div>
+            )}
           </div>
         </div>
 
