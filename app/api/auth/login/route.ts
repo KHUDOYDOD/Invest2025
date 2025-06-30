@@ -86,8 +86,17 @@ export async function POST(request: NextRequest) {
       { expiresIn: '24h' }
     );
 
-    // Определяем URL для редиректа
-    const redirectUrl = user.role_id <= 2 ? '/admin/dashboard' : '/dashboard';
+    // Определяем URL для редиректа на основе роли пользователя
+    let redirectUrl = '/dashboard'; // По умолчанию обычные пользователи
+    
+    // Проверяем роль пользователя для админов
+    if (user.role_id === 1 || user.role_name === 'super_admin') {
+      redirectUrl = '/admin/dashboard'; // Супер админ
+    } else if (user.role_id === 2 || user.role_name === 'admin') {
+      redirectUrl = '/admin/dashboard'; // Админ
+    } else {
+      redirectUrl = '/dashboard'; // Обычные пользователи (user, vip, moderator)
+    }
 
     const response = NextResponse.json({
       success: true,

@@ -100,7 +100,7 @@ export async function POST(request: NextRequest) {
 
   } catch (error) {
     console.error('Registration error:', error);
-    
+
     // Детальная обработка ошибок базы данных
     if (error.code === '23505') { // Нарушение уникальности
       return NextResponse.json(

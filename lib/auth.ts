@@ -51,7 +51,7 @@ export async function getServerSession(request: NextRequest): Promise<User | nul
       total_invested: user.total_invested,
       total_earned: user.total_earned,
       role: user.role_name,
-      isAdmin: user.role_name === 'admin' || user.role_name === 'superadmin'
+      isAdmin: user.role_name === 'admin' || user.role_name === 'super_admin'
     }
   } catch (error) {
     console.error('Session error:', error)

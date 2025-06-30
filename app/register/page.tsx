@@ -1,4 +1,3 @@
-
 "use client"
 
 import React, { useState } from "react"
@@ -131,17 +130,39 @@ export default function RegisterPage() {
       const data = await response.json()
 
       if (response.ok && data.success) {
-        toast.success('Регистрация успешна! Добро пожаловать!')
-        router.push('/dashboard')
+        // Успешная регистрация
+        toast.success('Регистрация успешна! Перенаправление в личный кабинет...')
+
+        // Сохраняем данные пользователя
+        if (data.user) {
+          localStorage.setItem('user', JSON.stringify(data.user))
+          localStorage.setItem('userEmail', data.user.email)
+          localStorage.setItem('userName', data.user.fullName || data.user.full_name)
+          localStorage.setItem('userId', data.user.id)
+          localStorage.setItem('userRole', data.user.role || 'user')
+          localStorage.setItem('isAuthenticated', 'true')
+
+          if (data.token) {
+            localStorage.setItem('auth-token', data.token)
+            localStorage.setItem('authToken', data.token)
+          }
+        }
+
+        // Перенаправляем через 2 секунды на страницу указанную сервером или в личный кабинет
+        setTimeout(() => {
+          const redirectPath = data.redirect || '/dashboard'
+          router.push(redirectPath)
+          router.refresh()
+        }, 2000)
       } else {
         // Устанавливаем ошибку для конкретного поля если указано
         if (data.field) {
           setErrors(prev => ({ ...prev, [data.field]: data.error }))
         }
-        
+
         // Показываем общее уведомление
         toast.error(data.error || 'Ошибка при регистрации')
-        
+
         // Прокручиваем к первому полю с ошибкой
         if (data.field) {
           const element = document.getElementById(data.field)
@@ -493,7 +514,7 @@ export default function RegisterPage() {
                       <SelectItem value="LB" className="text-white hover:bg-slate-700" data-country-item>🇱🇧 Ливан</SelectItem>
                       <SelectItem value="LS" className="text-white hover:bg-slate-700" data-country-item>🇱🇸 Лесото</SelectItem>
                       <SelectItem value="LR" className="text-white hover:bg-slate-700" data-country-item>🇱🇷 Либерия</SelectItem>
-                      <SelectItem value="LY" className="text-white hover:bg-slate-700" data-country-item>🇱🇾 Ливия</SelectItem>
+                      <SelectItem value="LY" className="text-white hover:bg-slate-700" datacountry-item>🇱🇾 Ливия</SelectItem>
                       <SelectItem value="LI" className="text-white hover:bg-slate-700" data-country-item>🇱🇮 Лихтенштейн</SelectItem>
                       <SelectItem value="LT" className="text-white hover:bg-slate-700" data-country-item>🇱🇹 Литва</SelectItem>
                       <SelectItem value="LU" className="text-white hover:bg-slate-700" data-country-item>🇱🇺 Люксембург</SelectItem>
@@ -668,7 +689,7 @@ export default function RegisterPage() {
 
           <CardFooter className="flex flex-col space-y-6 pt-6 pb-8 px-8">
             <div className="text-center">
-              <span className="text-white/70 text-sm">Уже есть аккаунт? </span>
+              <span className="text-white/70 text-sm">Уже есть аккаунт? </span> 
               <Link 
                 href="/login" 
                 className="text-blue-400 hover:text-blue-300 font-semibold hover:underline transition-colors duration-200 text-sm"

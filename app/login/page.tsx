@@ -99,7 +99,8 @@ export default function LoginPage() {
 
       // Перенаправляем через 1 секунду
       setTimeout(() => {
-        const redirectPath = data.redirect || (data.user?.isAdmin ? '/admin/dashboard' : '/dashboard')
+        // Используем redirect из ответа сервера, который основан на роли пользователя
+        const redirectPath = data.redirect || '/dashboard'
         router.push(redirectPath)
         router.refresh() // Обновляем страницу для применения изменений
       }, 1000)
