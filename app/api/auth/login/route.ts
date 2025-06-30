@@ -26,7 +26,7 @@ export async function POST(request: NextRequest) {
         ur.name as role_name
       FROM users u
       LEFT JOIN user_roles ur ON u.role_id = ur.id
-      WHERE (u.email = $1 OR u.full_name = $1) AND u.is_active = true
+      WHERE (u.email = $1 OR u.login = $1) AND u.is_active = true
     `, [email]);
 
     if (userResult.rows.length === 0) {
