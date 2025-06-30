@@ -43,6 +43,26 @@ export default function RegisterPage() {
     if (errors[name]) {
       setErrors((prev) => ({ ...prev, [name]: "" }))
     }
+
+    // Реальная валидация при вводе
+    if (name === 'email' && value) {
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+      if (!emailRegex.test(value)) {
+        setErrors((prev) => ({ ...prev, email: "Некорректный формат email" }))
+      }
+    }
+
+    if (name === 'password' && value) {
+      if (value.length < 6) {
+        setErrors((prev) => ({ ...prev, password: "Минимум 6 символов" }))
+      }
+    }
+
+    if (name === 'confirmPassword' && value) {
+      if (value !== formData.password) {
+        setErrors((prev) => ({ ...prev, confirmPassword: "Пароли не совпадают" }))
+      }
+    }
   }
 
   const validateForm = () => {
@@ -110,11 +130,26 @@ export default function RegisterPage() {
 
       const data = await response.json()
 
-      if (response.ok) {
+      if (response.ok && data.success) {
         toast.success('Регистрация успешна! Добро пожаловать!')
         router.push('/dashboard')
       } else {
+        // Устанавливаем ошибку для конкретного поля если указано
+        if (data.field) {
+          setErrors(prev => ({ ...prev, [data.field]: data.error }))
+        }
+        
+        // Показываем общее уведомление
         toast.error(data.error || 'Ошибка при регистрации')
+        
+        // Прокручиваем к первому полю с ошибкой
+        if (data.field) {
+          const element = document.getElementById(data.field)
+          if (element) {
+            element.focus()
+            element.scrollIntoView({ behavior: 'smooth', block: 'center' })
+          }
+        }
       }
     } catch (error) {
       console.error('Registration error:', error)

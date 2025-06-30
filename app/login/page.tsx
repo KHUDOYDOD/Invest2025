@@ -59,6 +59,17 @@ export default function LoginPage() {
       console.log('📥 Login response:', data)
 
       if (!response.ok || !data.success) {
+        // Устанавливаем ошибку для конкретного поля если указано
+        if (data.field) {
+          const element = document.getElementById(data.field)
+          if (element) {
+            element.focus()
+            element.classList.add('border-red-400')
+            setTimeout(() => {
+              element.classList.remove('border-red-400')
+            }, 3000)
+          }
+        }
         throw new Error(data.error || 'Ошибка входа')
       }
 

@@ -31,7 +31,11 @@ export async function POST(request: NextRequest) {
 
     if (userResult.rows.length === 0) {
       return NextResponse.json(
-        { error: 'Неверный email или пароль' },
+        { 
+          success: false,
+          error: 'Пользователь с таким email не найден',
+          field: 'email'
+        },
         { status: 401 }
       );
     }
@@ -41,7 +45,11 @@ export async function POST(request: NextRequest) {
     // Проверяем статус пользователя
     if (user.status !== 'active') {
       return NextResponse.json(
-        { error: 'Аккаунт заблокирован' },
+        { 
+          success: false,
+          error: 'Аккаунт заблокирован или неактивен. Обратитесь к администратору.',
+          field: 'status'
+        },
         { status: 401 }
       );
     }
@@ -51,7 +59,11 @@ export async function POST(request: NextRequest) {
 
     if (!isPasswordValid) {
       return NextResponse.json(
-        { error: 'Неверный email или пароль' },
+        { 
+          success: false,
+          error: 'Неверный пароль',
+          field: 'password'
+        },
         { status: 401 }
       );
     }
