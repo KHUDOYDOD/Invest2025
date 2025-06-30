@@ -1,4 +1,3 @@
-
 "use client"
 
 import { useState, useEffect } from "react"
@@ -7,6 +6,8 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import Link from "next/link"
 import { motion } from "framer-motion"
+import { Header } from "@/components/header"
+import { Footer } from "@/components/footer"
 
 interface User {
   id: string
@@ -124,225 +125,224 @@ export default function AllUsersPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-gray-900 to-slate-950 relative overflow-hidden">
-      {/* Анимированный фон */}
-      <div className="absolute inset-0">
-        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-gradient-to-r from-emerald-600/20 to-teal-600/20 rounded-full blur-3xl animate-pulse"></div>
-        <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-gradient-to-r from-blue-600/20 to-indigo-600/20 rounded-full blur-3xl animate-pulse delay-1000"></div>
-        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-gradient-to-r from-cyan-600/10 to-green-600/10 rounded-full blur-3xl animate-spin-slow"></div>
-      </div>
+    <div className="min-h-screen">
+      <Header />
 
-      <div className="relative z-10 container mx-auto max-w-7xl px-4 py-8">
-        {/* Header */}
-        <motion.div 
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="mb-8"
-        >
-          <div className="flex items-center justify-between mb-6">
-            <div className="flex items-center gap-4">
-              <Link href="/">
-                <Button variant="outline" className="bg-white/10 border-white/20 text-white hover:bg-white/20">
-                  <ArrowLeft className="h-4 w-4 mr-2" />
-                  Назад
-                </Button>
-              </Link>
-              <div>
-                <h1 className="text-4xl font-bold bg-gradient-to-r from-white via-emerald-100 to-teal-200 bg-clip-text text-transparent">
-                  Все участники
-                </h1>
-                <p className="text-slate-400 mt-2">Полный список зарегистрированных пользователей</p>
+      <div className="min-h-screen bg-gradient-to-br from-slate-950 via-gray-900 to-slate-950 py-12 pt-24">
+        <div className="container mx-auto max-w-7xl px-4 py-8">
+          {/* Header */}
+          <motion.div 
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="mb-8"
+          >
+            <div className="flex items-center justify-between mb-6">
+              <div className="flex items-center gap-4">
+                <Link href="/">
+                  <Button variant="outline" className="bg-white/10 border-white/20 text-white hover:bg-white/20">
+                    <ArrowLeft className="h-4 w-4 mr-2" />
+                    Назад
+                  </Button>
+                </Link>
+                <div>
+                  <h1 className="text-4xl font-bold bg-gradient-to-r from-white via-emerald-100 to-teal-200 bg-clip-text text-transparent">
+                    Все участники
+                  </h1>
+                  <p className="text-slate-400 mt-2">Полный список зарегистрированных пользователей</p>
+                </div>
+              </div>
+              <Button className="bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white">
+                <Download className="h-4 w-4 mr-2" />
+                Экспорт
+              </Button>
+            </div>
+          </motion.div>
+
+          {/* Статистика */}
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.1 }}
+            className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8"
+          >
+            <div className="bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-xl border border-white/20 rounded-2xl p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-slate-400 text-sm">Всего участников</p>
+                  <p className="text-2xl font-bold text-white">{filteredUsers.length}</p>
+                </div>
+                <div className="p-3 bg-emerald-500/20 rounded-xl">
+                  <Users className="h-6 w-6 text-emerald-400" />
+                </div>
               </div>
             </div>
-            <Button className="bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white">
-              <Download className="h-4 w-4 mr-2" />
-              Экспорт
-            </Button>
-          </div>
-        </motion.div>
 
-        {/* Статистика */}
-        <motion.div 
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1 }}
-          className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8"
-        >
-          <div className="bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-xl border border-white/20 rounded-2xl p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-slate-400 text-sm">Всего участников</p>
-                <p className="text-2xl font-bold text-white">{filteredUsers.length}</p>
-              </div>
-              <div className="p-3 bg-emerald-500/20 rounded-xl">
-                <Users className="h-6 w-6 text-emerald-400" />
+            <div className="bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-xl border border-white/20 rounded-2xl p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-slate-400 text-sm">Стран</p>
+                  <p className="text-2xl font-bold text-blue-400">{uniqueCountries.length}</p>
+                </div>
+                <div className="p-3 bg-blue-500/20 rounded-xl">
+                  <Globe className="h-6 w-6 text-blue-400" />
+                </div>
               </div>
             </div>
-          </div>
 
-          <div className="bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-xl border border-white/20 rounded-2xl p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-slate-400 text-sm">Стран</p>
-                <p className="text-2xl font-bold text-blue-400">{uniqueCountries.length}</p>
-              </div>
-              <div className="p-3 bg-blue-500/20 rounded-xl">
-                <Globe className="h-6 w-6 text-blue-400" />
+            <div className="bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-xl border border-white/20 rounded-2xl p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-slate-400 text-sm">Новых сегодня</p>
+                  <p className="text-2xl font-bold text-teal-400">
+                    {filteredUsers.filter(u => {
+                      const today = new Date()
+                      const userDate = new Date(u.joinedDate)
+                      return userDate.toDateString() === today.toDateString()
+                    }).length}
+                  </p>
+                </div>
+                <div className="p-3 bg-teal-500/20 rounded-xl">
+                  <Clock className="h-6 w-6 text-teal-400" />
+                </div>
               </div>
             </div>
-          </div>
 
-          <div className="bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-xl border border-white/20 rounded-2xl p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-slate-400 text-sm">Новых сегодня</p>
-                <p className="text-2xl font-bold text-teal-400">
-                  {filteredUsers.filter(u => {
-                    const today = new Date()
-                    const userDate = new Date(u.joinedDate)
-                    return userDate.toDateString() === today.toDateString()
-                  }).length}
-                </p>
-              </div>
-              <div className="p-3 bg-teal-500/20 rounded-xl">
-                <Clock className="h-6 w-6 text-teal-400" />
+            <div className="bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-xl border border-white/20 rounded-2xl p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-slate-400 text-sm">Активных</p>
+                  <p className="text-2xl font-bold text-purple-400">{Math.floor(filteredUsers.length * 0.85)}</p>
+                </div>
+                <div className="p-3 bg-purple-500/20 rounded-xl">
+                  <Star className="h-6 w-6 text-purple-400" />
+                </div>
               </div>
             </div>
-          </div>
+          </motion.div>
 
-          <div className="bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-xl border border-white/20 rounded-2xl p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-slate-400 text-sm">Активных</p>
-                <p className="text-2xl font-bold text-purple-400">{Math.floor(filteredUsers.length * 0.85)}</p>
-              </div>
-              <div className="p-3 bg-purple-500/20 rounded-xl">
-                <Star className="h-6 w-6 text-purple-400" />
-              </div>
+          {/* Фильтры */}
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2 }}
+            className="mb-8 flex flex-col lg:flex-row gap-4 justify-between items-center"
+          >
+            <div className="relative flex-1 max-w-md">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-slate-400" />
+              <Input
+                placeholder="Поиск по имени пользователя..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-10 bg-white/10 border-white/20 text-white placeholder:text-slate-400 focus:border-emerald-500/50"
+              />
             </div>
-          </div>
-        </motion.div>
 
-        {/* Фильтры */}
-        <motion.div 
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2 }}
-          className="mb-8 flex flex-col lg:flex-row gap-4 justify-between items-center"
-        >
-          <div className="relative flex-1 max-w-md">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-slate-400" />
-            <Input
-              placeholder="Поиск по имени пользователя..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10 bg-white/10 border-white/20 text-white placeholder:text-slate-400 focus:border-emerald-500/50"
-            />
-          </div>
-
-          <div className="flex gap-2 flex-wrap">
-            <Button
-              variant={filterCountry === "all" ? "default" : "outline"}
-              size="sm"
-              onClick={() => setFilterCountry("all")}
-              className={`${
-                filterCountry === "all"
-                  ? "bg-gradient-to-r from-emerald-500 to-teal-600 text-white"
-                  : "bg-white/10 border-white/20 text-slate-300 hover:bg-white/20"
-              }`}
-            >
-              <Filter className="h-4 w-4 mr-2" />
-              Все страны
-            </Button>
-            {uniqueCountries.slice(0, 4).map((country) => (
+            <div className="flex gap-2 flex-wrap">
               <Button
-                key={country}
-                variant={filterCountry === country ? "default" : "outline"}
+                variant={filterCountry === "all" ? "default" : "outline"}
                 size="sm"
-                onClick={() => setFilterCountry(country || "all")}
+                onClick={() => setFilterCountry("all")}
                 className={`${
-                  filterCountry === country
+                  filterCountry === "all"
                     ? "bg-gradient-to-r from-emerald-500 to-teal-600 text-white"
                     : "bg-white/10 border-white/20 text-slate-300 hover:bg-white/20"
                 }`}
               >
-                {country && countryFlags[country]} {country && countryNames[country]}
+                <Filter className="h-4 w-4 mr-2" />
+                Все страны
               </Button>
-            ))}
-          </div>
-        </motion.div>
-
-        {/* Сетка участников */}
-        <motion.div 
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.3 }}
-          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mb-8"
-        >
-          {filteredUsers.map((user, index) => {
-            const nickname = generateNickname(user.name, user.email)
-            const countryFlag = user.country ? countryFlags[user.country] || '🌍' : '🌍'
-            const countryName = user.country ? countryNames[user.country] || 'Неизвестно' : 'Неизвестно'
-
-            return (
-              <motion.div
-                key={user.id}
-                initial={{ opacity: 0, scale: 0.9 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ delay: index * 0.05 }}
-                className="bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-xl border border-white/20 rounded-2xl p-6 hover:bg-white/15 transition-all duration-300 group hover:scale-105 hover:shadow-2xl"
-              >
-                <div className="flex items-center space-x-4 mb-4">
-                  <div className="w-16 h-16 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-2xl flex items-center justify-center text-white font-bold text-xl">
-                    {nickname.charAt(0).toUpperCase()}
-                  </div>
-                  <div className="flex-1">
-                    <h3 className="text-lg font-semibold text-white group-hover:text-emerald-300 transition-colors">
-                      {nickname}
-                    </h3>
-                    <p className="text-slate-400 text-sm truncate">{user.email}</p>
-                  </div>
-                </div>
-
-                <div className="space-y-3">
-                  <div className="flex items-center space-x-3">
-                    <span className="text-2xl" title={countryName}>
-                      {countryFlag}
-                    </span>
-                    <span className="text-emerald-400 font-medium">{countryName}</span>
-                  </div>
-
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-2">
-                      <div className="w-2 h-2 bg-emerald-400 rounded-full animate-pulse"></div>
-                      <span className="text-emerald-400 text-sm font-medium">АКТИВЕН</span>
-                    </div>
-                    <span className="text-slate-500 text-xs">{formatTimeAgo(user.joinedDate)}</span>
-                  </div>
-
-                  <div className="pt-3 border-t border-white/10">
-                    <p className="text-slate-400 text-xs">
-                      Зарегистрирован: {formatDate(user.joinedDate)}
-                    </p>
-                  </div>
-                </div>
-              </motion.div>
-            )
-          })}
-        </motion.div>
-
-        {filteredUsers.length === 0 && (
-          <motion.div 
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            className="text-center py-16"
-          >
-            <div className="text-6xl mb-4">👥</div>
-            <p className="text-slate-400 text-xl">Участники не найдены</p>
-            <p className="text-slate-500 mt-2">Попробуйте изменить параметры поиска</p>
+              {uniqueCountries.slice(0, 4).map((country) => (
+                <Button
+                  key={country}
+                  variant={filterCountry === country ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => setFilterCountry(country || "all")}
+                  className={`${
+                    filterCountry === country
+                      ? "bg-gradient-to-r from-emerald-500 to-teal-600 text-white"
+                      : "bg-white/10 border-white/20 text-slate-300 hover:bg-white/20"
+                  }`}
+                >
+                  {country && countryFlags[country]} {country && countryNames[country]}
+                </Button>
+              ))}
+            </div>
           </motion.div>
-        )}
+
+          {/* Сетка участников */}
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3 }}
+            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mb-8"
+          >
+            {filteredUsers.map((user, index) => {
+              const nickname = generateNickname(user.name, user.email)
+              const countryFlag = user.country ? countryFlags[user.country] || '🌍' : '🌍'
+              const countryName = user.country ? countryNames[user.country] || 'Неизвестно' : 'Неизвестно'
+
+              return (
+                <motion.div
+                  key={user.id}
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ delay: index * 0.05 }}
+                  className="bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-xl border border-white/20 rounded-2xl p-6 hover:bg-white/15 transition-all duration-300 group hover:scale-105 hover:shadow-2xl"
+                >
+                  <div className="flex items-center space-x-4 mb-4">
+                    <div className="w-16 h-16 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-2xl flex items-center justify-center text-white font-bold text-xl">
+                      {nickname.charAt(0).toUpperCase()}
+                    </div>
+                    <div className="flex-1">
+                      <h3 className="text-lg font-semibold text-white group-hover:text-emerald-300 transition-colors">
+                        {nickname}
+                      </h3>
+                      <p className="text-slate-400 text-sm truncate">{user.email}</p>
+                    </div>
+                  </div>
+
+                  <div className="space-y-3">
+                    <div className="flex items-center space-x-3">
+                      <span className="text-2xl" title={countryName}>
+                        {countryFlag}
+                      </span>
+                      <span className="text-emerald-400 font-medium">{countryName}</span>
+                    </div>
+
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center space-x-2">
+                        <div className="w-2 h-2 bg-emerald-400 rounded-full animate-pulse"></div>
+                        <span className="text-emerald-400 text-sm font-medium">АКТИВЕН</span>
+                      </div>
+                      <span className="text-slate-500 text-xs">{formatTimeAgo(user.joinedDate)}</span>
+                    </div>
+
+                    <div className="pt-3 border-t border-white/10">
+                      <p className="text-slate-400 text-xs">
+                        Зарегистрирован: {formatDate(user.joinedDate)}
+                      </p>
+                    </div>
+                  </div>
+                </motion.div>
+              )
+            })}
+          </motion.div>
+
+          {filteredUsers.length === 0 && (
+            <motion.div 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              className="text-center py-16"
+            >
+              <div className="text-6xl mb-4">👥</div>
+              <p className="text-slate-400 text-xl">Участники не найдены</p>
+              <p className="text-slate-500 mt-2">Попробуйте изменить параметры поиска</p>
+            </motion.div>
+          )}
+        </div>
       </div>
+
+      <Footer />
     </div>
   )
 }
