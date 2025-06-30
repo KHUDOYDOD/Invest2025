@@ -46,8 +46,8 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Проверяем пароль напрямую (без хеширования)
-    const isPasswordValid = password === user.password_hash;
+    // Проверяем пароль с использованием bcrypt
+    const isPasswordValid = await bcrypt.compare(password, user.password_hash);
 
     if (!isPasswordValid) {
       return NextResponse.json(
@@ -75,7 +75,7 @@ export async function POST(request: NextRequest) {
     );
 
     // Определяем URL для редиректа
-    const redirectUrl = user.role_id === 1 ? '/admin/dashboard' : '/dashboard';
+    const redirectUrl = user.role_id <= 2 ? '/admin/dashboard' : '/dashboard';
 
     const response = NextResponse.json({
       success: true,
@@ -85,7 +85,7 @@ export async function POST(request: NextRequest) {
         email: user.email,
         fullName: user.full_name,
         role: user.role_name || 'user',
-        isAdmin: user.role_id === 1
+        isAdmin: user.role_id <= 2
       },
       token: token,
       redirect: redirectUrl

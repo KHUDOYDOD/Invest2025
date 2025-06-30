@@ -134,7 +134,7 @@ export async function POST(request: NextRequest) {
         balance,
         total_invested,
         total_earned
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7, 2, 'active', true, true, 0.00, 0.00, 0.00)
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, 5, 'active', true, true, 0.00, 0.00, 0.00)
       RETURNING id, email, full_name, referral_code, country, country_name
     `, [email, fullName, passwordHash, phone || null, country, countryName, referralCode]);
 
