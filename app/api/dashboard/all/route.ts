@@ -58,8 +58,7 @@ export async function GET(request: NextRequest) {
         i.status,
         ip.name as plan_name,
         COALESCE(ip.daily_return_rate, ip.daily_percent, 0) as daily_return_rate,
-        ip.duration_days,
-        COALESCE(i.total_earned, 0) as total_earned
+        ip.duration_days
       FROM investments i
       LEFT JOIN investment_plans ip ON i.plan_id = ip.id
       WHERE i.user_id = $1
@@ -120,7 +119,6 @@ export async function GET(request: NextRequest) {
         plan_name: inv.plan_name,
         daily_return_rate: parseFloat(inv.daily_return_rate || '0'),
         duration_days: inv.duration_days,
-        total_earned: parseFloat(inv.total_earned),
         status: inv.status,
         created_at: inv.created_at
       })),
