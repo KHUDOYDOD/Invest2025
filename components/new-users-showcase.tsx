@@ -69,7 +69,12 @@ const countryNames: Record<string, string> = {
   'AT': 'Австрия'
 }
 
-export function NewUsersShowcase() {
+interface NewUsersShowcaseProps {
+  limit?: number
+  showButton?: boolean
+}
+
+export function NewUsersShowcase({ limit, showButton = true }: NewUsersShowcaseProps = {}) {
   const [newUsers, setNewUsers] = useState<NewUser[]>([])
   const [loading, setLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState("")
@@ -165,7 +170,8 @@ export function NewUsersShowcase() {
 
   const uniqueCountries = Array.from(new Set(newUsers.map(u => u.country).filter(Boolean)))
 
-  const displayUsers = showAll ? filteredUsers : filteredUsers.slice(0, 5);
+  const displayLimit = limit || 5
+  const displayUsers = showAll ? filteredUsers : filteredUsers.slice(0, displayLimit)
 
   if (loading) {
     return (
@@ -185,6 +191,46 @@ export function NewUsersShowcase() {
 
   if (newUsers.length === 0) {
     return null
+  }
+
+  // Компактный режим для админ панели
+  if (limit && !showButton) {
+    return (
+      <div className="space-y-3">
+        {displayUsers.map((user, index) => {
+          const nickname = generateNickname(user.name, user.email)
+          const countryFlag = user.country ? countryFlags[user.country] || '🌍' : '🌍'
+          const countryName = user.country ? countryNames[user.country] || 'Неизвестно' : 'Неизвестно'
+
+          return (
+            <div
+              key={user.id}
+              className="flex items-center justify-between p-3 bg-slate-700/30 rounded-lg hover:bg-slate-700/50 transition-colors"
+            >
+              <div className="flex items-center space-x-3">
+                <div className="w-8 h-8 bg-gradient-to-r from-emerald-500 to-teal-600 rounded-full flex items-center justify-center text-white font-semibold text-xs">
+                  {nickname.charAt(0).toUpperCase()}
+                </div>
+                <div>
+                  <p className="text-sm text-white font-medium">{nickname}</p>
+                  <p className="text-xs text-slate-400 flex items-center gap-1">
+                    <span>{countryFlag}</span>
+                    {countryName}
+                  </p>
+                </div>
+              </div>
+              <div className="text-right">
+                <div className="flex items-center gap-1 mb-1">
+                  <div className="w-1.5 h-1.5 bg-emerald-400 rounded-full animate-pulse"></div>
+                  <span className="text-xs text-emerald-400 font-medium">НОВЫЙ</span>
+                </div>
+                <p className="text-xs text-slate-500">{formatTimeAgo(user.joinedDate)}</p>
+              </div>
+            </div>
+          )
+        })}
+      </div>
+    )
   }
 
   return (
@@ -333,7 +379,7 @@ export function NewUsersShowcase() {
           </div>
         )}
 
-              {filteredUsers.length > 5 && !showAll && (
+              {showButton && filteredUsers.length > displayLimit && !showAll && (
                 <div className="mt-8 text-center animate-fade-in-delayed">
                   <Button onClick={() => setShowAll(true)}>
                     Показать всех ({filteredUsers.length})

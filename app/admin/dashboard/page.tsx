@@ -179,7 +179,7 @@ export default function AdminDashboard() {
           <CardContent>
             <div className="space-y-3">
               {recentActivity.slice(0, 5).map((activity) => (
-                <div key={activity.id} className="flex items-center space-x-3 p-3 bg-slate-700/30 rounded-lg">
+                <div key={activity.id} className="flex items-center space-x-3 p-3 bg-slate-700/30 rounded-lg hover:bg-slate-700/50 transition-colors">
                   {getActivityIcon(activity.type)}
                   <div className="flex-1 min-w-0">
                     <p className="text-sm text-white truncate">
@@ -189,13 +189,24 @@ export default function AdminDashboard() {
                       {activity.user || activity.amount || activity.plan || activity.details} • {activity.time}
                     </p>
                   </div>
+                  <div className="text-xs text-slate-500">
+                    {activity.type === "deposit" && "💰"}
+                    {activity.type === "withdrawal" && "💸"}
+                    {activity.type === "investment" && "📈"}
+                    {activity.type === "user" && "👤"}
+                    {activity.type === "system" && "⚙️"}
+                  </div>
                 </div>
               ))}
             </div>
             <div className="mt-4">
-              <Button variant="outline" className="w-full text-slate-300 border-slate-600">
+              <Button 
+                variant="outline" 
+                className="w-full text-slate-300 border-slate-600 hover:bg-slate-700/50"
+                onClick={() => window.location.href = '/admin/transactions'}
+              >
                 <Eye className="mr-2 h-4 w-4" />
-                Показать всех
+                Показать все операции
               </Button>
             </div>
           </CardContent>
@@ -210,11 +221,17 @@ export default function AdminDashboard() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <NewUsersShowcase limit={5} />
+            <div className="space-y-3">
+              <NewUsersShowcase limit={5} showButton={false} />
+            </div>
             <div className="mt-4">
-              <Button variant="outline" className="w-full text-slate-300 border-slate-600">
+              <Button 
+                variant="outline" 
+                className="w-full text-slate-300 border-slate-600 hover:bg-slate-700/50"
+                onClick={() => window.location.href = '/admin/users'}
+              >
                 <Eye className="mr-2 h-4 w-4" />
-                Показать всех
+                Показать всех участников
               </Button>
             </div>
           </CardContent>
