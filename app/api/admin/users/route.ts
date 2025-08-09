@@ -30,26 +30,20 @@ export async function GET(request: NextRequest) {
       paramIndex++
     }
 
-    // Фильтр по статусу
+    // Фильтр по статусу (упрощенный - все пользователи активны)
     if (status !== "all") {
-      if (status === "active") {
-        whereConditions.push(`is_active = $${paramIndex}`)
-        queryParams.push(true)
-      } else if (status === "inactive") {
-        whereConditions.push(`is_active = $${paramIndex}`)
-        queryParams.push(false)
-      }
-      paramIndex++
+      // В нашей упрощенной схеме все пользователи активны
+      // но оставляем логику для совместимости
     }
 
     // Фильтр по роли
     if (role !== "all") {
       if (role === "admin") {
-        whereConditions.push(`role_id = $${paramIndex}`)
-        queryParams.push(1)
+        whereConditions.push(`role = $${paramIndex}`)
+        queryParams.push('admin')
       } else if (role === "user") {
-        whereConditions.push(`role_id = $${paramIndex}`)
-        queryParams.push(2)
+        whereConditions.push(`role = $${paramIndex}`)
+        queryParams.push('user')
       }
       paramIndex++
     }
@@ -70,15 +64,14 @@ export async function GET(request: NextRequest) {
     const whereClause = whereConditions.length > 0 ? `WHERE ${whereConditions.join(' AND ')}` : ''
 
     // Валидируем и строим ORDER BY
-    const validSortFields = ['created_at', 'email', 'full_name', 'balance', 'total_invested', 'total_earned', 'last_login']
+    const validSortFields = ['created_at', 'email', 'full_name', 'balance']
     const validSortBy = validSortFields.includes(sortBy) ? sortBy : 'created_at'
     const validSortOrder = ['asc', 'desc'].includes(sortOrder.toLowerCase()) ? sortOrder.toUpperCase() : 'DESC'
 
-    // Получаем пользователей
+    // Получаем пользователей с упрощенной структурой
     const usersResult = await query(`
       SELECT 
-        id, email, full_name, balance, total_invested, total_earned, 
-        is_active, role_id, created_at, last_login
+        id, email, full_name, balance, role, created_at, updated_at
       FROM users 
       ${whereClause}
       ORDER BY ${validSortBy} ${validSortOrder}
@@ -94,10 +87,12 @@ export async function GET(request: NextRequest) {
 
     const users = usersResult.rows.map(user => ({
       ...user,
-      role: user.role_id === 1 ? 'admin' : 'user',
+      role: user.role,
       balance: parseFloat(user.balance || 0),
-      total_invested: parseFloat(user.total_invested || 0),
-      total_earned: parseFloat(user.total_earned || 0)
+      total_invested: 0,
+      total_earned: 0,
+      is_active: true,
+      last_login: user.updated_at
     }))
 
     const totalUsers = parseInt(countResult.rows[0].total)

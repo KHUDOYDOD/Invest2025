@@ -49,17 +49,17 @@ export async function POST(request: NextRequest) {
     // Генерируем реферальный код
     const referralCode = `REF${Date.now()}`;
 
-    // Создаем пользователя
+    // Создаем уникальный ID для пользователя
+    const userId = `user-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+    
+    // Создаем пользователя с упрощенной структурой
     const newUser = await query(`
       INSERT INTO users (
-        email, full_name, password_hash, phone, country, country_name,
-        referral_code, role_id, is_active, is_verified, email_verified,
-        balance, total_invested, total_earned,
-        created_at, updated_at
+        id, email, full_name, password_hash, phone, balance, role, created_at, updated_at
       ) VALUES (
-        $1, $2, $3, $4, $5, $6, $7, 2, true, false, false, 0, 0, 0, NOW(), NOW()
+        $1, $2, $3, $4, $5, 0, 'user', NOW(), NOW()
       ) RETURNING id, email, full_name
-    `, [email, fullName, passwordHash, phone || null, country, country, referralCode]);
+    `, [userId, email, fullName, passwordHash, phone || null]);
 
     const user = newUser.rows[0];
 

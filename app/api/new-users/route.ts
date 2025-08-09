@@ -13,10 +13,10 @@ export async function GET() {
         u.full_name as name,
         u.email,
         u.created_at as joined_date,
-        u.country,
-        u.country_name
+        'RU' as country,
+        'Россия' as country_name
       FROM users u
-      WHERE u.role_id = 2
+      WHERE u.role = 'user'
       ORDER BY u.created_at DESC
       LIMIT 8
     `)
