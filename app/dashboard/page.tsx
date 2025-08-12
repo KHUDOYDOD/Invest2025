@@ -367,82 +367,82 @@ function DashboardContent() {
               transition={{ delay: 0.2 }}
               className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4"
             >
-              <Card className="bg-gradient-to-br from-green-500/20 to-emerald-600/20 backdrop-blur-xl border border-green-500/30 relative overflow-hidden">
+              <Card className="bg-gradient-to-br from-emerald-600 to-green-700 shadow-xl border border-emerald-400/50 relative overflow-hidden">
                 <CardContent className="p-6">
                   <div className="flex items-center justify-between mb-4">
                     <div>
-                      <p className="text-green-200 text-sm">Баланс</p>
-                      <p className="text-green-100 text-xs">Доступные средства</p>
+                      <p className="text-emerald-50 text-sm font-semibold">Реальный баланс</p>
+                      <p className="text-emerald-100 text-xs">Доступные средства</p>
                     </div>
-                    <div className="p-3 bg-green-500/20 rounded-xl">
-                      <Wallet className="h-6 w-6 text-green-400" />
+                    <div className="p-3 bg-emerald-500/30 rounded-xl">
+                      <Wallet className="h-6 w-6 text-emerald-50" />
                     </div>
                   </div>
                   <div className="text-3xl font-bold text-white mb-2">
                     ${Number(userData.balance || 0).toLocaleString()}.00
                   </div>
-                  <div className="flex items-center text-green-300 text-sm">
+                  <div className="flex items-center text-emerald-100 text-sm">
                     <span className="mr-1">💰</span>
                     <span>Реальный баланс</span>
                   </div>
                 </CardContent>
               </Card>
 
-              <Card className="bg-gradient-to-br from-blue-500/20 to-cyan-600/20 backdrop-blur-xl border border-blue-500/30 relative overflow-hidden">
+              <Card className="bg-gradient-to-br from-blue-600 to-indigo-700 shadow-xl border border-blue-400/50 relative overflow-hidden">
                 <CardContent className="p-6">
                   <div className="flex items-center justify-between mb-4">
                     <div>
-                      <p className="text-blue-200 text-sm">Активные инвестиции</p>
+                      <p className="text-blue-50 text-sm font-semibold">Инвестировано</p>
                       <p className="text-blue-100 text-xs">Работающий капитал</p>
                     </div>
-                    <div className="p-3 bg-blue-500/20 rounded-xl">
-                      <TrendingUp className="h-6 w-6 text-blue-400" />
+                    <div className="p-3 bg-blue-500/30 rounded-xl">
+                      <TrendingUp className="h-6 w-6 text-blue-50" />
                     </div>
                   </div>
                   <div className="text-3xl font-bold text-white mb-2">
                     ${Number(userData.totalInvested || 0).toLocaleString()}.00
                   </div>
-                  <div className="flex items-center text-blue-300 text-sm">
+                  <div className="flex items-center text-blue-100 text-sm">
                     <span className="mr-1">📈</span>
                     <span>Инвестировано</span>
                   </div>
                 </CardContent>
               </Card>
 
-              <Card className="bg-gradient-to-br from-purple-500/20 to-violet-600/20 backdrop-blur-xl border border-purple-500/30 relative overflow-hidden">
+              <Card className="bg-gradient-to-br from-purple-600 to-violet-700 shadow-xl border border-purple-400/50 relative overflow-hidden">
                 <CardContent className="p-6">
                   <div className="flex items-center justify-between mb-4">
                     <div>
-                      <p className="text-purple-200 text-sm">Заработано всего</p>
+                      <p className="text-purple-50 text-sm font-semibold">Прибыль</p>
                       <p className="text-purple-100 text-xs">Общая прибыль</p>
                     </div>
-                    <div className="p-3 bg-purple-500/20 rounded-xl">
-                      <BarChart3 className="h-6 w-6 text-purple-400" />
+                    <div className="p-3 bg-purple-500/30 rounded-xl">
+                      <BarChart3 className="h-6 w-6 text-purple-50" />
                     </div>
                   </div>
                   <div className="text-3xl font-bold text-white mb-2">
                     ${Number(userData.totalProfit || 0).toLocaleString()}.00
                   </div>
-                  <div className="flex items-center text-purple-300 text-sm">
+                  <div className="flex items-center text-purple-100 text-sm">
                     <span className="mr-1">💎</span>
                     <span>Прибыль</span>
                   </div>
                 </CardContent>
               </Card>
 
-              <Card className="bg-gradient-to-br from-orange-500/20 to-amber-600/20 backdrop-blur-xl border border-orange-500/30 relative overflow-hidden">
+              <Card className="bg-gradient-to-br from-orange-600 to-amber-700 shadow-xl border border-orange-400/50 relative overflow-hidden">
                 <CardContent className="p-6">
                   <div className="flex items-center justify-between mb-4">
                     <div>
-                      <p className="text-orange-200 text-sm">Рефералы</p>
+                      <p className="text-orange-50 text-sm font-semibold">Друзья</p>
                       <p className="text-orange-100 text-xs">Приглашенные друзья</p>
                     </div>
-                    <div className="p-3 bg-orange-500/20 rounded-xl">
-                      <Users className="h-6 w-6 text-orange-400" />
+                    <div className="p-3 bg-orange-500/30 rounded-xl">
+                      <Users className="h-6 w-6 text-orange-50" />
                     </div>
                   </div>
                   <div className="text-3xl font-bold text-white mb-2">{userData.referralCount || 0}</div>
-                  <div className="flex items-center text-orange-300 text-sm">
+                  <div className="flex items-center text-orange-100 text-sm">
                     <span className="mr-1">👥</span>
                     <span>Друзей</span>
                   </div>
