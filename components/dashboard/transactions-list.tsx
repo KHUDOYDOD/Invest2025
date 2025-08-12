@@ -35,15 +35,18 @@ export function TransactionsList({ limit = 10 }: TransactionsListProps) {
       setLoading(true)
       setError(null)
 
-      const token = localStorage.getItem('token')
-      if (!token) {
+      const token = localStorage.getItem('authToken')
+      const userId = localStorage.getItem('userId')
+      
+      if (!token || !userId) {
         setError('Токен не найден')
         return
       }
 
-      const response = await fetch('/api/dashboard/transactions', {
+      const response = await fetch(`/api/dashboard/all?userId=${userId}`, {
         headers: {
-          'Authorization': `Bearer ${token}`
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
         }
       })
       const data = await response.json()
@@ -51,6 +54,11 @@ export function TransactionsList({ limit = 10 }: TransactionsListProps) {
       if (response.ok) {
         setTransactions(data.transactions || [])
       } else {
+        if (response.status === 401) {
+          localStorage.clear()
+          window.location.href = '/login'
+          return
+        }
         setError(data.error || 'Ошибка загрузки транзакций')
       }
     } catch (error: any) {

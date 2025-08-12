@@ -23,7 +23,7 @@ import {
   Zap,
   Star,
 } from "lucide-react"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 
 interface InvestmentStats {
   totalInvested: number
@@ -36,13 +36,54 @@ interface InvestmentStats {
 
 function InvestmentsContent() {
   const [stats, setStats] = useState<InvestmentStats>({
-    totalInvested: 25000,
-    totalProfit: 8750,
-    activeInvestments: 5,
-    monthlyReturn: 12.5,
-    portfolioValue: 33750,
-    availableBalance: 15000,
+    totalInvested: 0,
+    totalProfit: 0,
+    activeInvestments: 0,
+    monthlyReturn: 0,
+    portfolioValue: 0,
+    availableBalance: 0,
   })
+
+  // Загрузка реальных данных
+  useEffect(() => {
+    const loadStats = async () => {
+      try {
+        const token = localStorage.getItem("authToken")
+        const userId = localStorage.getItem("userId")
+        
+        if (!token || !userId) return
+        
+        const response = await fetch(`/api/dashboard/all?userId=${userId}`, {
+          headers: {
+            "Authorization": `Bearer ${token}`,
+            "Content-Type": "application/json"
+          }
+        })
+        
+        if (response.ok) {
+          const data = await response.json()
+          const user = data.user
+          const investments = data.investments || []
+          
+          const totalInvested = investments.reduce((sum: number, inv: any) => sum + (inv.amount || 0), 0)
+          const totalProfit = investments.reduce((sum: number, inv: any) => sum + (inv.total_profit || 0), 0)
+          
+          setStats({
+            totalInvested: totalInvested,
+            totalProfit: totalProfit,
+            activeInvestments: investments.filter((inv: any) => inv.status === 'active').length,
+            monthlyReturn: totalInvested > 0 ? (totalProfit / totalInvested) * 100 : 0,
+            portfolioValue: totalInvested + totalProfit,
+            availableBalance: user?.balance || 0,
+          })
+        }
+      } catch (error) {
+        console.error("Error loading investment stats:", error)
+      }
+    }
+    
+    loadStats()
+  }, [])
 
   const [selectedTab, setSelectedTab] = useState<"plans" | "active" | "history">("plans")
 

@@ -31,20 +31,34 @@ export function InvestmentsList() {
       setLoading(true)
       setError(null)
       
-      const response = await fetch('/api/dashboard/investments')
+      const token = localStorage.getItem("authToken")
+      const userId = localStorage.getItem("userId")
+      
+      if (!token || !userId) {
+        throw new Error("Токен не найден")
+      }
+      
+      const response = await fetch(`/api/dashboard/all?userId=${userId}`, {
+        headers: {
+          "Authorization": `Bearer ${token}`,
+          "Content-Type": "application/json"
+        }
+      })
+      
       if (!response.ok) {
-        throw new Error('Failed to load investments')
+        if (response.status === 401) {
+          localStorage.clear()
+          window.location.href = "/login"
+          return
+        }
+        throw new Error('Ошибка загрузки данных')
       }
       
       const data = await response.json()
-      if (data.success) {
-        setInvestments(data.investments)
-      } else {
-        throw new Error(data.error || 'Failed to load investments')
-      }
+      setInvestments(data.investments || [])
     } catch (error) {
       console.error("Error loading investments:", error)
-      setError("Ошибка загрузки инвестиций")
+      setError(error instanceof Error ? error.message : "Ошибка загрузки инвестиций")
       setInvestments([])
     } finally {
       setLoading(false)
@@ -96,7 +110,7 @@ export function InvestmentsList() {
           </div>
           <p className="text-red-400">{error}</p>
           <Button
-            onClick={fetchInvestments}
+            onClick={loadInvestments}
             variant="outline"
             className="border-gray-800 text-gray-400 hover:bg-gray-800/50"
           >
