@@ -9,8 +9,9 @@ export async function GET() {
     const usersStats = await query(`
       SELECT 
         COUNT(*) as total_users,
-        COUNT(*) FILTER (WHERE is_active = true) as active_users
+        COUNT(*) as active_users
       FROM users
+      WHERE role = 'user'
     `)
 
     // Получаем статистику инвестиций
@@ -35,7 +36,6 @@ export async function GET() {
     const plansStats = await query(`
       SELECT COUNT(*) as total_plans
       FROM investment_plans
-      WHERE is_active = true
     `)
 
     const users = parseInt(usersStats.rows[0].total_users) || 0

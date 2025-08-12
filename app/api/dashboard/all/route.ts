@@ -34,12 +34,11 @@ export async function GET(request: NextRequest) {
         email, 
         full_name, 
         COALESCE(balance, 0) as balance,
-        COALESCE(total_invested, 0) as total_invested,
-        COALESCE(total_earned, 0) as total_earned,
-        created_at,
-        is_active
+        0 as total_invested,
+        0 as total_earned,
+        created_at
       FROM users 
-      WHERE id = $1 AND is_active = true`,
+      WHERE id = $1`,
       [userId]
     )
 
@@ -57,7 +56,7 @@ export async function GET(request: NextRequest) {
         i.created_at,
         i.status,
         ip.name as plan_name,
-        COALESCE(ip.daily_return_rate, ip.daily_percent, 0) as daily_return_rate,
+        ip.roi_percentage as daily_return_rate,
         ip.duration_days
       FROM investments i
       LEFT JOIN investment_plans ip ON i.plan_id = ip.id
@@ -90,13 +89,9 @@ export async function GET(request: NextRequest) {
         name,
         COALESCE(min_amount, 0) as min_amount,
         COALESCE(max_amount, 0) as max_amount,
-        COALESCE(daily_return_rate, 0) as daily_return_rate,
-        duration_days,
-        description,
-        features,
-        is_active
+        COALESCE(roi_percentage, 0) as daily_return_rate,
+        duration_days
       FROM investment_plans
-      WHERE is_active = true
       ORDER BY min_amount ASC`
     )
 
@@ -137,9 +132,9 @@ export async function GET(request: NextRequest) {
         max_amount: parseFloat(plan.max_amount),
         daily_return: parseFloat(plan.daily_return_rate),
         duration: plan.duration_days,
-        description: plan.description,
-        features: plan.features,
-        is_active: plan.is_active
+        description: `План ${plan.name} с доходностью ${plan.daily_return_rate}%`,
+        features: [`Доходность ${plan.daily_return_rate}%`, `Срок ${plan.duration_days} дней`],
+        is_active: true
       }))
     })
 
