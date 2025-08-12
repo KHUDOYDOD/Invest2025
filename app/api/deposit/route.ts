@@ -20,7 +20,7 @@ export async function POST(request: NextRequest) {
     // Верифицируем токен
     let decoded: any
     try {
-      decoded = jwt.verify(token, process.env.NEXTAUTH_SECRET || 'fallback-secret')
+      decoded = jwt.verify(token, process.env.JWT_SECRET || 'fallback_secret')
     } catch (error) {
       return NextResponse.json({ error: 'Недействительный токен' }, { status: 401 })
     }

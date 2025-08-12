@@ -13,7 +13,7 @@ export async function GET(request: NextRequest) {
         const token = authorization.slice(7)
         try {
           const jwt = require('jsonwebtoken')
-          const decoded = jwt.verify(token, process.env.NEXTAUTH_SECRET || 'fallback-secret') as any
+          const decoded = jwt.verify(token, process.env.JWT_SECRET || 'fallback_secret') as any
           userId = decoded.userId
         } catch (err) {
           console.error('JWT decode error:', err)
